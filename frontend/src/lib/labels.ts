@@ -1,0 +1,88 @@
+// Centralized Mongolian UI strings. Edit here to change wording site-wide.
+
+export const t = {
+  nav: {
+    home: 'Нүүр',
+    vehicles: 'Машинууд',
+    contact: 'Холбоо барих',
+  },
+  common: {
+    noImage: 'Зураг байхгүй',
+    viewAll: 'Бүгдийг үзэх',
+    loading: 'Уншиж байна...',
+    back: 'Буцах',
+  },
+  status: {
+    available: 'Зарагдана',
+    sold: 'Зарагдсан',
+  },
+  home: {
+    heroSubtitle: 'Чанартай машины өргөн сонголт',
+    browseVehicles: 'Машинууд үзэх',
+    featured: 'Онцлох машинууд',
+    latest: 'Шинээр нэмэгдсэн',
+    noVehicles: 'Одоогоор машин бүртгэгдээгүй байна.',
+  },
+  vehicles: {
+    title: 'Машинууд',
+    resultsCount: (n: number) => `${n} машин олдлоо`,
+    noResults: 'Хайлтад тохирох машин олдсонгүй.',
+    filters: {
+      search: 'Хайх',
+      searchPlaceholder: 'Брэнд, модель, тайлбар...',
+      brand: 'Брэнд',
+      year: 'Үйлдвэрлэсэн он',
+      minPrice: 'Доод үнэ',
+      maxPrice: 'Дээд үнэ',
+      sort: 'Эрэмбэлэх',
+      apply: 'Шүүх',
+      reset: 'Цэвэрлэх',
+    },
+    sortOptions: {
+      newest: 'Шинэ эхэндээ',
+      oldest: 'Хуучин эхэндээ',
+      price_asc: 'Үнэ: бага → их',
+      price_desc: 'Үнэ: их → бага',
+      year_desc: 'Он: шинэ → хуучин',
+      year_asc: 'Он: хуучин → шинэ',
+    },
+  },
+  detail: {
+    specs: 'Үзүүлэлт',
+    brand: 'Брэнд',
+    model: 'Модель',
+    year: 'Үйлдвэрлэсэн он',
+    mileage: 'Гүйлт',
+    engine: 'Хөдөлгүүр',
+    exteriorColor: 'Гадна өнгө',
+    interiorColor: 'Дотор өнгө',
+    price: 'Үнэ',
+    description: 'Тайлбар',
+    video: 'Видео',
+  },
+  loan: {
+    title: 'Сарын төлбөрийн тооцоолуур',
+    price: 'Машины үнэ',
+    downPayment: 'Урьдчилгаа (%)',
+    interestRate: 'Хүү (жилийн %)',
+    term: 'Хугацаа (сар)',
+    loanAmount: 'Зээлийн дүн',
+    monthlyPayment: 'Сарын төлбөр',
+    totalInterest: 'Нийт хүү',
+    totalPayment: 'Нийт төлбөр',
+    disclaimer:
+      'Энэхүү тооцоолол нь зөвхөн ойролцоо дүн бөгөөд албан ёсны санал биш.',
+  },
+  contact: {
+    title: 'Холбоо барих',
+    phone: 'Утас',
+    email: 'И-мэйл',
+    address: 'Хаяг',
+    viewMap: 'Газрын зураг дээр харах',
+    followUs: 'Биднийг дагаарай',
+  },
+  footer: {
+    quickLinks: 'Холбоосууд',
+    rights: 'Бүх эрх хуулиар хамгаалагдсан.',
+  },
+};

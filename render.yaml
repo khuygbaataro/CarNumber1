@@ -1,0 +1,37 @@
+# Render Blueprint for the backend API.
+# In Render: New + → Blueprint → connect this repo. Render reads this file.
+# Fill the `sync: false` secrets in the Render dashboard after creation.
+services:
+  - type: web
+    name: dealership-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_SECRET
+        generateValue: true # Render generates a strong random secret
+      - key: SEED_ON_START
+        value: "true" # auto-create the admin on first boot
+      # --- Secrets: set these in the Render dashboard ---
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URL
+        sync: false # your Vercel URL, e.g. https://your-app.vercel.app
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

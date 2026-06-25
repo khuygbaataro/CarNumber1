@@ -13,7 +13,14 @@ const app = express();
 
 // --- Core middleware ---
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
+// CLIENT_URL may be a comma-separated list of allowed origins.
+// If unset, reflect the request origin (allow all) — fine for a public,
+// token-authenticated API with no cookies.
+const allowedOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true }));
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
