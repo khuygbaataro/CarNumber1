@@ -51,6 +51,22 @@ export interface Settings {
   social: Social;
 }
 
+export interface VehicleFormData {
+  brand: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number;
+  engine: string;
+  exteriorColor: string;
+  interiorColor: string;
+  description: string;
+  images: string[];
+  video: string;
+  status: VehicleStatus;
+  featured: boolean;
+}
+
 export interface VehicleQuery {
   brand?: string;
   model?: string;

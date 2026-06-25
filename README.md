@@ -46,8 +46,8 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) — MongoDB Atlas + Cloudinary + Render (back
 
 - ✅ Backend API (auth, vehicles, settings, uploads)
 - ✅ Frontend — public site (Home, Vehicle List, Vehicle Detail + loan calculator)
-- ⏳ Frontend — admin panel
-- ⏳ Deployment
+- ✅ Frontend — admin panel (login, vehicle CRUD, image/video upload, settings)
+- ✅ Deployment (backend → Render, frontend → Vercel, DB → MongoDB Atlas)
 
 > Notes: public UI is in **Mongolian**; prices in **₮ (MNT)**.
 > Stack: Next.js 16 · React 19 · TypeScript · Tailwind · Express · MongoDB.
