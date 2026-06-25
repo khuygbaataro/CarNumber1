@@ -45,6 +45,20 @@ This repo includes [`render.yaml`](render.yaml), so Render configures itself.
    - Test it: open `https://dealership-api.onrender.com/api/health` → `{"success":true}`.
    - `SEED_ON_START=true` auto-creates your admin on first boot.
 
+### 3b. (Optional) Load sample data
+
+To show demo vehicles immediately, run the sample seed **once** from your
+machine against the Atlas database:
+
+```bash
+cd backend
+# In backend/.env set MONGODB_URI to your Atlas connection string, then:
+npm run seed:sample
+```
+
+This adds ~6 demo vehicles + sample settings (placeholder images). Replace
+them later via the admin panel. Safe to re-run — it skips data that exists.
+
 > ⚠️ Render free tier **sleeps after 15 min** of inactivity; the first request
 > then takes ~30–50s to wake. Fine for a demo.
 
