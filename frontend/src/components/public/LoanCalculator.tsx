@@ -89,20 +89,24 @@ export default function LoanCalculator({
         </div>
       </div>
 
-      {/* Down payment — the number customers care about most */}
-      <div className="mt-6 rounded-xl bg-brand p-5 text-white shadow">
-        <p className="text-sm text-blue-100">{t.loan.downAmount}</p>
-        <p className="mt-1 text-3xl font-extrabold sm:text-4xl">{formatPrice(downAmount)}</p>
-      </div>
-
-      {/* Monthly payment for the selected term */}
-      <div className="mt-3 rounded-xl bg-white p-5 ring-2 ring-brand">
-        <p className="text-sm text-gray-500">
-          {t.loan.monthlyPayment} ({term} {t.loan.months})
-        </p>
-        <p className="mt-1 text-2xl font-extrabold text-brand sm:text-3xl">
-          {formatPrice(monthly)}
-        </p>
+      {/* Highlighted result — the figures buyers care about most */}
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl bg-gradient-to-br from-brand to-brand-dark p-6 text-center text-white shadow-lg">
+          <p className="text-xs font-semibold uppercase tracking-wider text-blue-100">
+            {t.loan.downAmount}
+          </p>
+          <p className="mt-2 text-3xl font-extrabold sm:text-4xl">
+            {formatPrice(downAmount)}
+          </p>
+        </div>
+        <div className="rounded-2xl border-2 border-brand bg-blue-50 p-6 text-center shadow-lg">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand/70">
+            {t.loan.monthlyPayment} · {term} {t.loan.months}
+          </p>
+          <p className="mt-2 text-3xl font-extrabold text-brand sm:text-4xl">
+            {formatPrice(monthly)}
+          </p>
+        </div>
       </div>
 
       <p className="mt-4 text-xs text-gray-400">{t.loan.disclaimer}</p>

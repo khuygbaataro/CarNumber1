@@ -4,6 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { t } from '@/lib/labels';
 
+// Toggle to `true` to restore the full filter set (search / brand / year / sort).
+// Kept here so the change is easy to revert.
+const SHOW_ALL_FILTERS = false;
+
 const SORT_KEYS = [
   'newest',
   'oldest',
@@ -49,49 +53,53 @@ export default function SearchFilters() {
       className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 sm:p-6"
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="sm:col-span-2 lg:col-span-3">
-          <label className="label">{t.vehicles.filters.search}</label>
-          <input
-            className="input"
-            placeholder={t.vehicles.filters.searchPlaceholder}
-            value={form.search}
-            onChange={(e) => update('search', e.target.value)}
-          />
-        </div>
+        {SHOW_ALL_FILTERS && (
+          <>
+            <div className="sm:col-span-2 lg:col-span-3">
+              <label className="label">{t.vehicles.filters.search}</label>
+              <input
+                className="input"
+                placeholder={t.vehicles.filters.searchPlaceholder}
+                value={form.search}
+                onChange={(e) => update('search', e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className="label">{t.vehicles.filters.brand}</label>
-          <input
-            className="input"
-            value={form.brand}
-            onChange={(e) => update('brand', e.target.value)}
-          />
-        </div>
+            <div>
+              <label className="label">{t.vehicles.filters.brand}</label>
+              <input
+                className="input"
+                value={form.brand}
+                onChange={(e) => update('brand', e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className="label">{t.vehicles.filters.year}</label>
-          <input
-            type="number"
-            className="input"
-            value={form.year}
-            onChange={(e) => update('year', e.target.value)}
-          />
-        </div>
+            <div>
+              <label className="label">{t.vehicles.filters.year}</label>
+              <input
+                type="number"
+                className="input"
+                value={form.year}
+                onChange={(e) => update('year', e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className="label">{t.vehicles.filters.sort}</label>
-          <select
-            className="input"
-            value={form.sort}
-            onChange={(e) => update('sort', e.target.value)}
-          >
-            {SORT_KEYS.map((key) => (
-              <option key={key} value={key}>
-                {t.vehicles.sortOptions[key]}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div>
+              <label className="label">{t.vehicles.filters.sort}</label>
+              <select
+                className="input"
+                value={form.sort}
+                onChange={(e) => update('sort', e.target.value)}
+              >
+                {SORT_KEYS.map((key) => (
+                  <option key={key} value={key}>
+                    {t.vehicles.sortOptions[key]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
 
         <div>
           <label className="label">{t.vehicles.filters.minPrice}</label>

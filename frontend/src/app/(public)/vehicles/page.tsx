@@ -32,7 +32,8 @@ export default async function VehiclesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const query = toQuery(await searchParams);
-  const { items, pagination } = await getVehiclesSafe(query);
+  // Public site never shows sold vehicles — always restrict to available.
+  const { items, pagination } = await getVehiclesSafe({ ...query, status: 'available' });
 
   return (
     <div className="container-page py-8">

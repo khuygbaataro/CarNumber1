@@ -122,6 +122,7 @@ export const t = {
       confirmDelete: 'Энэ машиныг устгахдаа итгэлтэй байна уу?',
       empty: 'Машин бүртгэгдээгүй байна.',
       loadError: 'Мэдээлэл татахад алдаа гарлаа.',
+      filterAll: 'Бүгд',
       colVehicle: 'Машин',
       colYear: 'Он',
       colPrice: 'Үнэ',

@@ -13,6 +13,7 @@ export default function AdminVehiclesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState('');
+  const [filter, setFilter] = useState<'all' | 'available' | 'sold'>('all');
 
   const load = () => {
     setLoading(true);
@@ -24,6 +25,13 @@ export default function AdminVehiclesPage() {
   };
 
   useEffect(load, []);
+
+  const counts = {
+    all: vehicles.length,
+    available: vehicles.filter((v) => v.status === 'available').length,
+    sold: vehicles.filter((v) => v.status === 'sold').length,
+  };
+  const shown = filter === 'all' ? vehicles : vehicles.filter((v) => v.status === filter);
 
   const toggleStatus = async (v: Vehicle) => {
     setBusyId(v._id);
@@ -62,10 +70,34 @@ export default function AdminVehiclesPage() {
 
       {error && <p className="mt-4 text-sm text-accent">{error}</p>}
 
-      <div className="mt-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+      {/* Status filter — keeps sold vehicles separate from the active ones */}
+      <div className="mt-6 flex flex-wrap gap-2">
+        {(
+          [
+            { key: 'all', label: t.admin.vehicles.filterAll },
+            { key: 'available', label: t.status.available },
+            { key: 'sold', label: t.status.sold },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setFilter(tab.key)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              filter === tab.key
+                ? 'bg-brand text-white'
+                : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            {tab.label} ({counts[tab.key]})
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
         {loading ? (
           <p className="p-6 text-center text-gray-500">{t.common.loading}</p>
-        ) : vehicles.length === 0 ? (
+        ) : shown.length === 0 ? (
           <p className="p-6 text-center text-gray-500">{t.admin.vehicles.empty}</p>
         ) : (
           <div className="overflow-x-auto">
@@ -80,7 +112,7 @@ export default function AdminVehiclesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {vehicles.map((v) => (
+                {shown.map((v) => (
                   <tr key={v._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
