@@ -21,6 +21,11 @@ export default function LoanCalculator({
   const [downPercent, setDownPercent] = useState(minDown);
   const [term, setTerm] = useState(terms[0]);
 
+  const downAmount = useMemo(
+    () => Math.max(0, (Math.max(0, price) * downPercent) / 100),
+    [price, downPercent]
+  );
+
   const loanAmount = useMemo(
     () => calcLoanAmount(price, downPercent),
     [price, downPercent]
@@ -58,7 +63,10 @@ export default function LoanCalculator({
             max={100}
             onChange={(e) => onDownChange(e.target.value)}
           />
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-sm font-semibold text-gray-700">
+            = {formatPrice(downAmount)}
+          </p>
+          <p className="text-xs text-gray-400">
             {t.loan.minDownNote}: {minDown}%
           </p>
         </div>
@@ -101,7 +109,11 @@ export default function LoanCalculator({
       </div>
 
       {/* Result */}
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="rounded-lg bg-gray-50 p-4">
+          <p className="text-xs text-gray-500">{t.loan.downAmount}</p>
+          <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(downAmount)}</p>
+        </div>
         <div className="rounded-lg bg-gray-50 p-4">
           <p className="text-xs text-gray-500">{t.loan.loanAmount}</p>
           <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(loanAmount)}</p>

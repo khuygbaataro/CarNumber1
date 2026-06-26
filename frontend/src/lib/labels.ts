@@ -19,6 +19,7 @@ export const t = {
   home: {
     heroSubtitle: 'Чанартай машины өргөн сонголт',
     browseVehicles: 'Машинууд үзэх',
+    forSale: 'Зарагдаж буй машинууд',
     featured: 'Онцлох машинууд',
     latest: 'Шинээр нэмэгдсэн',
     noVehicles: 'Одоогоор машин бүртгэгдээгүй байна.',
@@ -69,6 +70,7 @@ export const t = {
     selectTerm: 'Хугацаагаа сонгоно уу',
     months: 'сар',
     perMonth: '/сар',
+    downAmount: 'Урьдчилгааны дүн',
     loanAmount: 'Зээлийн дүн',
     monthlyPayment: 'Сарын төлбөр',
     minDownNote: 'Хамгийн бага урьдчилгаа',

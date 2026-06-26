@@ -32,10 +32,6 @@ export default function AdminDashboard() {
       label: t.admin.dashboard.sold,
       value: vehicles.filter((v) => v.status === 'sold').length,
     },
-    {
-      label: t.admin.dashboard.featured,
-      value: vehicles.filter((v) => v.featured).length,
-    },
   ];
 
   return (
@@ -47,7 +43,7 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <div key={s.label} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
             <p className="text-sm text-gray-500">{s.label}</p>

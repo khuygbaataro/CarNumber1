@@ -110,12 +110,6 @@ export default function VehicleForm({
               <option value="sold">{t.status.sold}</option>
             </select>
           </Field>
-          <div className="flex items-end">
-            <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
-              <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-brand" checked={form.featured} onChange={(e) => set('featured', e.target.checked)} />
-              {t.admin.form.featured}
-            </label>
-          </div>
         </div>
 
         <div className="mt-4">
