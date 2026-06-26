@@ -27,7 +27,7 @@ export default function SearchFilters() {
     year: params.get('year') ?? '',
     minPrice: params.get('minPrice') ?? '',
     maxPrice: params.get('maxPrice') ?? '',
-    sort: params.get('sort') ?? 'newest',
+    sort: params.get('sort') ?? 'price_asc',
   });
 
   const update = (key: keyof typeof form, value: string) =>
@@ -37,13 +37,13 @@ export default function SearchFilters() {
     e.preventDefault();
     const q = new URLSearchParams();
     Object.entries(form).forEach(([key, value]) => {
-      if (value && !(key === 'sort' && value === 'newest')) q.set(key, value);
+      if (value && !(key === 'sort' && value === 'price_asc')) q.set(key, value);
     });
     router.push(`/vehicles${q.toString() ? `?${q.toString()}` : ''}`);
   };
 
   const reset = () => {
-    setForm({ search: '', brand: '', year: '', minPrice: '', maxPrice: '', sort: 'newest' });
+    setForm({ search: '', brand: '', year: '', minPrice: '', maxPrice: '', sort: 'price_asc' });
     router.push('/vehicles');
   };
 
