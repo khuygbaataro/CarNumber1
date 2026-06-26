@@ -21,6 +21,7 @@ const empty: VehicleFormData = {
   video: '',
   status: 'available',
   featured: false,
+  downPercent: null,
 };
 
 function fromVehicle(v: Vehicle): VehicleFormData {
@@ -38,6 +39,7 @@ function fromVehicle(v: Vehicle): VehicleFormData {
     video: v.video ?? '',
     status: v.status,
     featured: v.featured,
+    downPercent: v.downPercent ?? null,
   };
 }
 
@@ -109,6 +111,20 @@ export default function VehicleForm({
               <option value="available">{t.status.available}</option>
               <option value="sold">{t.status.sold}</option>
             </select>
+          </Field>
+          <Field label={t.admin.form.downPercent}>
+            <input
+              type="number"
+              className="input"
+              value={form.downPercent ?? ''}
+              min={0}
+              max={100}
+              placeholder={t.admin.form.downPercentPlaceholder}
+              onChange={(e) =>
+                set('downPercent', e.target.value === '' ? null : Number(e.target.value))
+              }
+            />
+            <p className="mt-1 text-xs text-gray-400">{t.admin.form.downPercentHint}</p>
           </Field>
         </div>
 

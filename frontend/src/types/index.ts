@@ -15,6 +15,7 @@ export interface Vehicle {
   video?: string;
   status: VehicleStatus;
   featured: boolean;
+  downPercent?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -72,6 +73,7 @@ export interface VehicleFormData {
   video: string;
   status: VehicleStatus;
   featured: boolean;
+  downPercent: number | null;
 }
 
 export interface VehicleQuery {

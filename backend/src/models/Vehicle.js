@@ -20,6 +20,8 @@ const vehicleSchema = new mongoose.Schema(
       index: true,
     },
     featured: { type: Boolean, default: false, index: true },
+    // Optional per-vehicle down payment %. null = use the global setting.
+    downPercent: { type: Number, default: null },
   },
   { timestamps: true }
 );

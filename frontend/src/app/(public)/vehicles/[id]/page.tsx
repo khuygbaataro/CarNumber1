@@ -33,6 +33,13 @@ export default async function VehicleDetailPage({ params }: Props) {
 
   const title = `${vehicle.brand} ${vehicle.model}`;
 
+  // Per-vehicle down payment % overrides the global default in the calculator.
+  const baseLoan = settings.loan ?? DEFAULT_LOAN_CONFIG;
+  const loanConfig = {
+    ...baseLoan,
+    minDownPercent: vehicle.downPercent ?? baseLoan.minDownPercent,
+  };
+
   return (
     <div className="container-page py-8">
       <Link href="/vehicles" className="text-sm font-medium text-brand hover:underline">
@@ -88,7 +95,7 @@ export default async function VehicleDetailPage({ params }: Props) {
 
       {/* Loan calculator */}
       <div className="mt-10">
-        <LoanCalculator price={vehicle.price} config={settings.loan ?? DEFAULT_LOAN_CONFIG} />
+        <LoanCalculator price={vehicle.price} config={loanConfig} />
       </div>
     </div>
   );

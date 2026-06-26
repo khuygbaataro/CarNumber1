@@ -12,7 +12,9 @@ export default function VehicleCard({
   downPercent?: number;
 }) {
   const cover = vehicle.images?.[0];
-  const downAmount = Math.max(0, (vehicle.price * downPercent) / 100);
+  // Per-vehicle % overrides the global default when set.
+  const effectiveDown = vehicle.downPercent ?? downPercent;
+  const downAmount = Math.max(0, (vehicle.price * effectiveDown) / 100);
 
   return (
     <Link
@@ -50,7 +52,7 @@ export default function VehicleCard({
         </p>
         <div className="mt-2">
           <p className="text-xs font-medium text-gray-400">
-            {t.common.downPayment} ({downPercent}%)
+            {t.common.downPayment} ({effectiveDown}%)
           </p>
           <p className="text-lg font-bold text-brand">{formatPrice(downAmount)}</p>
           <p className="mt-0.5 text-xs text-gray-400">
