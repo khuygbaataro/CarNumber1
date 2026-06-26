@@ -16,12 +16,39 @@ const getSettings = async (req, res, next) => {
 // by change tracking).
 const updateSettings = async (req, res, next) => {
   try {
-    const { companyName, logo, banner, contact, social, loan } = req.body;
+    const {
+      companyName,
+      logo,
+      banner,
+      contact,
+      social,
+      loan,
+      about,
+      workingHours,
+      testimonials,
+      partners,
+    } = req.body;
     const $set = {};
 
     if (companyName !== undefined) $set.companyName = companyName;
     if (logo !== undefined) $set.logo = logo;
     if (banner !== undefined) $set.banner = banner;
+    if (about !== undefined) $set.about = String(about).slice(0, 2000);
+    if (workingHours !== undefined) $set.workingHours = String(workingHours).slice(0, 200);
+    if (Array.isArray(testimonials)) {
+      $set.testimonials = testimonials
+        .filter((x) => x && (x.name || x.text))
+        .map((x) => ({
+          name: String(x.name || '').slice(0, 100),
+          text: String(x.text || '').slice(0, 500),
+        }))
+        .slice(0, 20);
+    }
+    if (Array.isArray(partners)) {
+      $set.partners = partners
+        .filter((u) => typeof u === 'string' && u)
+        .slice(0, 20);
+    }
 
     if (contact) {
       if (contact.phone !== undefined) $set['contact.phone'] = contact.phone;

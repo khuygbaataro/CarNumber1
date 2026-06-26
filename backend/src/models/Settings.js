@@ -15,6 +15,14 @@ const settingsSchema = new mongoose.Schema(
       instagram: { type: String, default: '' },
       youtube: { type: String, default: '' },
     },
+    // Trust signals (all admin-editable, optional).
+    about: { type: String, default: '' },
+    workingHours: { type: String, default: '' },
+    testimonials: {
+      type: [{ name: String, text: String, _id: false }],
+      default: [],
+    },
+    partners: { type: [String], default: [] }, // partner logo URLs
     // Loan calculator config — set once by admin, applies to all vehicles.
     loan: {
       minDownPercent: { type: Number, default: 30 }, // minimum down payment %

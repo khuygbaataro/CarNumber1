@@ -2,6 +2,9 @@ import Link from 'next/link';
 import Banner from '@/components/public/Banner';
 import VehicleCard from '@/components/public/VehicleCard';
 import ContactSection from '@/components/public/ContactSection';
+import AboutSection from '@/components/public/AboutSection';
+import TestimonialsSection from '@/components/public/TestimonialsSection';
+import PartnersSection from '@/components/public/PartnersSection';
 import { getSettingsSafe, getVehiclesSafe } from '@/lib/api';
 import { t } from '@/lib/labels';
 
@@ -36,6 +39,9 @@ export default async function HomePage() {
         )}
       </section>
 
+      <AboutSection settings={settings} />
+      <TestimonialsSection testimonials={settings.testimonials} />
+      <PartnersSection partners={settings.partners} />
       <ContactSection settings={settings} />
     </>
   );

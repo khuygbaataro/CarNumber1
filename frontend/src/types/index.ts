@@ -50,6 +50,11 @@ export interface LoanConfig {
   termOptions: number[]; // months, e.g. [12, 24, 36]
 }
 
+export interface Testimonial {
+  name: string;
+  text: string;
+}
+
 export interface Settings {
   companyName: string;
   logo: string;
@@ -57,6 +62,10 @@ export interface Settings {
   contact: Contact;
   social: Social;
   loan: LoanConfig;
+  about: string;
+  workingHours: string;
+  testimonials: Testimonial[];
+  partners: string[];
 }
 
 export interface VehicleFormData {

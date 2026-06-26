@@ -75,6 +75,20 @@ export default function ContactSection({ settings }: { settings: Settings }) {
           </div>
         )}
 
+        {contact.address && (
+          <div className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-xl ring-1 ring-gray-200">
+            <iframe
+              title="map"
+              src={`https://www.google.com/maps?q=${encodeURIComponent(
+                contact.address
+              )}&output=embed`}
+              className="h-64 w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        )}
+
         <div className="mx-auto mt-10 max-w-2xl">
           <LeadForm />
         </div>

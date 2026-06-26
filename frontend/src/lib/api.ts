@@ -32,6 +32,10 @@ export const DEFAULT_SETTINGS: Settings = {
   contact: { phone: '', email: '', address: '' },
   social: { facebook: '', instagram: '', youtube: '' },
   loan: { minDownPercent: 30, monthlyInterestRate: 2.8, termOptions: [12, 24, 36] },
+  about: '',
+  workingHours: '',
+  testimonials: [],
+  partners: [],
 };
 
 // --- Raw fetchers (may throw) ---

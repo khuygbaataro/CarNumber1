@@ -6,6 +6,7 @@ import { adminApi } from '@/lib/adminApi';
 import { Settings } from '@/types';
 import { DEFAULT_SETTINGS } from '@/lib/api';
 import { t } from '@/lib/labels';
+import ImageUploader from '@/components/admin/ImageUploader';
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState<Settings>(DEFAULT_SETTINGS);
@@ -19,7 +20,11 @@ export default function AdminSettingsPage() {
     adminApi
       .getSettings()
       .then((data) => {
-        const normalized = { ...data, loan: data.loan ?? DEFAULT_SETTINGS.loan };
+        const normalized = {
+          ...DEFAULT_SETTINGS,
+          ...data,
+          loan: data.loan ?? DEFAULT_SETTINGS.loan,
+        };
         setForm(normalized);
         if (normalized.loan.termOptions?.length) {
           setTermText(normalized.loan.termOptions.join(', '));
@@ -47,7 +52,11 @@ export default function AdminSettingsPage() {
         },
       };
       const updated = await adminApi.updateSettings(payload);
-      const normalized = { ...updated, loan: updated.loan ?? DEFAULT_SETTINGS.loan };
+      const normalized = {
+        ...DEFAULT_SETTINGS,
+        ...updated,
+        loan: updated.loan ?? DEFAULT_SETTINGS.loan,
+      };
       setForm(normalized);
       if (normalized.loan.termOptions?.length) {
         setTermText(normalized.loan.termOptions.join(', '));
@@ -59,6 +68,24 @@ export default function AdminSettingsPage() {
       setSaving(false);
     }
   };
+
+  const addTestimonial = () =>
+    setForm((f) => ({
+      ...f,
+      testimonials: [...f.testimonials, { name: '', text: '' }],
+    }));
+  const updateTestimonial = (i: number, field: 'name' | 'text', value: string) =>
+    setForm((f) => ({
+      ...f,
+      testimonials: f.testimonials.map((it, idx) =>
+        idx === i ? { ...it, [field]: value } : it
+      ),
+    }));
+  const removeTestimonial = (i: number) =>
+    setForm((f) => ({
+      ...f,
+      testimonials: f.testimonials.filter((_, idx) => idx !== i),
+    }));
 
   if (loading) return <p className="text-gray-500">{t.common.loading}</p>;
 
@@ -145,6 +172,72 @@ export default function AdminSettingsPage() {
             />
           </div>
         </div>
+      </Card>
+
+      <Card title={t.admin.settings.trustSection}>
+        <div>
+          <label className="label">{t.admin.settings.about}</label>
+          <textarea
+            className="input min-h-[100px]"
+            value={form.about}
+            onChange={(e) => setForm({ ...form, about: e.target.value })}
+          />
+        </div>
+        <div className="mt-4">
+          <label className="label">{t.admin.settings.workingHours}</label>
+          <input
+            className="input"
+            value={form.workingHours}
+            onChange={(e) => setForm({ ...form, workingHours: e.target.value })}
+          />
+        </div>
+      </Card>
+
+      <Card title={t.admin.settings.testimonialsSection}>
+        <div className="space-y-3">
+          {form.testimonials.map((item, i) => (
+            <div
+              key={i}
+              className="rounded-lg border border-gray-200 p-3"
+            >
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <input
+                  className="input"
+                  placeholder={t.admin.settings.testimonialName}
+                  value={item.name}
+                  onChange={(e) => updateTestimonial(i, 'name', e.target.value)}
+                />
+                <input
+                  className="input sm:col-span-2"
+                  placeholder={t.admin.settings.testimonialText}
+                  value={item.text}
+                  onChange={(e) => updateTestimonial(i, 'text', e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeTestimonial(i)}
+                className="mt-2 text-xs font-medium text-accent hover:underline"
+              >
+                {t.admin.settings.remove}
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={addTestimonial}
+          className="btn-outline mt-3"
+        >
+          {t.admin.settings.addTestimonial}
+        </button>
+      </Card>
+
+      <Card title={t.admin.settings.partnersSection}>
+        <ImageUploader
+          value={form.partners}
+          onChange={(urls) => setForm({ ...form, partners: urls })}
+        />
       </Card>
 
       <Card title={t.admin.settings.loanSection}>
