@@ -25,19 +25,11 @@ export default function LoanCalculator({
     () => Math.max(0, (Math.max(0, price) * downPercent) / 100),
     [price, downPercent]
   );
-
-  const loanAmount = useMemo(
-    () => calcLoanAmount(price, downPercent),
-    [price, downPercent]
+  const loanAmount = useMemo(() => calcLoanAmount(price, downPercent), [price, downPercent]);
+  const monthly = useMemo(
+    () => calcMonthlyPayment(loanAmount, rate, term),
+    [loanAmount, rate, term]
   );
-
-  // Monthly payment for every term option (so all choices are visible).
-  const perTerm = useMemo(
-    () => terms.map((m) => ({ months: m, monthly: calcMonthlyPayment(loanAmount, rate, m) })),
-    [terms, loanAmount, rate]
-  );
-
-  const selected = perTerm.find((x) => x.months === term) ?? perTerm[0];
 
   const onDownChange = (v: string) => {
     const n = v === '' ? minDown : Number(v);
@@ -48,6 +40,7 @@ export default function LoanCalculator({
     <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
       <h2 className="text-lg font-bold text-gray-900">{t.loan.title}</h2>
 
+      {/* Inputs */}
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
           <label className="label">{t.loan.price}</label>
@@ -63,10 +56,7 @@ export default function LoanCalculator({
             max={100}
             onChange={(e) => onDownChange(e.target.value)}
           />
-          <p className="mt-1 text-sm font-semibold text-gray-700">
-            = {formatPrice(downAmount)}
-          </p>
-          <p className="text-xs text-gray-400">
+          <p className="mt-1 text-xs text-gray-400">
             {t.loan.minDownNote}: {minDown}%
           </p>
         </div>
@@ -76,54 +66,43 @@ export default function LoanCalculator({
         </div>
       </div>
 
-      {/* Term options — each shows its monthly payment; tap to select */}
+      {/* Term — minimal: just the month numbers */}
       <div className="mt-5">
-        <p className="label">{t.loan.selectTerm}</p>
+        <p className="label">
+          {t.loan.term} ({t.loan.months})
+        </p>
         <div className="grid grid-cols-3 gap-3">
-          {perTerm.map((opt) => {
-            const active = opt.months === selected.months;
-            return (
-              <button
-                key={opt.months}
-                type="button"
-                onClick={() => setTerm(opt.months)}
-                className={`rounded-lg border p-3 text-center transition ${
-                  active
-                    ? 'border-brand bg-brand text-white shadow'
-                    : 'border-gray-200 bg-white hover:border-brand'
-                }`}
-              >
-                <div className="text-sm font-semibold">
-                  {opt.months} {t.loan.months}
-                </div>
-                <div className={`mt-1 text-sm font-bold ${active ? 'text-white' : 'text-brand'}`}>
-                  {formatPrice(opt.monthly)}
-                </div>
-                <div className={`text-[11px] ${active ? 'text-blue-100' : 'text-gray-400'}`}>
-                  {t.loan.perMonth}
-                </div>
-              </button>
-            );
-          })}
+          {terms.map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setTerm(m)}
+              className={`rounded-lg border py-3 text-center text-lg font-bold transition ${
+                m === term
+                  ? 'border-brand bg-brand text-white shadow'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-brand'
+              }`}
+            >
+              {m}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Result */}
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-gray-50 p-4">
-          <p className="text-xs text-gray-500">{t.loan.downAmount}</p>
-          <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(downAmount)}</p>
-        </div>
-        <div className="rounded-lg bg-gray-50 p-4">
-          <p className="text-xs text-gray-500">{t.loan.loanAmount}</p>
-          <p className="mt-1 text-xl font-bold text-gray-900">{formatPrice(loanAmount)}</p>
-        </div>
-        <div className="rounded-lg bg-brand p-4 text-white">
-          <p className="text-xs text-blue-100">
-            {t.loan.monthlyPayment} ({selected.months} {t.loan.months})
-          </p>
-          <p className="mt-1 text-xl font-bold">{formatPrice(selected.monthly)}</p>
-        </div>
+      {/* Down payment — the number customers care about most */}
+      <div className="mt-6 rounded-xl bg-brand p-5 text-white shadow">
+        <p className="text-sm text-blue-100">{t.loan.downAmount}</p>
+        <p className="mt-1 text-3xl font-extrabold sm:text-4xl">{formatPrice(downAmount)}</p>
+      </div>
+
+      {/* Monthly payment for the selected term */}
+      <div className="mt-3 rounded-xl bg-white p-5 ring-2 ring-brand">
+        <p className="text-sm text-gray-500">
+          {t.loan.monthlyPayment} ({term} {t.loan.months})
+        </p>
+        <p className="mt-1 text-2xl font-extrabold text-brand sm:text-3xl">
+          {formatPrice(monthly)}
+        </p>
       </div>
 
       <p className="mt-4 text-xs text-gray-400">{t.loan.disclaimer}</p>
