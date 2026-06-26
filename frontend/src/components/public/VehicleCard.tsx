@@ -4,8 +4,15 @@ import { Vehicle } from '@/types';
 import { formatPrice, formatMileage } from '@/lib/format';
 import { t } from '@/lib/labels';
 
-export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+export default function VehicleCard({
+  vehicle,
+  downPercent = 30,
+}: {
+  vehicle: Vehicle;
+  downPercent?: number;
+}) {
   const cover = vehicle.images?.[0];
+  const downAmount = Math.max(0, (vehicle.price * downPercent) / 100);
 
   return (
     <Link
@@ -41,9 +48,15 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <p className="mt-1 text-sm text-gray-500">
           {vehicle.year} • {formatMileage(vehicle.mileage)}
         </p>
-        <p className="mt-2 text-lg font-bold text-brand">
-          {formatPrice(vehicle.price)}
-        </p>
+        <div className="mt-2">
+          <p className="text-xs font-medium text-gray-400">
+            {t.common.downPayment} ({downPercent}%)
+          </p>
+          <p className="text-lg font-bold text-brand">{formatPrice(downAmount)}</p>
+          <p className="mt-0.5 text-xs text-gray-400">
+            {t.common.price}: {formatPrice(vehicle.price)}
+          </p>
+        </div>
       </div>
     </Link>
   );

@@ -11,6 +11,7 @@ export default async function HomePage() {
     getVehiclesSafe({ status: 'available', sort: 'newest', limit: '50' }),
   ]);
   const vehicles = data.items;
+  const downPercent = settings.loan?.minDownPercent ?? 30;
 
   return (
     <>
@@ -27,7 +28,7 @@ export default async function HomePage() {
         {vehicles.length > 0 ? (
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {vehicles.map((vehicle) => (
-              <VehicleCard key={vehicle._id} vehicle={vehicle} />
+              <VehicleCard key={vehicle._id} vehicle={vehicle} downPercent={downPercent} />
             ))}
           </div>
         ) : (

@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import SearchFilters from '@/components/public/SearchFilters';
 import VehicleCard from '@/components/public/VehicleCard';
 import Pagination from '@/components/public/Pagination';
-import { getVehiclesSafe } from '@/lib/api';
+import { getVehiclesSafe, getSettingsSafe } from '@/lib/api';
 import { t } from '@/lib/labels';
 import { VehicleQuery } from '@/types';
 
@@ -33,7 +33,11 @@ export default async function VehiclesPage({
 }) {
   const query = toQuery(await searchParams);
   // Public site never shows sold vehicles — always restrict to available.
-  const { items, pagination } = await getVehiclesSafe({ ...query, status: 'available' });
+  const [{ items, pagination }, settings] = await Promise.all([
+    getVehiclesSafe({ ...query, status: 'available' }),
+    getSettingsSafe(),
+  ]);
+  const downPercent = settings.loan?.minDownPercent ?? 30;
 
   return (
     <div className="container-page py-8">
@@ -54,7 +58,7 @@ export default async function VehiclesPage({
       {items.length > 0 ? (
         <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((vehicle) => (
-            <VehicleCard key={vehicle._id} vehicle={vehicle} />
+            <VehicleCard key={vehicle._id} vehicle={vehicle} downPercent={downPercent} />
           ))}
         </div>
       ) : (

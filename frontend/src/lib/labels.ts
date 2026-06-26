@@ -11,6 +11,8 @@ export const t = {
     viewAll: 'Бүгдийг үзэх',
     loading: 'Уншиж байна...',
     back: 'Буцах',
+    downPayment: 'Урьдчилгаа',
+    price: 'Үнэ',
   },
   status: {
     available: 'Зарагдана',
