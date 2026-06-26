@@ -116,6 +116,11 @@ const sampleSettings = {
     instagram: 'https://instagram.com',
     youtube: '',
   },
+  loan: {
+    minDownPercent: 30,
+    monthlyInterestRate: 2.8,
+    termOptions: [12, 24, 36],
+  },
 };
 
 (async () => {
@@ -128,6 +133,7 @@ const sampleSettings = {
       settings.banner = sampleSettings.banner;
       settings.contact = sampleSettings.contact;
       settings.social = sampleSettings.social;
+      settings.loan = sampleSettings.loan;
       await settings.save();
       console.log('✅ Жишээ тохиргоо нэмэгдлээ.');
     } else {

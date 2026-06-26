@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import ImageGallery from '@/components/public/ImageGallery';
 import LoanCalculator from '@/components/public/LoanCalculator';
-import { getVehicle } from '@/lib/api';
+import { getVehicle, getSettingsSafe } from '@/lib/api';
+import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { formatPrice, formatMileage } from '@/lib/format';
 import { t } from '@/lib/labels';
 import { Vehicle } from '@/types';
@@ -24,7 +25,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function VehicleDetailPage({ params }: Props) {
   const { id } = await params;
-  const vehicle = await getVehicle(id).catch(() => null);
+  const [vehicle, settings] = await Promise.all([
+    getVehicle(id).catch(() => null),
+    getSettingsSafe(),
+  ]);
   if (!vehicle) notFound();
 
   const title = `${vehicle.brand} ${vehicle.model}`;
@@ -84,7 +88,7 @@ export default async function VehicleDetailPage({ params }: Props) {
 
       {/* Loan calculator */}
       <div className="mt-10">
-        <LoanCalculator price={vehicle.price} />
+        <LoanCalculator price={vehicle.price} config={settings.loan ?? DEFAULT_LOAN_CONFIG} />
       </div>
     </div>
   );

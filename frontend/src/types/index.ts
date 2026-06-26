@@ -43,12 +43,19 @@ export interface Social {
   youtube: string;
 }
 
+export interface LoanConfig {
+  minDownPercent: number;
+  monthlyInterestRate: number; // % per month
+  termOptions: number[]; // months, e.g. [12, 24, 36]
+}
+
 export interface Settings {
   companyName: string;
   logo: string;
   banner: string;
   contact: Contact;
   social: Social;
+  loan: LoanConfig;
 }
 
 export interface VehicleFormData {

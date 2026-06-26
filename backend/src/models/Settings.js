@@ -15,6 +15,12 @@ const settingsSchema = new mongoose.Schema(
       instagram: { type: String, default: '' },
       youtube: { type: String, default: '' },
     },
+    // Loan calculator config — set once by admin, applies to all vehicles.
+    loan: {
+      minDownPercent: { type: Number, default: 30 }, // minimum down payment %
+      monthlyInterestRate: { type: Number, default: 2.8 }, // % per month
+      termOptions: { type: [Number], default: [12, 24, 36] }, // months
+    },
   },
   { timestamps: true }
 );

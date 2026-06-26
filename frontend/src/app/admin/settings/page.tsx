@@ -13,11 +13,18 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [termText, setTermText] = useState('12, 24, 36');
 
   useEffect(() => {
     adminApi
       .getSettings()
-      .then(setForm)
+      .then((data) => {
+        const normalized = { ...data, loan: data.loan ?? DEFAULT_SETTINGS.loan };
+        setForm(normalized);
+        if (normalized.loan.termOptions?.length) {
+          setTermText(normalized.loan.termOptions.join(', '));
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -28,8 +35,23 @@ export default function AdminSettingsPage() {
     setSaved(false);
     setError('');
     try {
-      const updated = await adminApi.updateSettings(form);
-      setForm(updated);
+      const termOptions = termText
+        .split(',')
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => Number.isFinite(n) && n > 0);
+      const payload: Settings = {
+        ...form,
+        loan: {
+          ...form.loan,
+          termOptions: termOptions.length ? termOptions : form.loan.termOptions,
+        },
+      };
+      const updated = await adminApi.updateSettings(payload);
+      const normalized = { ...updated, loan: updated.loan ?? DEFAULT_SETTINGS.loan };
+      setForm(normalized);
+      if (normalized.loan.termOptions?.length) {
+        setTermText(normalized.loan.termOptions.join(', '));
+      }
       setSaved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Алдаа гарлаа');
@@ -121,6 +143,46 @@ export default function AdminSettingsPage() {
               value={form.social.youtube}
               onChange={(e) => setForm({ ...form, social: { ...form.social, youtube: e.target.value } })}
             />
+          </div>
+        </div>
+      </Card>
+
+      <Card title={t.admin.settings.loanSection}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label className="label">{t.admin.settings.minDownPercent}</label>
+            <input
+              type="number"
+              className="input"
+              value={form.loan.minDownPercent}
+              onChange={(e) =>
+                setForm({ ...form, loan: { ...form.loan, minDownPercent: Number(e.target.value) } })
+              }
+            />
+          </div>
+          <div>
+            <label className="label">{t.admin.settings.monthlyInterestRate}</label>
+            <input
+              type="number"
+              step="0.1"
+              className="input"
+              value={form.loan.monthlyInterestRate}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  loan: { ...form.loan, monthlyInterestRate: Number(e.target.value) },
+                })
+              }
+            />
+          </div>
+          <div>
+            <label className="label">{t.admin.settings.termOptions}</label>
+            <input
+              className="input"
+              value={termText}
+              onChange={(e) => setTermText(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-gray-400">{t.admin.settings.termOptionsHint}</p>
           </div>
         </div>
       </Card>
