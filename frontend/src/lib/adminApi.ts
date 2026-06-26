@@ -1,6 +1,7 @@
 import { API_URL } from './api';
 import { getToken, clearToken } from './auth';
 import {
+  Lead,
   Settings,
   Vehicle,
   VehicleFormData,
@@ -67,6 +68,11 @@ export const adminApi = {
   getSettings: () => request<Settings>('/settings'),
   updateSettings: (data: Partial<Settings>) =>
     request<Settings>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+
+  listLeads: () => request<Lead[]>('/leads'),
+  setLeadStatus: (id: string, status: 'new' | 'contacted') =>
+    request<Lead>(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  deleteLead: (id: string) => request<unknown>(`/leads/${id}`, { method: 'DELETE' }),
 
   uploadImages: (files: File[]) => {
     const fd = new FormData();

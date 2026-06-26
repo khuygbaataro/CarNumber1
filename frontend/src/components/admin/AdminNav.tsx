@@ -12,7 +12,9 @@ export default function AdminNav() {
   const links = [
     { href: '/admin', label: t.admin.nav.dashboard },
     { href: '/admin/vehicles', label: t.admin.nav.vehicles },
+    { href: '/admin/leads', label: t.admin.nav.leads },
     { href: '/admin/settings', label: t.admin.nav.settings },
+    { href: '/admin/help', label: t.admin.nav.help },
   ];
 
   const isActive = (href: string) =>

@@ -1,5 +1,6 @@
 import { Settings } from '@/types';
 import { t } from '@/lib/labels';
+import LeadForm from './LeadForm';
 
 export default function ContactSection({ settings }: { settings: Settings }) {
   const { contact, social } = settings;
@@ -73,6 +74,10 @@ export default function ContactSection({ settings }: { settings: Settings }) {
             </div>
           </div>
         )}
+
+        <div className="mx-auto mt-10 max-w-2xl">
+          <LeadForm />
+        </div>
       </div>
     </section>
   );

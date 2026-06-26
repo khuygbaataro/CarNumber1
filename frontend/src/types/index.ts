@@ -76,6 +76,17 @@ export interface VehicleFormData {
   downPercent: number | null;
 }
 
+export interface Lead {
+  _id: string;
+  name: string;
+  phone: string;
+  message: string;
+  vehicleId?: string;
+  vehicleName?: string;
+  status: 'new' | 'contacted';
+  createdAt: string;
+}
+
 export interface VehicleQuery {
   brand?: string;
   model?: string;

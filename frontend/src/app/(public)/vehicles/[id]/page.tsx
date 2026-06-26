@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import ImageGallery from '@/components/public/ImageGallery';
 import LoanCalculator from '@/components/public/LoanCalculator';
+import LeadForm from '@/components/public/LeadForm';
 import { getVehicle, getSettingsSafe } from '@/lib/api';
 import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { formatPrice, formatMileage } from '@/lib/format';
@@ -96,6 +97,11 @@ export default async function VehicleDetailPage({ params }: Props) {
       {/* Loan calculator */}
       <div className="mt-10">
         <LoanCalculator price={vehicle.price} config={loanConfig} />
+      </div>
+
+      {/* Inquiry form — captures the lead for this vehicle */}
+      <div className="mt-6">
+        <LeadForm vehicleId={vehicle._id} vehicleName={title} />
       </div>
     </div>
   );

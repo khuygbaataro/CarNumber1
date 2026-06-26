@@ -77,6 +77,25 @@ export async function getLatestSafe(): Promise<Vehicle[]> {
   }
 }
 
+// --- Public lead submission ---
+export interface LeadPayload {
+  name: string;
+  phone: string;
+  message?: string;
+  vehicleId?: string;
+  vehicleName?: string;
+}
+
+export async function createLead(payload: LeadPayload): Promise<void> {
+  const res = await fetch(`${API_URL}/leads`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.message || 'Илгээхэд алдаа гарлаа');
+}
+
 export async function getVehiclesSafe(
   query: VehicleQuery = {}
 ): Promise<VehicleListResponse> {
