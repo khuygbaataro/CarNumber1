@@ -22,6 +22,9 @@ const vehicleSchema = new mongoose.Schema(
     featured: { type: Boolean, default: false, index: true },
     // Optional per-vehicle down payment %. null = use the global setting.
     downPercent: { type: Number, default: null },
+    transmission: { type: String, default: '' }, // Автомат / Механик
+    steering: { type: String, default: '' }, // Зүүн / Баруун
+    fuel: { type: String, default: '' }, // Бензин / Дизель / Хайбрид / Цахилгаан / Хий
   },
   { timestamps: true }
 );

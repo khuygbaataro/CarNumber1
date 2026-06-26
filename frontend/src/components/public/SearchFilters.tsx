@@ -83,21 +83,6 @@ export default function SearchFilters() {
                 onChange={(e) => update('year', e.target.value)}
               />
             </div>
-
-            <div>
-              <label className="label">{t.vehicles.filters.sort}</label>
-              <select
-                className="input"
-                value={form.sort}
-                onChange={(e) => update('sort', e.target.value)}
-              >
-                {SORT_KEYS.map((key) => (
-                  <option key={key} value={key}>
-                    {t.vehicles.sortOptions[key]}
-                  </option>
-                ))}
-              </select>
-            </div>
           </>
         )}
 
@@ -119,6 +104,21 @@ export default function SearchFilters() {
             value={form.maxPrice}
             onChange={(e) => update('maxPrice', e.target.value)}
           />
+        </div>
+
+        <div>
+          <label className="label">{t.vehicles.filters.sort}</label>
+          <select
+            className="input"
+            value={form.sort}
+            onChange={(e) => update('sort', e.target.value)}
+          >
+            {SORT_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {t.vehicles.sortOptions[key]}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

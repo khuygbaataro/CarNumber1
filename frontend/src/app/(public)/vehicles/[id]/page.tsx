@@ -4,7 +4,8 @@ import type { Metadata } from 'next';
 import ImageGallery from '@/components/public/ImageGallery';
 import LoanCalculator from '@/components/public/LoanCalculator';
 import LeadForm from '@/components/public/LeadForm';
-import { getVehicle, getSettingsSafe } from '@/lib/api';
+import VehicleCard from '@/components/public/VehicleCard';
+import { getVehicle, getSettingsSafe, getVehiclesSafe } from '@/lib/api';
 import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { formatPrice, formatMileage } from '@/lib/format';
 import { t } from '@/lib/labels';
@@ -26,11 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function VehicleDetailPage({ params }: Props) {
   const { id } = await params;
-  const [vehicle, settings] = await Promise.all([
+  const [vehicle, settings, others] = await Promise.all([
     getVehicle(id).catch(() => null),
     getSettingsSafe(),
+    getVehiclesSafe({ status: 'available', sort: 'newest', limit: '5' }),
   ]);
   if (!vehicle) notFound();
+
+  const otherCars = others.items.filter((v) => v._id !== id).slice(0, 4);
 
   const title = `${vehicle.brand} ${vehicle.model}`;
 
@@ -75,10 +79,22 @@ export default async function VehicleDetailPage({ params }: Props) {
             {formatPrice(vehicle.price)}
           </p>
 
+          {settings.contact?.phone && (
+            <a
+              href={`tel:${settings.contact.phone}`}
+              className="btn-primary mt-4 w-full justify-center text-base sm:w-auto"
+            >
+              📞 {t.detail.callButton} — {settings.contact.phone}
+            </a>
+          )}
+
           <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
             <Spec label={t.detail.year} value={String(vehicle.year)} />
             <Spec label={t.detail.mileage} value={formatMileage(vehicle.mileage)} />
             <Spec label={t.detail.engine} value={vehicle.engine} />
+            <Spec label={t.detail.transmission} value={vehicle.transmission || ''} />
+            <Spec label={t.detail.steering} value={vehicle.steering || ''} />
+            <Spec label={t.detail.fuel} value={vehicle.fuel || ''} />
             <Spec label={t.detail.exteriorColor} value={vehicle.exteriorColor} />
             <Spec label={t.detail.interiorColor} value={vehicle.interiorColor} />
           </dl>
@@ -103,6 +119,18 @@ export default async function VehicleDetailPage({ params }: Props) {
       <div className="mt-6">
         <LeadForm vehicleId={vehicle._id} vehicleName={title} />
       </div>
+
+      {/* Other available vehicles — keep the buyer browsing */}
+      {otherCars.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-xl font-bold text-gray-900">{t.detail.otherCars}</h2>
+          <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {otherCars.map((v) => (
+              <VehicleCard key={v._id} vehicle={v} downPercent={baseLoan.minDownPercent} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

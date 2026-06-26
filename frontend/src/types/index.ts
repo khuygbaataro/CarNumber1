@@ -16,6 +16,9 @@ export interface Vehicle {
   status: VehicleStatus;
   featured: boolean;
   downPercent?: number | null;
+  transmission?: string;
+  steering?: string;
+  fuel?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -83,6 +86,9 @@ export interface VehicleFormData {
   status: VehicleStatus;
   featured: boolean;
   downPercent: number | null;
+  transmission: string;
+  steering: string;
+  fuel: string;
 }
 
 export interface Lead {

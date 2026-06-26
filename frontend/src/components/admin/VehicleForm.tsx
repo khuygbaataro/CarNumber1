@@ -7,6 +7,10 @@ import VideoUploader from './VideoUploader';
 import { VehicleFormData, Vehicle } from '@/types';
 import { t } from '@/lib/labels';
 
+const TRANSMISSIONS = ['Автомат', 'Механик'];
+const STEERINGS = ['Зүүн', 'Баруун'];
+const FUELS = ['Бензин', 'Дизель', 'Хайбрид', 'Цахилгаан', 'Хий'];
+
 const empty: VehicleFormData = {
   brand: '',
   model: '',
@@ -22,6 +26,9 @@ const empty: VehicleFormData = {
   status: 'available',
   featured: false,
   downPercent: null,
+  transmission: '',
+  steering: '',
+  fuel: '',
 };
 
 function fromVehicle(v: Vehicle): VehicleFormData {
@@ -40,6 +47,9 @@ function fromVehicle(v: Vehicle): VehicleFormData {
     status: v.status,
     featured: v.featured,
     downPercent: v.downPercent ?? null,
+    transmission: v.transmission ?? '',
+    steering: v.steering ?? '',
+    fuel: v.fuel ?? '',
   };
 }
 
@@ -99,6 +109,30 @@ export default function VehicleForm({
           </Field>
           <Field label={t.admin.form.engine}>
             <input className="input" value={form.engine} onChange={(e) => set('engine', e.target.value)} />
+          </Field>
+          <Field label={t.admin.form.transmission}>
+            <select className="input" value={form.transmission} onChange={(e) => set('transmission', e.target.value)}>
+              <option value="">{t.admin.form.selectOption}</option>
+              {TRANSMISSIONS.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label={t.admin.form.steering}>
+            <select className="input" value={form.steering} onChange={(e) => set('steering', e.target.value)}>
+              <option value="">{t.admin.form.selectOption}</option>
+              {STEERINGS.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label={t.admin.form.fuel}>
+            <select className="input" value={form.fuel} onChange={(e) => set('fuel', e.target.value)}>
+              <option value="">{t.admin.form.selectOption}</option>
+              {FUELS.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
           </Field>
           <Field label={t.admin.form.exteriorColor}>
             <input className="input" value={form.exteriorColor} onChange={(e) => set('exteriorColor', e.target.value)} />

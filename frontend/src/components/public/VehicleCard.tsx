@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Vehicle } from '@/types';
-import { formatPrice, formatMileage } from '@/lib/format';
+import { formatPriceShort, formatMileage } from '@/lib/format';
 import { t } from '@/lib/labels';
 
 export default function VehicleCard({
@@ -54,9 +54,9 @@ export default function VehicleCard({
           <p className="text-xs font-medium text-gray-400">
             {t.common.downPayment} ({effectiveDown}%)
           </p>
-          <p className="text-lg font-bold text-brand">{formatPrice(downAmount)}</p>
+          <p className="text-lg font-bold text-brand">{formatPriceShort(downAmount)}</p>
           <p className="mt-0.5 text-xs text-gray-400">
-            {t.common.price}: {formatPrice(vehicle.price)}
+            {t.common.price}: {formatPriceShort(vehicle.price)}
           </p>
         </div>
       </div>
