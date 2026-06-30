@@ -35,8 +35,9 @@ export default async function VehiclesPage({
   // Default ordering: cheapest first.
   if (!query.sort) query.sort = 'price_asc';
   // Public site never shows sold vehicles — always restrict to available.
+  // Show up to 50 cars per page, then paginate to the next page.
   const [{ items, pagination }, settings] = await Promise.all([
-    getVehiclesSafe({ ...query, status: 'available' }),
+    getVehiclesSafe({ ...query, status: 'available', limit: '50' }),
     getSettingsSafe(),
   ]);
   const downPercent = settings.loan?.minDownPercent ?? 30;
