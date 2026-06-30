@@ -2,11 +2,25 @@ import { Settings } from '@/types';
 import { t } from '@/lib/labels';
 import LeadForm from './LeadForm';
 
+// Fallback location (VICTORY CAR) used when no map link is set in admin.
+const DEFAULT_MAP_URL = 'https://maps.app.goo.gl/HUBdEAkvM99RbFxn7';
+const DEFAULT_MAP_COORDS = { lat: '47.9387587', lng: '106.8651526' };
+
+// Pull lat/lng out of a Google Maps URL so we can build an embeddable map.
+// Short links (maps.app.goo.gl) carry no coords → caller falls back.
+function parseCoords(url: string): { lat: string; lng: string } | null {
+  const m =
+    url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
+    url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+    url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  return m ? { lat: m[1], lng: m[2] } : null;
+}
+
 export default function ContactSection({ settings }: { settings: Settings }) {
   const { contact, social } = settings;
-  const mapHref = contact.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`
-    : '';
+  const mapHref = contact.mapUrl || DEFAULT_MAP_URL;
+  const coords = parseCoords(contact.mapUrl) || DEFAULT_MAP_COORDS;
+  const mapEmbedSrc = `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=16&output=embed`;
 
   const socialLinks = [
     { href: social.facebook, label: 'Facebook' },
@@ -75,19 +89,25 @@ export default function ContactSection({ settings }: { settings: Settings }) {
           </div>
         )}
 
-        {contact.address && (
-          <div className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-xl ring-1 ring-gray-200">
-            <iframe
-              title="map"
-              src={`https://www.google.com/maps?q=${encodeURIComponent(
-                contact.address
-              )}&output=embed`}
-              className="h-64 w-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
-        )}
+        <div className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-xl ring-1 ring-gray-200">
+          <iframe
+            title="map"
+            src={mapEmbedSrc}
+            className="h-64 w-full border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+        <p className="mt-2 text-center">
+          <a
+            href={mapHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-brand hover:underline"
+          >
+            {t.contact.viewMap}
+          </a>
+        </p>
 
         <div className="mx-auto mt-10 max-w-2xl">
           <LeadForm />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { calcLoanAmount, calcMonthlyPayment, DEFAULT_LOAN_CONFIG } from '@/lib/loan';
+import { calcLoanAmount, calcEqualPrincipal, DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { formatPrice } from '@/lib/format';
 import { t } from '@/lib/labels';
 import { LoanConfig } from '@/types';
@@ -26,8 +26,8 @@ export default function LoanCalculator({
     [price, downPercent]
   );
   const loanAmount = useMemo(() => calcLoanAmount(price, downPercent), [price, downPercent]);
-  const monthly = useMemo(
-    () => calcMonthlyPayment(loanAmount, rate, term),
+  const schedule = useMemo(
+    () => calcEqualPrincipal(loanAmount, rate, term),
     [loanAmount, rate, term]
   );
 
@@ -101,15 +101,26 @@ export default function LoanCalculator({
         </div>
         <div className="rounded-2xl border-2 border-brand bg-blue-50 p-6 text-center shadow-lg">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand/70">
-            {t.loan.monthlyPayment} · {term} {t.loan.months}
+            {t.loan.firstMonth} · {term} {t.loan.months}
           </p>
           <p className="mt-2 text-3xl font-extrabold text-brand sm:text-4xl">
-            {formatPrice(monthly)}
+            {formatPrice(schedule.first)}
+          </p>
+          <p className="mt-2 text-xs font-medium text-brand/70">
+            {t.loan.lastMonthNote}
+          </p>
+          <p className="text-sm font-semibold text-brand">
+            {t.loan.lastMonth}: {formatPrice(schedule.last)}
           </p>
         </div>
       </div>
 
-      <p className="mt-4 text-xs text-gray-400">{t.loan.disclaimer}</p>
+      <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+        <span>
+          {t.loan.totalInterest}: <b>{formatPrice(schedule.totalInterest)}</b>
+        </span>
+      </div>
+      <p className="mt-2 text-xs text-gray-400">{t.loan.disclaimer}</p>
     </div>
   );
 }

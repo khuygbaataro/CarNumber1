@@ -39,6 +39,7 @@ export interface Contact {
   phone: string;
   email: string;
   address: string;
+  mapUrl: string;
 }
 
 export interface Social {

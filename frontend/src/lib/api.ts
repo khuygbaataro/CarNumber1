@@ -29,7 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   companyName: 'Авто Дилер',
   logo: '',
   banner: '',
-  contact: { phone: '', email: '', address: '' },
+  contact: { phone: '', email: '', address: '', mapUrl: '' },
   social: { facebook: '', instagram: '', youtube: '' },
   loan: { minDownPercent: 30, monthlyInterestRate: 2.8, termOptions: [12, 24, 36] },
   about: '',

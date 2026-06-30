@@ -9,6 +9,7 @@ const settingsSchema = new mongoose.Schema(
       phone: { type: String, default: '' },
       email: { type: String, default: '' },
       address: { type: String, default: '' },
+      mapUrl: { type: String, default: '' }, // Google Maps share/place link
     },
     social: {
       facebook: { type: String, default: '' },

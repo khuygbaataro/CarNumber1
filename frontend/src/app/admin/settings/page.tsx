@@ -159,6 +159,16 @@ export default function AdminSettingsPage() {
             />
           </div>
         </div>
+        <div className="mt-4">
+          <label className="label">{t.admin.settings.mapUrl}</label>
+          <input
+            className="input"
+            placeholder="https://maps.app.goo.gl/..."
+            value={form.contact.mapUrl}
+            onChange={(e) => setForm({ ...form, contact: { ...form.contact, mapUrl: e.target.value } })}
+          />
+          <p className="mt-1 text-xs text-gray-400">{t.admin.settings.mapUrlHint}</p>
+        </div>
       </Card>
 
       <Card title={t.admin.settings.socialSection}>

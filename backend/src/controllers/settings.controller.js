@@ -55,6 +55,7 @@ const updateSettings = async (req, res, next) => {
       if (contact.phone !== undefined) $set['contact.phone'] = contact.phone;
       if (contact.email !== undefined) $set['contact.email'] = contact.email;
       if (contact.address !== undefined) $set['contact.address'] = contact.address;
+      if (contact.mapUrl !== undefined) $set['contact.mapUrl'] = String(contact.mapUrl).slice(0, 500);
     }
 
     if (social) {
