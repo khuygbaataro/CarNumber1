@@ -37,6 +37,7 @@ const settingsSchema = new mongoose.Schema(
         enabled: { type: Boolean, default: true },
         text: { type: String, default: '' }, // empty → falls back to companyName
         position: { type: String, default: 'bottom-right' }, // bottom-right|bottom-left|top-right|top-left|center
+        fontFamily: { type: String, default: 'Arial' }, // Arial|Verdana|Impact|Georgia|Montserrat
         fontSize: { type: Number, default: 48 },
         opacity: { type: Number, default: 40 }, // 0–100
         color: { type: String, default: '#FFFFFF' },

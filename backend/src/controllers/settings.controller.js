@@ -90,6 +90,10 @@ const updateSettings = async (req, res, next) => {
           const allowed = ['bottom-right', 'bottom-left', 'top-right', 'top-left', 'center'];
           if (allowed.includes(wm.position)) $set['images.watermark.position'] = wm.position;
         }
+        if (wm.fontFamily !== undefined) {
+          const fonts = ['Arial', 'Verdana', 'Impact', 'Georgia', 'Montserrat'];
+          if (fonts.includes(wm.fontFamily)) $set['images.watermark.fontFamily'] = wm.fontFamily;
+        }
         if (wm.fontSize !== undefined) {
           const fs = Number(wm.fontSize);
           if (Number.isFinite(fs) && fs > 0) $set['images.watermark.fontSize'] = fs;

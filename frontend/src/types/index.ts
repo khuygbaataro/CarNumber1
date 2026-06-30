@@ -65,10 +65,13 @@ export type WatermarkPosition =
   | 'top-left'
   | 'center';
 
+export type WatermarkFont = 'Arial' | 'Verdana' | 'Impact' | 'Georgia' | 'Montserrat';
+
 export interface WatermarkConfig {
   enabled: boolean;
   text: string; // empty → falls back to companyName
   position: WatermarkPosition;
+  fontFamily: WatermarkFont;
   fontSize: number;
   opacity: number; // 0–100
   color: string;

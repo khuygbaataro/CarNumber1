@@ -246,6 +246,7 @@ export const t = {
       watermarkText: 'Watermark текст',
       watermarkTextHint: 'Хоосон бол компанийн нэрийг ашиглана.',
       watermarkPosition: 'Байрлал',
+      watermarkFont: 'Үсгийн фонт',
       watermarkFontSize: 'Үсгийн хэмжээ',
       watermarkOpacity: 'Тунгалагшилт (0–100)',
       watermarkColor: 'Өнгө',

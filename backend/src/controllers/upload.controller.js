@@ -45,7 +45,7 @@ const buildImageTransformation = (settings, watermark) => {
   if (watermark && wm.enabled !== false && text) {
     transformation.push({
       overlay: {
-        font_family: 'Arial',
+        font_family: wm.fontFamily || 'Arial',
         font_size: Number(wm.fontSize) > 0 ? Number(wm.fontSize) : 48,
         font_weight: 'bold',
         text,

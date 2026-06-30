@@ -380,6 +380,32 @@ export default function AdminSettingsPage() {
                 </select>
               </div>
               <div>
+                <label className="label">{t.admin.settings.watermarkFont}</label>
+                <select
+                  className="input"
+                  style={{ fontFamily: form.images.watermark.fontFamily }}
+                  value={form.images.watermark.fontFamily}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      images: {
+                        ...form.images,
+                        watermark: {
+                          ...form.images.watermark,
+                          fontFamily: e.target.value as Settings['images']['watermark']['fontFamily'],
+                        },
+                      },
+                    })
+                  }
+                >
+                  <option value="Arial" style={{ fontFamily: 'Arial' }}>Arial</option>
+                  <option value="Verdana" style={{ fontFamily: 'Verdana' }}>Verdana</option>
+                  <option value="Impact" style={{ fontFamily: 'Impact' }}>Impact</option>
+                  <option value="Georgia" style={{ fontFamily: 'Georgia' }}>Georgia</option>
+                  <option value="Montserrat" style={{ fontFamily: 'Montserrat' }}>Montserrat</option>
+                </select>
+              </div>
+              <div>
                 <label className="label">{t.admin.settings.watermarkFontSize}</label>
                 <input
                   type="number"

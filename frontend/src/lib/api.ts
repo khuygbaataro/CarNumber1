@@ -42,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
       enabled: true,
       text: '',
       position: 'bottom-right',
+      fontFamily: 'Arial',
       fontSize: 48,
       opacity: 40,
       color: '#FFFFFF',
