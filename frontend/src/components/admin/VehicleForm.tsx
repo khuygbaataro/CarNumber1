@@ -174,7 +174,7 @@ export default function VehicleForm({
 
       <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
         <label className="label">{t.admin.form.images}</label>
-        <ImageUploader value={form.images} onChange={(urls) => set('images', urls)} />
+        <ImageUploader value={form.images} onChange={(urls) => set('images', urls)} watermark />
       </div>
 
       <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">

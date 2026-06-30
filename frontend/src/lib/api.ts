@@ -36,6 +36,17 @@ export const DEFAULT_SETTINGS: Settings = {
   workingHours: '',
   testimonials: [],
   partners: [],
+  images: {
+    maxWidth: 1600,
+    watermark: {
+      enabled: true,
+      text: '',
+      position: 'bottom-right',
+      fontSize: 48,
+      opacity: 40,
+      color: '#FFFFFF',
+    },
+  },
 };
 
 // --- Raw fetchers (may throw) ---

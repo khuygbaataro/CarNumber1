@@ -27,6 +27,7 @@ const updateSettings = async (req, res, next) => {
       workingHours,
       testimonials,
       partners,
+      images,
     } = req.body;
     const $set = {};
 
@@ -72,6 +73,32 @@ const updateSettings = async (req, res, next) => {
           .map(Number)
           .filter((n) => Number.isFinite(n) && n > 0);
         if (terms.length) $set['loan.termOptions'] = terms;
+      }
+    }
+
+    if (images) {
+      if (images.maxWidth !== undefined) {
+        const w = Number(images.maxWidth);
+        if (Number.isFinite(w) && w > 0) $set['images.maxWidth'] = w;
+      }
+      const wm = images.watermark;
+      if (wm) {
+        if (wm.enabled !== undefined) $set['images.watermark.enabled'] = Boolean(wm.enabled);
+        if (wm.text !== undefined)
+          $set['images.watermark.text'] = String(wm.text).slice(0, 60);
+        if (wm.position !== undefined) {
+          const allowed = ['bottom-right', 'bottom-left', 'top-right', 'top-left', 'center'];
+          if (allowed.includes(wm.position)) $set['images.watermark.position'] = wm.position;
+        }
+        if (wm.fontSize !== undefined) {
+          const fs = Number(wm.fontSize);
+          if (Number.isFinite(fs) && fs > 0) $set['images.watermark.fontSize'] = fs;
+        }
+        if (wm.opacity !== undefined) {
+          const op = Number(wm.opacity);
+          if (Number.isFinite(op)) $set['images.watermark.opacity'] = Math.min(100, Math.max(0, op));
+        }
+        if (wm.color !== undefined) $set['images.watermark.color'] = String(wm.color).slice(0, 20);
       }
     }
 

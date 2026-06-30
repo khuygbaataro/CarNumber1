@@ -8,9 +8,11 @@ import { t } from '@/lib/labels';
 export default function ImageUploader({
   value,
   onChange,
+  watermark = false,
 }: {
   value: string[];
   onChange: (urls: string[]) => void;
+  watermark?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -21,7 +23,7 @@ export default function ImageUploader({
     setError('');
     setUploading(true);
     try {
-      const { urls } = await adminApi.uploadImages(Array.from(files));
+      const { urls } = await adminApi.uploadImages(Array.from(files), watermark);
       onChange([...value, ...urls]);
     } catch {
       setError(t.admin.upload.error);

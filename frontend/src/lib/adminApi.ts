@@ -74,10 +74,12 @@ export const adminApi = {
     request<Lead>(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   deleteLead: (id: string) => request<unknown>(`/leads/${id}`, { method: 'DELETE' }),
 
-  uploadImages: (files: File[]) => {
+  // watermark=true bakes the configured text watermark in (vehicle photos only).
+  uploadImages: (files: File[], watermark = false) => {
     const fd = new FormData();
     files.forEach((f) => fd.append('images', f));
-    return request<{ urls: string[] }>('/upload/images', {
+    const qs = watermark ? '?watermark=1' : '';
+    return request<{ urls: string[] }>(`/upload/images${qs}`, {
       method: 'POST',
       body: fd,
     });

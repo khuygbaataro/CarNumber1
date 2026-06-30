@@ -29,6 +29,19 @@ const settingsSchema = new mongoose.Schema(
       monthlyInterestRate: { type: Number, default: 2.8 }, // % per month
       termOptions: { type: [Number], default: [12, 24, 36] }, // months
     },
+    // Image processing — applied to vehicle photos at upload time (baked in).
+    // Changing these only affects images uploaded afterwards.
+    images: {
+      maxWidth: { type: Number, default: 1600 }, // resize: max width in px (keeps aspect ratio)
+      watermark: {
+        enabled: { type: Boolean, default: true },
+        text: { type: String, default: '' }, // empty → falls back to companyName
+        position: { type: String, default: 'bottom-right' }, // bottom-right|bottom-left|top-right|top-left|center
+        fontSize: { type: Number, default: 48 },
+        opacity: { type: Number, default: 40 }, // 0–100
+        color: { type: String, default: '#FFFFFF' },
+      },
+    },
   },
   { timestamps: true }
 );

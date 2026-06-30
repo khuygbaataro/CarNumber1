@@ -24,6 +24,14 @@ export default function AdminSettingsPage() {
           ...DEFAULT_SETTINGS,
           ...data,
           loan: data.loan ?? DEFAULT_SETTINGS.loan,
+          images: {
+            ...DEFAULT_SETTINGS.images,
+            ...data.images,
+            watermark: {
+              ...DEFAULT_SETTINGS.images.watermark,
+              ...data.images?.watermark,
+            },
+          },
         };
         setForm(normalized);
         if (normalized.loan.termOptions?.length) {
@@ -56,6 +64,14 @@ export default function AdminSettingsPage() {
         ...DEFAULT_SETTINGS,
         ...updated,
         loan: updated.loan ?? DEFAULT_SETTINGS.loan,
+        images: {
+          ...DEFAULT_SETTINGS.images,
+          ...updated.images,
+          watermark: {
+            ...DEFAULT_SETTINGS.images.watermark,
+            ...updated.images?.watermark,
+          },
+        },
       };
       setForm(normalized);
       if (normalized.loan.termOptions?.length) {
@@ -278,6 +294,147 @@ export default function AdminSettingsPage() {
             <p className="mt-1 text-xs text-gray-400">{t.admin.settings.termOptionsHint}</p>
           </div>
         </div>
+      </Card>
+
+      <Card title={t.admin.settings.imagesSection}>
+        <p className="mb-4 text-xs text-gray-400">{t.admin.settings.imagesHint}</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label">{t.admin.settings.maxWidth}</label>
+            <input
+              type="number"
+              className="input"
+              value={form.images.maxWidth}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  images: { ...form.images, maxWidth: Number(e.target.value) },
+                })
+              }
+            />
+          </div>
+          <label className="flex items-center gap-2 self-end pb-2">
+            <input
+              type="checkbox"
+              checked={form.images.watermark.enabled}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  images: {
+                    ...form.images,
+                    watermark: { ...form.images.watermark, enabled: e.target.checked },
+                  },
+                })
+              }
+            />
+            <span className="text-sm font-medium text-gray-700">
+              {t.admin.settings.watermarkEnabled}
+            </span>
+          </label>
+        </div>
+
+        {form.images.watermark.enabled && (
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="label">{t.admin.settings.watermarkText}</label>
+              <input
+                className="input"
+                placeholder={form.companyName}
+                value={form.images.watermark.text}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    images: {
+                      ...form.images,
+                      watermark: { ...form.images.watermark, text: e.target.value },
+                    },
+                  })
+                }
+              />
+              <p className="mt-1 text-xs text-gray-400">{t.admin.settings.watermarkTextHint}</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <label className="label">{t.admin.settings.watermarkPosition}</label>
+                <select
+                  className="input"
+                  value={form.images.watermark.position}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      images: {
+                        ...form.images,
+                        watermark: {
+                          ...form.images.watermark,
+                          position: e.target.value as Settings['images']['watermark']['position'],
+                        },
+                      },
+                    })
+                  }
+                >
+                  <option value="bottom-right">{t.admin.settings.posBottomRight}</option>
+                  <option value="bottom-left">{t.admin.settings.posBottomLeft}</option>
+                  <option value="top-right">{t.admin.settings.posTopRight}</option>
+                  <option value="top-left">{t.admin.settings.posTopLeft}</option>
+                  <option value="center">{t.admin.settings.posCenter}</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">{t.admin.settings.watermarkFontSize}</label>
+                <input
+                  type="number"
+                  className="input"
+                  value={form.images.watermark.fontSize}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      images: {
+                        ...form.images,
+                        watermark: { ...form.images.watermark, fontSize: Number(e.target.value) },
+                      },
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label className="label">{t.admin.settings.watermarkOpacity}</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className="input"
+                  value={form.images.watermark.opacity}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      images: {
+                        ...form.images,
+                        watermark: { ...form.images.watermark, opacity: Number(e.target.value) },
+                      },
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label className="label">{t.admin.settings.watermarkColor}</label>
+                <input
+                  type="color"
+                  className="input h-[42px] p-1"
+                  value={form.images.watermark.color}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      images: {
+                        ...form.images,
+                        watermark: { ...form.images.watermark, color: e.target.value },
+                      },
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {error && <p className="text-sm font-medium text-accent">{error}</p>}

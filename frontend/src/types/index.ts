@@ -58,6 +58,27 @@ export interface Testimonial {
   text: string;
 }
 
+export type WatermarkPosition =
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'top-right'
+  | 'top-left'
+  | 'center';
+
+export interface WatermarkConfig {
+  enabled: boolean;
+  text: string; // empty → falls back to companyName
+  position: WatermarkPosition;
+  fontSize: number;
+  opacity: number; // 0–100
+  color: string;
+}
+
+export interface ImagesConfig {
+  maxWidth: number;
+  watermark: WatermarkConfig;
+}
+
 export interface Settings {
   companyName: string;
   logo: string;
@@ -69,6 +90,7 @@ export interface Settings {
   workingHours: string;
   testimonials: Testimonial[];
   partners: string[];
+  images: ImagesConfig;
 }
 
 export interface VehicleFormData {
