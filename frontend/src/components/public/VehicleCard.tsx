@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Vehicle } from '@/types';
-import { formatPriceShort, formatMileage } from '@/lib/format';
+import { formatPriceShort, formatMileage, formatTimeAgo } from '@/lib/format';
 import { t } from '@/lib/labels';
 
 export default function VehicleCard({
@@ -59,6 +59,11 @@ export default function VehicleCard({
             {t.common.price}: {formatPriceShort(vehicle.price)}
           </p>
         </div>
+        {vehicle.createdAt && (
+          <p className="mt-2 text-xs text-gray-400">
+            {t.common.added}: {formatTimeAgo(vehicle.createdAt)}
+          </p>
+        )}
       </div>
     </Link>
   );

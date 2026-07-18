@@ -13,6 +13,7 @@ export const t = {
     back: 'Буцах',
     downPayment: 'Урьдчилгаа',
     price: 'Үнэ',
+    added: 'Оруулсан',
   },
   status: {
     available: 'Зарагдана',
@@ -176,9 +177,13 @@ export const t = {
       colYear: 'Он',
       colPrice: 'Үнэ',
       colStatus: 'Төлөв',
+      colAdded: 'Оруулсан',
       colActions: 'Үйлдэл',
       markSold: 'Зарагдсан',
       markAvailable: 'Зарагдах',
+      markSoldSelected: 'Сонгосныг зарагдсан болгох',
+      selectedCount: 'сонгосон',
+      working: 'Гүйцэтгэж байна...',
     },
     form: {
       addTitle: 'Шинэ машин нэмэх',

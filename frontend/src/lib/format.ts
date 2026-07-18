@@ -16,3 +16,22 @@ export const formatPriceShort = (price: number): string => {
 };
 
 export const formatMileage = (km: number): string => `${formatNumber(km)} км`;
+
+// How long ago something was added, in Mongolian. Within 24h it reads in
+// hours/minutes; once a full day passes it flips to "N өдрийн өмнө".
+export const formatTimeAgo = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const then = new Date(dateStr).getTime();
+  if (!Number.isFinite(then)) return '';
+  const sec = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  if (sec < 60) return 'Дөнгөж сая';
+  if (min < 60) return `${min} минутын өмнө`;
+  if (hr < 24) return `${hr} цагийн өмнө`;
+  if (day < 30) return `${day} өдрийн өмнө`;
+  const mon = Math.floor(day / 30);
+  if (mon < 12) return `${mon} сарын өмнө`;
+  return `${Math.floor(mon / 12)} жилийн өмнө`;
+};

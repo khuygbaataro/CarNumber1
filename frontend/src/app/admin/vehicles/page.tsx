@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { adminApi } from '@/lib/adminApi';
 import { Vehicle } from '@/types';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, formatTimeAgo } from '@/lib/format';
 import { t } from '@/lib/labels';
 
 export default function AdminVehiclesPage() {
@@ -14,6 +14,8 @@ export default function AdminVehiclesPage() {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState('');
   const [filter, setFilter] = useState<'all' | 'available' | 'sold'>('all');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -32,6 +34,46 @@ export default function AdminVehiclesPage() {
     sold: vehicles.filter((v) => v.status === 'sold').length,
   };
   const shown = filter === 'all' ? vehicles : vehicles.filter((v) => v.status === filter);
+
+  // Only available vehicles can be bulk-marked as sold.
+  const selectableIds = shown.filter((v) => v.status === 'available').map((v) => v._id);
+  const allSelected = selectableIds.length > 0 && selectableIds.every((id) => selected.has(id));
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const toggleSelectAll = () =>
+    setSelected(allSelected ? new Set() : new Set(selectableIds));
+
+  const changeFilter = (key: 'all' | 'available' | 'sold') => {
+    setFilter(key);
+    setSelected(new Set());
+  };
+
+  const bulkMarkSold = async () => {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const updates = await Promise.all(
+        ids.map((id) => adminApi.setStatus(id, 'sold').catch(() => null))
+      );
+      setVehicles((list) =>
+        list.map((v) => {
+          const u = updates.find((x) => x && x._id === v._id);
+          return u || v;
+        })
+      );
+      setSelected(new Set());
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const toggleStatus = async (v: Vehicle) => {
     setBusyId(v._id);
@@ -82,7 +124,7 @@ export default function AdminVehiclesPage() {
           <button
             key={tab.key}
             type="button"
-            onClick={() => setFilter(tab.key)}
+            onClick={() => changeFilter(tab.key)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
               filter === tab.key
                 ? 'bg-brand text-white'
@@ -94,6 +136,23 @@ export default function AdminVehiclesPage() {
         ))}
       </div>
 
+      {/* Bulk action bar — appears when vehicles are selected */}
+      {selected.size > 0 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand/5 px-4 py-3 ring-1 ring-brand/20">
+          <span className="text-sm font-medium text-gray-700">
+            {selected.size} {t.admin.vehicles.selectedCount}
+          </span>
+          <button
+            type="button"
+            disabled={bulkBusy}
+            onClick={bulkMarkSold}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent/90 disabled:opacity-50"
+          >
+            {bulkBusy ? t.admin.vehicles.working : t.admin.vehicles.markSoldSelected}
+          </button>
+        </div>
+      )}
+
       <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
         {loading ? (
           <p className="p-6 text-center text-gray-500">{t.common.loading}</p>
@@ -104,16 +163,37 @@ export default function AdminVehiclesPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>
+                  <th className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label="select all"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      disabled={selectableIds.length === 0}
+                      className="h-4 w-4 cursor-pointer accent-brand"
+                    />
+                  </th>
                   <th className="px-4 py-3">{t.admin.vehicles.colVehicle}</th>
                   <th className="px-4 py-3">{t.admin.vehicles.colYear}</th>
                   <th className="px-4 py-3">{t.admin.vehicles.colPrice}</th>
                   <th className="px-4 py-3">{t.admin.vehicles.colStatus}</th>
+                  <th className="px-4 py-3">{t.admin.vehicles.colAdded}</th>
                   <th className="px-4 py-3 text-right">{t.admin.vehicles.colActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {shown.map((v) => (
                   <tr key={v._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        aria-label={`select ${v.model}`}
+                        checked={selected.has(v._id)}
+                        onChange={() => toggleSelect(v._id)}
+                        disabled={v.status !== 'available'}
+                        className="h-4 w-4 cursor-pointer accent-brand disabled:opacity-40"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded bg-gray-100">
@@ -154,6 +234,9 @@ export default function AdminVehiclesPage() {
                       >
                         {v.status === 'sold' ? t.status.sold : t.status.available}
                       </button>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-500">
+                      {formatTimeAgo(v.createdAt)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
