@@ -20,17 +20,27 @@ export function verifySignature(rawBody: string, signatureHeader: string | null)
 
 // Send a plain text reply to a Messenger user (PSID).
 export async function sendText(recipientId: string, text: string): Promise<void> {
-  if (!PAGE_ACCESS_TOKEN) return;
+  if (!PAGE_ACCESS_TOKEN) {
+    console.error('sendText: MESSENGER_PAGE_ACCESS_TOKEN is not set');
+    return;
+  }
   try {
-    await fetch(`${GRAPH_URL}?access_token=${encodeURIComponent(PAGE_ACCESS_TOKEN)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        recipient: { id: recipientId },
-        messaging_type: 'RESPONSE',
-        message: { text: text.slice(0, 1900) },
-      }),
-    });
+    const res = await fetch(
+      `${GRAPH_URL}?access_token=${encodeURIComponent(PAGE_ACCESS_TOKEN)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient: { id: recipientId },
+          messaging_type: 'RESPONSE',
+          message: { text: text.slice(0, 1900) },
+        }),
+      }
+    );
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error(`sendText: Graph API ${res.status} — ${body}`);
+    }
   } catch (e) {
     console.error('sendText failed', e);
   }
@@ -51,6 +61,7 @@ export function parseEvents(body: any): MessagingEvent[] {
     for (const m of messaging) {
       const senderId = m?.sender?.id;
       if (!senderId || !m?.message) continue;
+      if (m.message.is_echo) continue; // ignore the page's own outgoing messages
       const imageUrls: string[] = [];
       const attachments = Array.isArray(m.message.attachments) ? m.message.attachments : [];
       for (const att of attachments) {

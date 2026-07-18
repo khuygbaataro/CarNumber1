@@ -49,6 +49,11 @@ export async function POST(req: NextRequest) {
 
   const events = parseEvents(body);
   const admins = adminIds();
+  console.log(
+    `[messenger] events=${events.length} senders=${events
+      .map((e) => e.senderId)
+      .join(',')} adminCount=${admins.size}`
+  );
 
   // Process events sequentially so per-sender state stays consistent.
   for (const ev of events) {
