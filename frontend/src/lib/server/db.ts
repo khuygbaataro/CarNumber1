@@ -2,7 +2,10 @@ import mongoose from 'mongoose';
 
 // Serverless functions re-run cold, so cache the connection on the global
 // object to avoid opening a new pool on every webhook invocation.
-const MONGODB_URI = process.env.MONGODB_URI || '';
+// Trim + strip accidental wrapping quotes (common Vercel env paste mistakes).
+const MONGODB_URI = (process.env.MONGODB_URI || '')
+  .trim()
+  .replace(/^["']|["']$/g, '');
 
 type Cached = { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
 
