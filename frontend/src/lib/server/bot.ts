@@ -1,41 +1,84 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Vehicle, BotSession } from './models';
+import { postToFeed } from './messenger';
+
+// Known specs for the commonly-sold models, so the bot doesn't ask about
+// things it can infer (steering, engine, fuel, transmission).
+function knownSpecs(
+  brand: string,
+  model: string
+): { engine: string; transmission: string; fuel: string; steering: string } {
+  const b = brand.toLowerCase();
+  const m = model.toLowerCase();
+  const out = { engine: '', transmission: '', fuel: '', steering: '' };
+  if (b === 'toyota') out.steering = 'Баруун';
+  if (m.includes('prius')) {
+    out.fuel = 'Хайбрид';
+    out.transmission = 'Автомат';
+    out.engine = /\b20\b|prius\s*20/.test(m) ? '1.5L Hybrid' : '1.8L Hybrid';
+  } else if (m.includes('sai')) {
+    out.fuel = 'Хайбрид';
+    out.transmission = 'Автомат';
+    out.engine = '2.4L Hybrid';
+  }
+  return out;
+}
+
+// Facebook page-feed post text for a newly added vehicle.
+function buildPostTemplate(v: any): string {
+  const num = (n: number) => (Number(n) || 0).toLocaleString('en-US');
+  const specLine = [v.engine, v.transmission, v.steering && `Жолоо: ${v.steering}`]
+    .filter(Boolean)
+    .join(' | ');
+  const lines = [
+    `${v.brand} ${v.model} · ${v.year} он`,
+    `Үнэ: ${num(v.price)}₮`,
+    `Гүйлт: ${num(v.mileage)} км`,
+    specLine,
+    v.exteriorColor && `Өнгө: ${v.exteriorColor}`,
+    v.description && v.description,
+    '',
+    'Дэлгэрэнгүй: https://victorycar.mn',
+    'Утас: +976 8000-4020',
+  ].filter(Boolean);
+  return lines.join('\n');
+}
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-opus-4-8';
 
-const SYSTEM_PROMPT = `Та бол VictoryCar авто худалдааны каталогт машин нэмэхэд ажилтанд туслах AI туслах юм. Facebook Messenger дээр ажилладаг. Монголоор товч, найрсаг ярь.
+const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин нэмэх дотоод туслах. Facebook Messenger дээр ажилтантай харилцана.
 
-ЗОРИЛГО: Ажилтнаас нэг машины мэдээллийг цуглуулж, баталгаажуулсны дараа сайтын каталогт нэмэх.
+ХЭВ МАЯГ (маш чухал):
+- Маш товч. Богино өгүүлбэр, цөөн үг. Эр хүн шиг шууд, тодорхой, дуулгавартай.
+- Эмодзи БҮҮ хэрэглэ.
+- Нэг удаад нэг л зүйл асуу. Илүү тайлбар, магтаал, давталт бүү бич.
 
-АСУУХ ТАЛБАРУУД (дараалан, товч асуу):
-- Марк (brand, ж: Toyota)
-- Загвар (model, ж: Prius 41)
-- Араалын дугаарын сүүлийн 4 орон (chassisLast4, ж: 0938) — ЗААВАЛ асуу.
-  Энэ нь ижил загвартай машинуудыг хооронд нь ялгахад хэрэгтэй. Загварын нэр
-  автоматаар "Prius 41 #0938" болно.
-- Он (year)
-- Үнэ (price, төгрөгөөр)
-- Явсан км (mileage)
-- Хөдөлгүүр (engine, ж: 1.8L Hybrid)
-- Хурдны хайрцаг (transmission: Автомат/Механик)
-- Түлш (fuel: Бензин/Дизель/Хайбрид/Цахилгаан/Хий)
-- Гадна өнгө (exteriorColor)
-- Дотор өнгө (interiorColor)
-- Нэмэлт тайлбар (description, заавал биш)
+МЭДЭЭЛЛИЙН САН (эдгээрийг АСУУХГҮЙ, өөрөө бөглө):
+- Toyota бол жолоо баруун талд (steering: Баруун).
+- Prius 20/30/40/41 бол хайбрид (fuel: Хайбрид), автомат (transmission: Автомат).
+  Хөдөлгүүр: Prius 20 → 1.5L Hybrid, бусад Prius (30/40/41) → 1.8L Hybrid.
+- Toyota Sai → 2.4L Hybrid, автомат.
+Танил загвар бол дээрхийг автоматаар бөглө, дахин бүү асуу.
 
-ЗУРАГ: Ажилтан зургаа шууд Messenger-ээр илгээнэ. Хэдэн зураг хүлээж авсныг систем танд хэлнэ — зургийг та асуухгүй, зүгээр л ажилтанд зураг илгээхийг сануул.
+ЗӨВХӨН ДООРХЫГ АСУУ (нэг нэгээр, товч):
+1. Загвар (ж: Prius 41)
+2. Араалын сүүлийн 4 орон (ж: 0938)
+3. Он
+4. Гүйлт (км)
+5. Үнэ (төгрөг)
+6. Гадна өнгө
+Марк тодорхойгүй бол л маркийг асуу. Танил бус загвар бол дутуу зүйлийг (хөдөлгүүр, түлш, жолоо) асуу.
+
+ЗУРАГ: ажилтан зургаа шууд илгээнэ. Хэдэн зураг авсныг систем хэлнэ. Зураг байхгүй бол нэг удаа сануул.
 
 УРСГАЛ:
-1. Мэдээллийг дараалан асууж цуглуул. Нэг мессежд олон талбар өгвөл хүлээж ав.
-2. Хангалттай мэдээлэл (ядаж марк, загвар, он, үнэ, км) цугларсан бол БҮХ мэдээллийг эмхэтгэн харуулж, "Зар дээр байршуулах уу? Тийм бол confirm гэж бичнэ үү" гэж асуу.
-3. Ажилтан "confirm" гэж бичсэн ҮЕД Л publish_vehicle tool-ийг дуудаж машиныг нэмнэ. Түүнээс өмнө бүү дууд.
-4. Машин зарагдсан гэвэл mark_sold tool-оор тухайн машиныг олж төлөвийг нь солино.
+1. Дээрх талбаруудыг цуглуул. Танил загварын үлдсэн мэдээллийг өөрөө бөгл.
+2. Бүрдсэн бол товч эмхэтгэл харуулаад "Байршуулах уу? confirm гэж бичнэ үү" гэ.
+3. "confirm" гэсэн ҮЕД Л publish_vehicle дууд. Өмнө нь бүү дууд.
+4. Машин зарагдсан гэвэл mark_sold дууд.
 
-ДҮРЭМ:
-- Мэдэхгүй зүйлийг бүү зохио. Ажилтнаас тодруул.
-- Үнэ, км-ийг тоо болгон авах (сая, мянга гэх мэтийг тооцоолж бодит тоо болго).
-- confirm хийхээс өмнө заавал эмхэтгэсэн мэдээллийг харуул.`;
+ДҮРЭМ: мэдэхгүй зүйл бүү зохио. Үнэ/км/оныг бодит тоо болго (сая, мянгыг тооцоол).`;
 
 const tools: Anthropic.Tool[] = [
   {
@@ -54,9 +97,10 @@ const tools: Anthropic.Tool[] = [
         year: { type: 'number', description: 'Үйлдвэрлэсэн он' },
         price: { type: 'number', description: 'Үнэ төгрөгөөр (бодит тоо)' },
         mileage: { type: 'number', description: 'Явсан км' },
-        engine: { type: 'string' },
-        transmission: { type: 'string' },
-        fuel: { type: 'string' },
+        engine: { type: 'string', description: 'Танил загвар бол өөрөө бөгл' },
+        transmission: { type: 'string', description: 'Автомат/Механик' },
+        fuel: { type: 'string', description: 'Бензин/Дизель/Хайбрид/Цахилгаан/Хий' },
+        steering: { type: 'string', description: 'Жолоо: Баруун/Зүүн (Toyota → Баруун)' },
         exteriorColor: { type: 'string' },
         interiorColor: { type: 'string' },
         description: { type: 'string' },
@@ -85,32 +129,51 @@ async function runTool(
   session: any
 ): Promise<{ result: string; published?: boolean }> {
   if (name === 'publish_vehicle') {
+    const brand = String(input.brand || '').trim();
+    const baseModel = String(input.model || '').trim();
+
+    // Fill known specs from the knowledge base (from the BASE model, so the
+    // chassis digits we append below can't be mistaken for a model number).
+    const specs = knownSpecs(brand, baseModel);
+    const engine = (input.engine || '').trim() || specs.engine;
+    const transmission = (input.transmission || '').trim() || specs.transmission;
+    const fuel = (input.fuel || '').trim() || specs.fuel;
+    const steering = (input.steering || '').trim() || specs.steering;
+
     // Append the chassis last-4 as "#XXXX" so same-model cars stay distinct.
-    let modelName = String(input.model || '').trim();
+    let modelName = baseModel;
     const last4 = String(input.chassisLast4 || '').trim();
     if (last4 && !modelName.includes(last4)) {
       modelName = `${modelName} #${last4}`;
     }
+
+    const images = session.images || [];
     const doc = await Vehicle.create({
-      brand: String(input.brand || '').trim(),
+      brand,
       model: modelName,
       year: Number(input.year) || 0,
       price: Number(input.price) || 0,
       mileage: Number(input.mileage) || 0,
-      engine: input.engine || '',
-      transmission: input.transmission || '',
-      fuel: input.fuel || '',
+      engine,
+      transmission,
+      fuel,
+      steering,
       exteriorColor: input.exteriorColor || '',
       interiorColor: input.interiorColor || '',
       description: input.description || '',
-      images: session.images || [],
+      images,
       status: 'available',
     });
-    const imgCount = (session.images || []).length;
+
+    // Auto-post to the Facebook page feed (best effort).
+    const posted = await postToFeed(buildPostTemplate(doc), images);
+
     // Clear the draft images now that they belong to a vehicle.
     session.images = [];
     return {
-      result: `Машин амжилттай нэмэгдлээ: ${doc.brand} ${doc.model} ${doc.year}, ${imgCount} зурагтай. ID: ${doc._id}`,
+      result:
+        `Нэмэгдлээ: ${doc.brand} ${doc.model} ${doc.year}, ${images.length} зураг.` +
+        (posted ? ' Facebook-т нийтэллээ.' : ' (FB-т нийтлэхэд алдаа — эрх шалга.)'),
       published: true,
     };
   }
