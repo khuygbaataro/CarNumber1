@@ -51,7 +51,7 @@ const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин
 
 ХЭВ МАЯГ (маш чухал):
 - Маш товч. Богино өгүүлбэр, цөөн үг. Эр хүн шиг шууд, тодорхой, дуулгавартай.
-- Эмодзи БҮҮ хэрэглэ.
+- Эможи, тэмдэгт зураг ОГТ бүү хэрэглэ. Хэзээ ч, ямар ч мессежд эможи бүү бич.
 - Нэг удаад нэг л зүйл асуу. Илүү тайлбар, магтаал, давталт бүү бич.
 
 МЭДЭЭЛЛИЙН САН (эдгээрийг АСУУХГҮЙ, өөрөө бөглө):
@@ -61,6 +61,9 @@ const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин
 - Toyota Sai → 2.4L Hybrid, автомат.
 Танил загвар бол дээрхийг автоматаар бөглө, дахин бүү асуу.
 
+МАРК: битгий асуу. Өгөөгүй бол Toyota гэж үз. Машиныг зөвхөн загвараар нь нэрл
+(ж: "Prius 41"), "Toyota" гэж бүү нэм. Ажилтан өөр марк (ж: Nissan) хэлбэл тэрийг ав.
+
 ЗӨВХӨН ДООРХЫГ АСУУ (нэг нэгээр, товч):
 1. Загвар (ж: Prius 41)
 2. Араалын сүүлийн 4 орон (ж: 0938)
@@ -68,7 +71,7 @@ const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин
 4. Гүйлт (км)
 5. Үнэ (төгрөг)
 6. Гадна өнгө
-Марк тодорхойгүй бол л маркийг асуу. Танил бус загвар бол дутуу зүйлийг (хөдөлгүүр, түлш, жолоо) асуу.
+Танил бус загвар бол дутуу зүйлийг (хөдөлгүүр, түлш, жолоо) асуу.
 
 ЗУРАГ: ажилтан зургаа шууд илгээнэ. Хэдэн зураг авсныг систем хэлнэ. Зураг байхгүй бол нэг удаа сануул.
 
@@ -105,7 +108,7 @@ const tools: Anthropic.Tool[] = [
         interiorColor: { type: 'string' },
         description: { type: 'string' },
       },
-      required: ['brand', 'model', 'year', 'price', 'mileage'],
+      required: ['model', 'year', 'price', 'mileage'],
     },
   },
   {
@@ -129,7 +132,7 @@ async function runTool(
   session: any
 ): Promise<{ result: string; published?: boolean }> {
   if (name === 'publish_vehicle') {
-    const brand = String(input.brand || '').trim();
+    const brand = String(input.brand || '').trim() || 'Toyota';
     const baseModel = String(input.model || '').trim();
 
     // Fill known specs from the knowledge base (from the BASE model, so the
