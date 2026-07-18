@@ -59,9 +59,9 @@ export default function VehicleCard({
             {t.common.price}: {formatPriceShort(vehicle.price)}
           </p>
         </div>
-        {vehicle.createdAt && (
+        {(vehicle.updatedAt || vehicle.createdAt) && (
           <p className="mt-2 text-xs text-gray-400">
-            {t.common.added}: {formatTimeAgo(vehicle.createdAt)}
+            {t.common.added}: {formatTimeAgo(vehicle.updatedAt || vehicle.createdAt)}
           </p>
         )}
       </div>
