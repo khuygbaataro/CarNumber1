@@ -11,6 +11,9 @@ const SYSTEM_PROMPT = `Та бол VictoryCar авто худалдааны ка
 АСУУХ ТАЛБАРУУД (дараалан, товч асуу):
 - Марк (brand, ж: Toyota)
 - Загвар (model, ж: Prius 41)
+- Араалын дугаарын сүүлийн 4 орон (chassisLast4, ж: 0938) — ЗААВАЛ асуу.
+  Энэ нь ижил загвартай машинуудыг хооронд нь ялгахад хэрэгтэй. Загварын нэр
+  автоматаар "Prius 41 #0938" болно.
 - Он (year)
 - Үнэ (price, төгрөгөөр)
 - Явсан км (mileage)
@@ -43,7 +46,11 @@ const tools: Anthropic.Tool[] = [
       type: 'object',
       properties: {
         brand: { type: 'string', description: 'Марк, ж: Toyota' },
-        model: { type: 'string', description: 'Загвар, ж: Prius 41' },
+        model: { type: 'string', description: 'Загвар, ж: Prius 41 (# дугааргүй)' },
+        chassisLast4: {
+          type: 'string',
+          description: 'Араалын дугаарын сүүлийн 4 орон, ж: 0938',
+        },
         year: { type: 'number', description: 'Үйлдвэрлэсэн он' },
         price: { type: 'number', description: 'Үнэ төгрөгөөр (бодит тоо)' },
         mileage: { type: 'number', description: 'Явсан км' },
@@ -78,9 +85,15 @@ async function runTool(
   session: any
 ): Promise<{ result: string; published?: boolean }> {
   if (name === 'publish_vehicle') {
+    // Append the chassis last-4 as "#XXXX" so same-model cars stay distinct.
+    let modelName = String(input.model || '').trim();
+    const last4 = String(input.chassisLast4 || '').trim();
+    if (last4 && !modelName.includes(last4)) {
+      modelName = `${modelName} #${last4}`;
+    }
     const doc = await Vehicle.create({
       brand: String(input.brand || '').trim(),
-      model: String(input.model || '').trim(),
+      model: modelName,
       year: Number(input.year) || 0,
       price: Number(input.price) || 0,
       mileage: Number(input.mileage) || 0,
