@@ -78,21 +78,30 @@ export async function POST(req: NextRequest) {
       // 1) Handle attached photos first.
       if (ev.imageUrls.length > 0) {
         let ok = 0;
+        let lastErr = '';
         for (const url of ev.imageUrls) {
           try {
             const stored = await uploadImageFromUrl(url);
             session.images = [...(session.images || []), stored];
             ok++;
           } catch (e) {
-            console.error('image upload failed', e);
+            lastErr = e instanceof Error ? e.message : String(e);
+            console.error('image upload failed:', lastErr);
           }
         }
         session.markModified('images');
         await session.save();
-        await sendText(
-          ev.senderId,
-          `Зураг хүлээж авлаа (${ok} ширхэг). Одоо нийт ${(session.images || []).length} зурагтай.`
-        );
+        if (ok > 0) {
+          await sendText(
+            ev.senderId,
+            `Зураг хүлээж авлаа (${ok} ширхэг). Одоо нийт ${(session.images || []).length} зурагтай.`
+          );
+        } else {
+          await sendText(
+            ev.senderId,
+            'Зураг хадгалахад алдаа гарлаа. Cloudinary тохиргоог шалгана уу.'
+          );
+        }
       }
 
       // 2) Handle text.
