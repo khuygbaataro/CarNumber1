@@ -51,7 +51,24 @@ export const adminApi = {
     }),
   me: () => request<{ id: string; email: string; role: string }>('/auth/me'),
 
-  listVehicles: () => request<VehicleListResponse>('/vehicles?limit=50&sort=newest'),
+  // Fetch ALL vehicles across pages so the admin list never silently caps
+  // (the API limits each request to 50). Sold + available, newest first.
+  listVehicles: async (): Promise<VehicleListResponse> => {
+    const first = await request<VehicleListResponse>(
+      '/vehicles?limit=50&sort=newest&page=1'
+    );
+    const items = [...first.items];
+    for (let p = 2; p <= first.pagination.pages; p++) {
+      const next = await request<VehicleListResponse>(
+        `/vehicles?limit=50&sort=newest&page=${p}`
+      );
+      items.push(...next.items);
+    }
+    return {
+      items,
+      pagination: { ...first.pagination, page: 1, limit: items.length },
+    };
+  },
   getVehicle: (id: string) => request<Vehicle>(`/vehicles/${id}`),
   createVehicle: (data: VehicleFormData) =>
     request<Vehicle>('/vehicles', { method: 'POST', body: JSON.stringify(data) }),
