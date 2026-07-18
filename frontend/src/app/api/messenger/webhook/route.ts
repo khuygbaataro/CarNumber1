@@ -28,6 +28,12 @@ export async function GET(req: NextRequest) {
   if (mode === 'subscribe' && token === VERIFY_TOKEN && challenge) {
     return new NextResponse(challenge, { status: 200 });
   }
+  // Diagnostic (no secrets): shows why verification failed in Vercel logs.
+  console.log(
+    `[messenger verify] mode=${mode} envSet=${VERIFY_TOKEN.length > 0} ` +
+      `tokenProvided=${Boolean(token)} match=${token === VERIFY_TOKEN} ` +
+      `hasChallenge=${Boolean(challenge)}`
+  );
   return new NextResponse('Forbidden', { status: 403 });
 }
 
