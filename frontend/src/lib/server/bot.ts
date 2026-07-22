@@ -169,7 +169,7 @@ async function runTool(
     });
 
     // Auto-post to the Facebook page feed (best effort).
-    const posted = await postToFeed(buildPostTemplate(doc), images);
+    const posted = (await postToFeed(buildPostTemplate(doc), images)).ok;
 
     // Clear the draft images now that they belong to a vehicle.
     session.images = [];

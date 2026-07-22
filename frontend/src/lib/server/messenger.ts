@@ -49,8 +49,11 @@ export async function sendText(recipientId: string, text: string): Promise<void>
 
 // Post a photo album + message to the Facebook PAGE feed (best effort).
 // Requires the page token to have the pages_manage_posts permission.
-export async function postToFeed(message: string, imageUrls: string[]): Promise<boolean> {
-  if (!PAGE_ACCESS_TOKEN) return false;
+export async function postToFeed(
+  message: string,
+  imageUrls: string[]
+): Promise<{ ok: boolean; error?: string; postId?: string }> {
+  if (!PAGE_ACCESS_TOKEN) return { ok: false, error: 'MESSENGER_PAGE_ACCESS_TOKEN тохируулаагүй' };
   const tk = encodeURIComponent(PAGE_ACCESS_TOKEN);
   try {
     // 1) Upload each photo unpublished to get a media_fbid.
@@ -73,14 +76,17 @@ export async function postToFeed(message: string, imageUrls: string[]): Promise<
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
+    const j = await res.json().catch(() => ({}));
     if (!res.ok) {
-      console.error('FB feed post failed:', await res.text().catch(() => ''));
-      return false;
+      const error = j?.error?.message || JSON.stringify(j);
+      console.error('FB feed post failed:', error);
+      return { ok: false, error };
     }
-    return true;
+    return { ok: true, postId: j.id };
   } catch (e) {
-    console.error('postToFeed failed', e);
-    return false;
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('postToFeed failed', error);
+    return { ok: false, error };
   }
 }
 
