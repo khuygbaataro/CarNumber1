@@ -24,23 +24,39 @@ function knownSpecs(
   return out;
 }
 
-// Facebook page-feed post text for a newly added vehicle.
+// Facebook page-feed marketing post for a newly added vehicle.
 function buildPostTemplate(v: any): string {
-  const num = (n: number) => (Number(n) || 0).toLocaleString('en-US');
-  const specLine = [v.engine, v.transmission, v.steering && `Жолоо: ${v.steering}`]
-    .filter(Boolean)
-    .join(' | ');
+  const title = `${v.brand} ${String(v.model || '').replace(/\s*#\d+\s*$/, '')}`.trim();
+  const km = Math.round(Number(v.mileage) || 0).toLocaleString('de-DE'); // dots: 140.000
+  const priceMln = (Number(v.price) || 0) / 1_000_000;
+  const price =
+    priceMln >= 1
+      ? `${priceMln.toLocaleString('en-US', { maximumFractionDigits: 1 })} сая₮`
+      : `${(Number(v.price) || 0).toLocaleString('en-US')}₮`;
+
   const lines = [
-    `${v.brand} ${v.model} · ${v.year} он`,
-    `Үнэ: ${num(v.price)}₮`,
-    `Гүйлт: ${num(v.mileage)} км`,
-    specLine,
-    v.exteriorColor && `Өнгө: ${v.exteriorColor}`,
-    v.description && v.description,
-    '',
-    'Дэлгэрэнгүй: https://victorycar.mn',
-    'Утас: +976 8000-4020',
-  ].filter(Boolean);
+    `🚗 ${title}`,
+    `📌 Үйлдвэрлэсэн он: ${v.year}`,
+    `📌 ${km} км гүйлттэй`,
+    v.engine ? `📌 Хөдөлгүүр: ${v.engine} 🌱` : null,
+    v.steering ? `📌 Жолоо: ${v.steering} талд` : null,
+    v.exteriorColor ? `📌 Өнгө: ${v.exteriorColor}` : null,
+    v.description ? `📌 ${v.description}` : null,
+    `📌 НӨАТ-ын баримт олгоно`,
+    ``,
+    `💰 Үнэ: ${price}`,
+    `🏦 Зээл: Урьдчилгаа 20%-иас ➡️ Банк бус шуурхай шийдэл`,
+    ``,
+    `🌐 Victory Car-ийн албан ёсны вэбсайтаар зочилж бүрэн мэдээлэл, зураг, үнийг үзээрэй:`,
+    `📲 victorycar.mn`,
+    ``,
+    `📍 Хаяг: Хорооллын өргөөгөөр өгсөөд 🏢 → Энхболдын замаар 🚗 1.7 км`,
+    `👉 Victory Car Auto Showroom`,
+    `⏰ Цагийн хуваарь: Өдөр бүр 09:00 – 21:00 🕘`,
+    `📞 80004020`,
+    ``,
+    `✨ Victory Car – Таны найдвартай авто худалдааны хамтрагч 🚙`,
+  ].filter((l) => l !== null);
   return lines.join('\n');
 }
 
