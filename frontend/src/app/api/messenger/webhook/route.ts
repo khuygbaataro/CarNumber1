@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, after } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/server/db';
 import type { MessagingEvent } from '@/lib/server/messenger';
 import { getSession, handleUserText } from '@/lib/server/bot';
@@ -62,10 +62,8 @@ export async function POST(req: NextRequest) {
       .join(',')} adminCount=${admins.size}`
   );
 
-  // Acknowledge Facebook immediately (its webhook times out in ~20s and will
-  // retry — causing duplicate/slow replies — if we process inline). The real
-  // work runs after the response is flushed.
-  after(() => processEvents(events, admins));
+  // Process inline before replying so the response is guaranteed to be sent.
+  await processEvents(events, admins);
   return NextResponse.json({ ok: true });
 }
 

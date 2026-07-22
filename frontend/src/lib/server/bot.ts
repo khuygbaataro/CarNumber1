@@ -170,15 +170,21 @@ async function runTool(
       status: 'available',
     });
 
-    // Auto-post to the Facebook page feed (best effort).
-    const posted = (await postToFeed(buildPostTemplate(doc), images)).ok;
+    // Auto-post to the Facebook page feed (best effort). Toggle with the
+    // MESSENGER_AUTOPOST env var (set to "false"/"0" to disable while testing).
+    const autopost =
+      process.env.MESSENGER_AUTOPOST !== 'false' && process.env.MESSENGER_AUTOPOST !== '0';
+    let fbNote = '';
+    if (autopost) {
+      const r = await postToFeed(buildPostTemplate(doc), images);
+      fbNote = r.ok ? ' Facebook-т нийтэллээ.' : ' (FB-т нийтлэхэд алдаа — эрх шалга.)';
+    }
 
     // Clear the draft images now that they belong to a vehicle.
     session.images = [];
     return {
       result:
-        `Нэмэгдлээ: ${doc.brand} ${doc.model} ${doc.year}, ${images.length} зураг.` +
-        (posted ? ' Facebook-т нийтэллээ.' : ' (FB-т нийтлэхэд алдаа — эрх шалга.)'),
+        `Нэмэгдлээ: ${doc.brand} ${doc.model} ${doc.year}, ${images.length} зураг.` + fbNote,
       published: true,
     };
   }
