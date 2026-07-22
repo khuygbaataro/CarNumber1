@@ -1,6 +1,11 @@
 import crypto from 'crypto';
 
+// Messaging (receive/reply) uses the messaging app's page token.
 const PAGE_ACCESS_TOKEN = process.env.MESSENGER_PAGE_ACCESS_TOKEN || '';
+// Feed posting uses a separate app's page token (falls back to the messaging
+// token if not set), so posting and messaging can be on different FB apps.
+const POST_PAGE_TOKEN =
+  process.env.FB_POST_PAGE_TOKEN || process.env.MESSENGER_PAGE_ACCESS_TOKEN || '';
 const APP_SECRET = process.env.MESSENGER_APP_SECRET || '';
 const GRAPH_BASE = 'https://graph.facebook.com/v19.0';
 const GRAPH_URL = `${GRAPH_BASE}/me/messages`;
@@ -53,8 +58,8 @@ export async function postToFeed(
   message: string,
   imageUrls: string[]
 ): Promise<{ ok: boolean; error?: string; postId?: string }> {
-  if (!PAGE_ACCESS_TOKEN) return { ok: false, error: 'MESSENGER_PAGE_ACCESS_TOKEN тохируулаагүй' };
-  const tk = encodeURIComponent(PAGE_ACCESS_TOKEN);
+  if (!POST_PAGE_TOKEN) return { ok: false, error: 'FB_POST_PAGE_TOKEN тохируулаагүй' };
+  const tk = encodeURIComponent(POST_PAGE_TOKEN);
   try {
     // 1) Upload photos unpublished (in parallel) to get their media_fbids.
     const uploaded = await Promise.all(
