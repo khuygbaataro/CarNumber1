@@ -100,6 +100,7 @@ export async function postToFeed(
 
 export interface MessagingEvent {
   senderId: string;
+  mid?: string; // FB message id — used to skip webhook redeliveries
   text?: string;
   imageUrls: string[];
 }
@@ -119,7 +120,7 @@ export function parseEvents(body: any): MessagingEvent[] {
       for (const att of attachments) {
         if (att?.type === 'image' && att?.payload?.url) imageUrls.push(att.payload.url);
       }
-      out.push({ senderId, text: m.message.text, imageUrls });
+      out.push({ senderId, mid: m.message.mid, text: m.message.text, imageUrls });
     }
   }
   return out;

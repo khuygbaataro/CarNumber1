@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/server/db';
+import { BotSession } from '@/lib/server/models';
 import type { MessagingEvent } from '@/lib/server/messenger';
 import { getSession, handleUserText } from '@/lib/server/bot';
 import { uploadImageFromUrl } from '@/lib/server/cloudinary';
@@ -80,6 +81,24 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
       }
 
       await connectDB();
+
+      // Skip webhook redeliveries: FB re-sends events when a response is
+      // slow, which caused duplicate replies and version conflicts. Atomic
+      // check-and-record of the message id; a duplicate either matches
+      // nothing or hits the unique senderId index on upsert.
+      if (ev.mid) {
+        try {
+          const r = await BotSession.updateOne(
+            { senderId: ev.senderId, processedMids: { $ne: ev.mid } },
+            { $push: { processedMids: { $each: [ev.mid], $slice: -50 } } },
+            { upsert: true }
+          );
+          if (r.matchedCount === 0 && !r.upsertedCount) continue;
+        } catch {
+          continue; // duplicate key → already being processed
+        }
+      }
+
       const session = await getSession(ev.senderId);
 
       // 1) Handle attached photos first.
@@ -108,6 +127,16 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
 
       // 2) Handle text.
       if (ev.text && ev.text.trim()) {
+        // Built-in command: wipe the draft + history and start fresh.
+        if (ev.text.trim().toLowerCase() === 'reset') {
+          session.messages = [];
+          session.images = [];
+          session.markModified('messages');
+          session.markModified('images');
+          await session.save();
+          await sendText(ev.senderId, 'Шинэ эхэллээ. Мэдээллээ оруул.');
+          continue;
+        }
         const reply = await handleUserText(session, ev.text.trim());
         session.markModified('messages');
         session.markModified('images');

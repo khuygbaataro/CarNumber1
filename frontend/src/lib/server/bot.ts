@@ -70,8 +70,10 @@ const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин
 ХЭВ МАЯГ:
 - Хамгийн цөөн үгээр. Нэг мөр хангалттай бол нэг мөр.
 - Эможи огт хэрэглэхгүй.
-- Мэндчилгээ, магтаал, тайлбар, давталт хэрэггүй.
+- Энгийн текст. Markdown, од (*), тодруулга хэрэглэхгүй — Messenger дээр од нь тэр чигээрээ харагддаг.
+- Мэндчилгээ ("Тэгье", "За" г.м.), магтаал, тайлбар, давталт хэрэггүй.
 - "Машин нэмье" гэвэл зөвхөн "Мэдээллээ оруул." гэж хариул. Жишээ дурдахгүй.
+- publish_vehicle-ийн дараа tool-ийн үр дүнг нэг мөрөөр дамжуул. "Өөр машин нэмэх бол" гэх мэт урилга бүү нэм.
 
 ЦУГЛУУЛАХ ТАЛБАРУУД (бүгд заавал):
 1. Загвар
@@ -195,8 +197,11 @@ async function runTool(
       fbNote = r.ok ? ' Facebook-т нийтэллээ.' : ' (FB-т нийтлэхэд алдаа — эрх шалга.)';
     }
 
-    // Clear the draft images now that they belong to a vehicle.
+    // Reset the draft: images belong to the vehicle now, and the chat
+    // history is cleared so the next car starts clean (old replies were
+    // steering the model back to outdated behavior).
     session.images = [];
+    session.messages = [];
     return {
       result:
         `Нэмэгдлээ: ${doc.brand} ${doc.model} ${doc.year}, ${images.length} зураг.` + fbNote,

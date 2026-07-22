@@ -32,6 +32,8 @@ const vehicleSchema = new Schema(
 const settingsSchema = new Schema({}, { strict: false, timestamps: true });
 
 // --- Bot conversation state (this collection is owned by the bot) ---
+// versionKey off: concurrent webhook deliveries otherwise trigger
+// VersionError on array saves.
 const botSessionSchema = new Schema(
   {
     senderId: { type: String, required: true, unique: true, index: true },
@@ -40,8 +42,9 @@ const botSessionSchema = new Schema(
       default: [],
     },
     images: { type: [String], default: [] }, // Cloudinary URLs collected this draft
+    processedMids: { type: [String], default: [] }, // recent FB message ids (dedupe)
   },
-  { timestamps: true }
+  { timestamps: true, versionKey: false }
 );
 
 // Guard against model recompilation on hot reload / warm lambdas.
