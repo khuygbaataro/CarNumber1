@@ -101,7 +101,22 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
 
       const session = await getSession(ev.senderId);
 
-      // 1) Handle attached photos first.
+      // Built-in command: wipe the draft + history and start fresh.
+      if (ev.text && ev.text.trim().toLowerCase() === 'reset') {
+        session.messages = [];
+        session.images = [];
+        session.markModified('messages');
+        session.markModified('images');
+        await session.save();
+        await sendText(ev.senderId, 'Шинэ эхэллээ. Мэдээллээ оруулаарай.');
+        continue;
+      }
+
+      let text = ev.text?.trim() || '';
+
+      // 1) Store attached photos, then tell the model about them so it can
+      // decide the reply (e.g. jump straight to the confirm summary when
+      // everything else is already collected).
       if (ev.imageUrls.length > 0) {
         let ok = 0;
         let lastErr = '';
@@ -117,27 +132,17 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
         }
         session.markModified('images');
         await session.save();
-        await sendText(
-          ev.senderId,
-          ok > 0
-            ? `Зураг хүлээж авлаа (${ok} ширхэг). Одоо нийт ${(session.images || []).length} зурагтай.`
-            : `Зураг хадгалахад алдаа: ${lastErr.slice(0, 300)}`
-        );
+        if (ok === 0) {
+          await sendText(ev.senderId, `Зураг хадгалахад алдаа: ${lastErr.slice(0, 300)}`);
+        } else {
+          const total = (session.images || []).length;
+          text = `[${ok} зураг ирлээ, нийт ${total}]${text ? ' ' + text : ''}`;
+        }
       }
 
-      // 2) Handle text.
-      if (ev.text && ev.text.trim()) {
-        // Built-in command: wipe the draft + history and start fresh.
-        if (ev.text.trim().toLowerCase() === 'reset') {
-          session.messages = [];
-          session.images = [];
-          session.markModified('messages');
-          session.markModified('images');
-          await session.save();
-          await sendText(ev.senderId, 'Шинэ эхэллээ. Мэдээллээ оруул.');
-          continue;
-        }
-        const reply = await handleUserText(session, ev.text.trim());
+      // 2) Run the model turn (user text and/or the photo notification).
+      if (text) {
+        const reply = await handleUserText(session, text);
         session.markModified('messages');
         session.markModified('images');
         await session.save();

@@ -44,6 +44,10 @@ async function buildTransformation(): Promise<any[]> {
       color: wm.color || '#FFFFFF',
       opacity: Number.isFinite(Number(wm.opacity)) ? Number(wm.opacity) : 40,
       gravity: POSITION_GRAVITY[wm.position] || 'south_east',
+      // Scale the text overlay to a fixed fraction of the image width, so
+      // the watermark looks the same on small and large photos alike.
+      width: 0.3,
+      flags: 'relative',
       x: 20,
       y: 20,
     });
