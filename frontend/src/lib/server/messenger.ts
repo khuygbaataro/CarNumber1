@@ -56,18 +56,21 @@ export async function postToFeed(
   if (!PAGE_ACCESS_TOKEN) return { ok: false, error: 'MESSENGER_PAGE_ACCESS_TOKEN тохируулаагүй' };
   const tk = encodeURIComponent(PAGE_ACCESS_TOKEN);
   try {
-    // 1) Upload each photo unpublished to get a media_fbid.
-    const mediaFbids: string[] = [];
-    for (const url of imageUrls.slice(0, 10)) {
-      const r = await fetch(`${GRAPH_BASE}/me/photos?access_token=${tk}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, published: false }),
-      });
-      const j = await r.json().catch(() => ({}));
-      if (r.ok && j.id) mediaFbids.push(j.id);
-      else console.error('FB photo upload failed:', JSON.stringify(j));
-    }
+    // 1) Upload photos unpublished (in parallel) to get their media_fbids.
+    const uploaded = await Promise.all(
+      imageUrls.slice(0, 10).map(async (url) => {
+        const r = await fetch(`${GRAPH_BASE}/me/photos?access_token=${tk}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, published: false }),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok && j.id) return j.id as string;
+        console.error('FB photo upload failed:', JSON.stringify(j));
+        return null;
+      })
+    );
+    const mediaFbids = uploaded.filter((id): id is string => Boolean(id));
     // 2) Create the feed post, attaching the uploaded photos.
     const body: any = { message };
     if (mediaFbids.length) body.attached_media = mediaFbids.map((id) => ({ media_fbid: id }));

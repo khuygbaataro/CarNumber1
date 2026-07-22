@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { connectDB } from '@/lib/server/db';
+import type { MessagingEvent } from '@/lib/server/messenger';
 import { getSession, handleUserText } from '@/lib/server/bot';
 import { uploadImageFromUrl } from '@/lib/server/cloudinary';
 import { verifySignature, sendText, parseEvents } from '@/lib/server/messenger';
@@ -61,7 +62,15 @@ export async function POST(req: NextRequest) {
       .join(',')} adminCount=${admins.size}`
   );
 
-  // Process events sequentially so per-sender state stays consistent.
+  // Acknowledge Facebook immediately (its webhook times out in ~20s and will
+  // retry — causing duplicate/slow replies — if we process inline). The real
+  // work runs after the response is flushed.
+  after(() => processEvents(events, admins));
+  return NextResponse.json({ ok: true });
+}
+
+async function processEvents(events: MessagingEvent[], admins: Set<string>) {
+  // Sequential so per-sender state stays consistent.
   for (const ev of events) {
     try {
       if (admins.size > 0 && !admins.has(ev.senderId)) {
@@ -78,30 +87,23 @@ export async function POST(req: NextRequest) {
       // 1) Handle attached photos first.
       if (ev.imageUrls.length > 0) {
         let ok = 0;
-        let lastErr = '';
         for (const url of ev.imageUrls) {
           try {
             const stored = await uploadImageFromUrl(url);
             session.images = [...(session.images || []), stored];
             ok++;
           } catch (e) {
-            lastErr = e instanceof Error ? e.message : String(e);
-            console.error('image upload failed:', lastErr);
+            console.error('image upload failed:', e instanceof Error ? e.message : e);
           }
         }
         session.markModified('images');
         await session.save();
-        if (ok > 0) {
-          await sendText(
-            ev.senderId,
-            `Зураг хүлээж авлаа (${ok} ширхэг). Одоо нийт ${(session.images || []).length} зурагтай.`
-          );
-        } else {
-          await sendText(
-            ev.senderId,
-            'Зураг хадгалахад алдаа гарлаа. Cloudinary тохиргоог шалгана уу.'
-          );
-        }
+        await sendText(
+          ev.senderId,
+          ok > 0
+            ? `Зураг хүлээж авлаа (${ok} ширхэг). Одоо нийт ${(session.images || []).length} зурагтай.`
+            : 'Зураг хадгалахад алдаа гарлаа. Cloudinary тохиргоог шалгана уу.'
+        );
       }
 
       // 2) Handle text.
@@ -121,6 +123,4 @@ export async function POST(req: NextRequest) {
       }
     }
   }
-
-  return NextResponse.json({ ok: true });
 }

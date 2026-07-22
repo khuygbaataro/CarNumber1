@@ -45,7 +45,9 @@ function buildPostTemplate(v: any): string {
 }
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-opus-4-8';
+// Sonnet is much faster than Opus for this extraction/chat task — better
+// latency for a live Messenger bot. Override with ANTHROPIC_MODEL if needed.
+const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
 
 const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин нэмэх дотоод туслах. Facebook Messenger дээр ажилтантай харилцана.
 
