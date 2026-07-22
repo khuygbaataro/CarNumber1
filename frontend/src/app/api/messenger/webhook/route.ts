@@ -85,13 +85,15 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
       // 1) Handle attached photos first.
       if (ev.imageUrls.length > 0) {
         let ok = 0;
+        let lastErr = '';
         for (const url of ev.imageUrls) {
           try {
             const stored = await uploadImageFromUrl(url);
             session.images = [...(session.images || []), stored];
             ok++;
           } catch (e) {
-            console.error('image upload failed:', e instanceof Error ? e.message : e);
+            lastErr = e instanceof Error ? e.message : String(e);
+            console.error('image upload failed:', lastErr);
           }
         }
         session.markModified('images');
@@ -100,7 +102,7 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
           ev.senderId,
           ok > 0
             ? `Зураг хүлээж авлаа (${ok} ширхэг). Одоо нийт ${(session.images || []).length} зурагтай.`
-            : 'Зураг хадгалахад алдаа гарлаа. Cloudinary тохиргоог шалгана уу.'
+            : `Зураг хадгалахад алдаа: ${lastErr.slice(0, 300)}`
         );
       }
 
@@ -113,9 +115,10 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
         await sendText(ev.senderId, reply);
       }
     } catch (e) {
-      console.error('event handling failed', e);
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error('event handling failed:', msg, e);
       try {
-        await sendText(ev.senderId, 'Уучлаарай, алдаа гарлаа. Дахин оролдоно уу.');
+        await sendText(ev.senderId, `Алдаа гарлаа: ${msg.slice(0, 400)}`);
       } catch {
         /* ignore */
       }
