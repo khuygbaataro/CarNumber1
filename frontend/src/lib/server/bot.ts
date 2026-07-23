@@ -150,11 +150,14 @@ const tools: Anthropic.Tool[] = [
   {
     name: 'mark_sold',
     description:
-      'Тухайн машиныг зарагдсан гэж тэмдэглэнэ. query-д марк/загвар/он гэх мэт хайлтын үг өг.',
+      'Тухайн машиныг зарагдсан гэж тэмдэглэж, Facebook-т ЗАРАГДСАН пост оруулна. query-д арлын сүүлийн 4 орон (ж: 4444) байвал заавал оруул — хамгийн найдвартай түлхүүр. Байхгүй бол загварын нэр өг.',
     input_schema: {
       type: 'object',
       properties: {
-        query: { type: 'string', description: 'Хайх машины марк/загвар/он' },
+        query: {
+          type: 'string',
+          description: 'Арлын сүүлийн 4 орон (байвал), эсвэл загварын нэр',
+        },
       },
       required: ['query'],
     },
@@ -230,11 +233,36 @@ async function runTool(
   if (name === 'mark_sold') {
     const q = String(input.query || '').trim();
     if (!q) return { result: 'Хайх утга хоосон байна.' };
-    const rx = new RegExp(q.split(/\s+/).map((s) => escapeRegex(s)).join('|'), 'i');
-    const matches = await Vehicle.find({
-      status: 'available',
-      $or: [{ brand: rx }, { model: rx }, { description: rx }],
-    }).limit(10);
+
+    // Chassis digits are the unique key (#4444 in the model name), so try
+    // every 3-5 digit group first. An OR over all words was far too loose:
+    // "Prius 41 #4444" matched every Prius41 and the limit cut the real
+    // car out of the list.
+    let matches: any[] = [];
+    const digitGroups = q.match(/\d{3,5}/g) || [];
+    for (const d of digitGroups) {
+      matches = await Vehicle.find({
+        status: 'available',
+        model: new RegExp(escapeRegex(d), 'i'),
+      }).limit(10);
+      if (matches.length > 0) break;
+    }
+
+    // Fall back to requiring EVERY term to match somewhere (AND, not OR).
+    if (matches.length === 0) {
+      const terms = q.split(/\s+/).filter(Boolean).map(escapeRegex);
+      matches = await Vehicle.find({
+        status: 'available',
+        $and: terms.map((t) => ({
+          $or: [
+            { brand: new RegExp(t, 'i') },
+            { model: new RegExp(t, 'i') },
+            { description: new RegExp(t, 'i') },
+          ],
+        })),
+      }).limit(10);
+    }
+
     if (matches.length === 0) return { result: `"${q}"-д тохирох бэлэн машин олдсонгүй.` };
     if (matches.length > 1) {
       const list = matches
