@@ -34,6 +34,9 @@ export default function Footer({ settings }: { settings: Settings }) {
             <li>
               <Link href="/#contact" className="hover:text-white">{t.nav.contact}</Link>
             </li>
+            <li>
+              <Link href="/privacy" className="hover:text-white">Нууцлалын бодлого</Link>
+            </li>
           </ul>
         </div>
 

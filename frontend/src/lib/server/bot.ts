@@ -24,38 +24,52 @@ function knownSpecs(
   return out;
 }
 
-// Facebook page-feed marketing post for a newly added vehicle.
-function buildPostTemplate(v: any): string {
-  const title = `${v.brand} ${String(v.model || '').replace(/\s*#\d+\s*$/, '')}`.trim();
-  const km = Math.round(Number(v.mileage) || 0).toLocaleString('de-DE'); // dots: 140.000
+// Facebook page-feed marketing post, matching the page's established format.
+// opts.sold prefixes the ✅ЗАРАГДСАН✅ banner for sold announcements.
+function buildPostTemplate(v: any, opts: { sold?: boolean } = {}): string {
+  const model = String(v.model || '');
+  const last4 = (model.match(/#(\d{3,4})/) || [])[1] || '';
+  const title = `${v.brand} ${model.replace(/\s*#\d+\s*$/, '')}`.trim();
+  const km = Math.round(Number(v.mileage) || 0).toLocaleString('de-DE'); // 110.000
   const priceMln = (Number(v.price) || 0) / 1_000_000;
   const price =
     priceMln >= 1
       ? `${priceMln.toLocaleString('en-US', { maximumFractionDigits: 1 })} сая₮`
       : `${(Number(v.price) || 0).toLocaleString('en-US')}₮`;
+  // Years like 2015.11 mean year.month → "2015.11 сар"; whole years → "2015 он".
+  const yearNum = Number(v.year) || 0;
+  const yearStr = Number.isInteger(yearNum) ? `${yearNum} он` : `${yearNum} сар`;
+  const importYear = new Date().getFullYear();
 
   const lines = [
-    `🚗 ${title}`,
-    `📌 Үйлдвэрлэсэн он: ${v.year}`,
-    `📌 ${km} км гүйлттэй`,
-    v.engine ? `📌 Хөдөлгүүр: ${v.engine} 🌱` : null,
-    v.steering ? `📌 Жолоо: ${v.steering} талд` : null,
-    v.exteriorColor ? `📌 Өнгө: ${v.exteriorColor}` : null,
-    v.description ? `📌 ${v.description}` : null,
-    `📌 НӨАТ-ын баримт олгоно`,
-    ``,
-    `💰 Үнэ: ${price}`,
-    `🏦 Зээл: Урьдчилгаа 20%-иас ➡️ Банк бус шуурхай шийдэл`,
-    ``,
-    `🌐 Victory Car-ийн албан ёсны вэбсайтаар зочилж бүрэн мэдээлэл, зураг, үнийг үзээрэй:`,
+    ...(opts.sold ? ['✅ЗАРАГДСАН✅'] : []),
+    last4 ? `#${last4}` : null,
+    title,
+    `📌Үйлдвэрлэсэн он: ${yearStr}`,
+    `📌Орж ирсэн: ${importYear} он гаальтай`,
+    `📌${km}км гүйлттэй`,
+    v.engine ? `📌Хөдөлгүүр: ${v.engine} 🌱` : null,
+    `📌Хөтлөгч: Урдаа⚙️`,
+    v.description ? `📌${v.description}` : null,
+    `📌НӨАТ баримт олгоно`,
+    `🌐 Victory Car-ийн албан ёсны вэбсайтаар зочлоод:`,
+    `✅ Автомашины бүрэн мэдээлэл`,
+    `✅ Зураг, үзүүлэлт`,
+    `✅ Үнэ болон санхүүгийн нөхцөл`,
+    `✅ Шинээр орж ирсэн автомашинуудтай танилцаарай.`,
     `📲 victorycar.mn`,
-    ``,
-    `📍 Хаяг: Хорооллын өргөөгөөр өгсөөд 🏢 → Энхболдын замаар 🚗 1.7 км`,
+    `✨ Өөрт тохирох автомашинаа хамгийн хялбараар сонгоорой!`,
+    `🚗 Victory Car – Таны найдвартай авто худалдааны хамтрагч.`,
+    `💰 Үнэ: ${price}`,
+    `🏦 Зээл: Урьдчилгаа 20–30% ➡️ Банк бус шийдэл шуурхай`,
+    `👉 Victory Car – Чанарыг бид эрхэмлэнэ!`,
+    `📍 Хаяг:`,
+    `Хорооллын өргөөгөөр өгсөөд 🏢 → Энхболдын замаар 🚗 1.7 км`,
     `👉 Victory Car Auto Showroom`,
-    `⏰ Цагийн хуваарь: Өдөр бүр 09:00 – 21:00 🕘`,
-    `📞 80004020`,
-    ``,
-    `✨ Victory Car – Таны найдвартай авто худалдааны хамтрагч 🚙`,
+    `⏰ Цагийн хуваарь:`,
+    `Өглөө 09:00 – Орой 19:00 🕘➡️🕖`,
+    `🚙 Танд хамгийн хямд үнэ ✨, өргөн сонголт 🚗, шуурхай үйлчилгээ ⚡`,
+    `📲80004020`,
   ].filter((l) => l !== null);
   return lines.join('\n');
 }
@@ -233,7 +247,18 @@ async function runTool(
     const v: any = matches[0];
     v.status = 'sold';
     await v.save();
-    return { result: `Зарагдсан гэж тэмдэглэлээ: ${v.brand} ${v.model} ${v.year}.` };
+
+    // Announce the sale on the page feed with the same template + banner.
+    const autopost =
+      process.env.MESSENGER_AUTOPOST !== 'false' && process.env.MESSENGER_AUTOPOST !== '0';
+    let fbNote = '';
+    if (autopost) {
+      const r = await postToFeed(buildPostTemplate(v, { sold: true }), v.images || []);
+      fbNote = r.ok ? ' Facebook-т ЗАРАГДСАН пост орлоо.' : ' (FB пост алдаа — эрх шалга.)';
+    }
+    return {
+      result: `✅ Зарагдсанаар тэмдэглэлээ: ${v.brand} ${v.model} (${v.year}).` + fbNote,
+    };
   }
 
   return { result: `Тодорхойгүй tool: ${name}` };
