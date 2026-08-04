@@ -363,7 +363,7 @@ export default function AdminSettingsPage() {
               />
               <p className="mt-1 text-xs text-gray-400">{t.admin.settings.watermarkTextHint}</p>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <label className="label">{t.admin.settings.watermarkPosition}</label>
                 <select
@@ -415,42 +415,10 @@ export default function AdminSettingsPage() {
                   <option value="Montserrat" style={{ fontFamily: 'Montserrat' }}>Montserrat</option>
                 </select>
               </div>
-              <div>
-                <label className="label">{t.admin.settings.watermarkFontSize}</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={form.images.watermark.fontSize}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      images: {
-                        ...form.images,
-                        watermark: { ...form.images.watermark, fontSize: Number(e.target.value) },
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label className="label">{t.admin.settings.watermarkOpacity}</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  className="input"
-                  value={form.images.watermark.opacity}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      images: {
-                        ...form.images,
-                        watermark: { ...form.images.watermark, opacity: Number(e.target.value) },
-                      },
-                    })
-                  }
-                />
-              </div>
+              {/* Font size and opacity used to live here. The watermark is now
+                  sized as a share of each photo's width and drawn as a solid
+                  chip, so neither had any effect — showing them only made the
+                  watermark look impossible to control. */}
               <div>
                 <label className="label">{t.admin.settings.watermarkColor}</label>
                 <input

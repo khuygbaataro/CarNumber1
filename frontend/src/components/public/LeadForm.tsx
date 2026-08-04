@@ -39,7 +39,10 @@ export default function LeadForm({
 
   if (state === 'done') {
     return (
-      <div className="rounded-xl bg-green-50 p-6 text-center text-green-700 ring-1 ring-green-200">
+      <div className="rounded-2xl bg-emerald-50 p-8 text-center font-medium text-emerald-800 ring-1 ring-emerald-200">
+        <span className="mb-2 block text-3xl" aria-hidden>
+          ✓
+        </span>
         {t.lead.success}
       </div>
     );
@@ -48,12 +51,12 @@ export default function LeadForm({
   return (
     <form
       onSubmit={submit}
-      className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6"
+      className="rounded-2xl bg-white p-5 shadow-card ring-1 ring-gray-200 sm:p-7"
     >
-      <h2 className="text-lg font-bold text-gray-900">
+      <h2 className="text-xl font-bold tracking-tight text-gray-900">
         {vehicleName ? t.lead.titleVehicle : t.lead.title}
       </h2>
-      <p className="mt-1 text-sm text-gray-500">{t.lead.subtitle}</p>
+      <p className="mt-1.5 text-sm text-gray-500">{t.lead.subtitle}</p>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
@@ -88,7 +91,11 @@ export default function LeadForm({
 
       {error && <p className="mt-3 text-sm font-medium text-accent">{error}</p>}
 
-      <button type="submit" disabled={state === 'sending'} className="btn-primary mt-4">
+      <button
+        type="submit"
+        disabled={state === 'sending'}
+        className="btn-primary mt-5 w-full text-base sm:w-auto sm:px-8"
+      >
         {state === 'sending' ? t.lead.submitting : t.lead.submit}
       </button>
     </form>

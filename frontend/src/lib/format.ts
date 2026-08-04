@@ -17,6 +17,12 @@ export const formatPriceShort = (price: number): string => {
 
 export const formatMileage = (km: number): string => `${formatNumber(km)} км`;
 
+// Monthly payment span for an equal-principal loan: the instalment starts
+// high and falls every month, so both ends are shown — "669,760 → 288,120₮".
+// One ₮ at the end covers the pair and keeps the line short enough for a card.
+export const formatPaymentRange = (first: number, last: number): string =>
+  `${formatNumber(first)} → ${formatPrice(last)}`;
+
 // How long ago something was added, in Mongolian. Within 24h it reads in
 // hours/minutes; once a full day passes it flips to "N өдрийн өмнө".
 export const formatTimeAgo = (dateStr?: string): string => {

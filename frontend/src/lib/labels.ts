@@ -14,6 +14,21 @@ export const t = {
     downPayment: 'Урьдчилгаа',
     price: 'Үнэ',
     added: 'Оруулсан',
+    monthly: 'Сарын төлбөр',
+    // Short form for the narrow price tiles on cards, where the full
+    // "Сарын төлбөр" wraps onto a second line.
+    monthlyShort: 'Сард',
+    months: 'сар',
+    new: 'Шинэ',
+  },
+  // Primary calls to action. These appear in the sticky mobile bar, on the
+  // detail page and in the contact section.
+  cta: {
+    call: 'Залгах',
+    messenger: 'Мессенжер',
+    messengerLong: 'Мессенжерээр бичих',
+    bookViewing: 'Үзэх цаг авах',
+    browse: 'Машинууд үзэх',
   },
   status: {
     available: 'Зарагдана',
@@ -30,6 +45,13 @@ export const t = {
     workingHours: 'Ажиллах цаг',
     testimonials: 'Үйлчлүүлэгчдийн сэтгэгдэл',
     partners: 'Хамтрагч байгууллагууд',
+    // Live figure — comes straight from the catalog, never hard-coded.
+    inventoryCount: (n: number) => `Одоо ${n} машин сонголттой`,
+    allVehicles: 'Бүх машин',
+    catalog: 'Каталог',
+    trust: 'Итгэл',
+    sortedNewestNote: 'Шинээр ирсэн нь эхэндээ',
+    viewAllCount: (n: number) => `Бүх ${n} машиныг үзэх`,
   },
   vehicles: {
     title: 'Машинууд',
@@ -45,6 +67,7 @@ export const t = {
       sort: 'Эрэмбэлэх',
       apply: 'Шүүх',
       reset: 'Цэвэрлэх',
+      open: 'Шүүлт',
     },
     sortOptions: {
       newest: 'Шинэ эхэндээ',
@@ -72,6 +95,10 @@ export const t = {
     video: 'Видео',
     callButton: 'Залгах',
     otherCars: 'Бусад машинууд',
+    otherCarsNote: 'Танд тохирох өөр сонголтууд',
+    photos: 'Зураг',
+    soldTitle: 'Энэ машин зарагдсан байна',
+    soldNote: 'Доорх боломжит машинуудаас сонгоно уу.',
   },
   loan: {
     title: 'Сарын төлбөрийн тооцоолуур',
@@ -251,16 +278,15 @@ export const t = {
       termOptionsHint: 'Таслалаар тусгаарлана. Жишээ: 12, 24, 36',
       imagesSection: 'Зургийн боловсруулалт',
       imagesHint:
-        'Шинээр оруулах машины зурагт автоматаар хэрэгжинэ: жижигрүүлж, шахаж, watermark дарна. Хуучин зургуудад нөлөөлөхгүй.',
+        'Шинээр оруулах машины зурагт автоматаар хэрэгжинэ: жижигрүүлж, шахаж, лого + утасны дугаар + хүрээ дарна. Хуучин зургуудад нөлөөлөхгүй.',
       maxWidth: 'Хамгийн их өргөн (px)',
       watermarkEnabled: 'Watermark идэвхжүүлэх',
-      watermarkText: 'Watermark текст',
-      watermarkTextHint: 'Хоосон бол компанийн нэрийг ашиглана.',
-      watermarkPosition: 'Байрлал',
+      watermarkText: 'Зураг дээр бичих текст',
+      watermarkTextHint:
+        'Хоосон бол холбоо барих утасны дугаарыг ашиглана. Хэмжээ нь зураг бүрийн өргөнд тохируулан автоматаар тодорхойлогдоно.',
+      watermarkPosition: 'Логоны байрлал',
       watermarkFont: 'Үсгийн фонт',
-      watermarkFontSize: 'Үсгийн хэмжээ',
-      watermarkOpacity: 'Тунгалагшилт (0–100)',
-      watermarkColor: 'Өнгө',
+      watermarkColor: 'Хүрээ ба текстийн өнгө',
       posBottomRight: 'Баруун доод',
       posBottomLeft: 'Зүүн доод',
       posTopRight: 'Баруун дээд',

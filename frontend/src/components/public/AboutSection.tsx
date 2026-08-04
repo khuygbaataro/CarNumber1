@@ -5,19 +5,21 @@ export default function AboutSection({ settings }: { settings: Settings }) {
   if (!settings.about && !settings.workingHours) return null;
 
   return (
-    <section className="bg-white py-12">
+    <section className="bg-white py-14 sm:py-20">
       <div className="container-page max-w-3xl text-center">
         {settings.about && (
           <>
-            <h2 className="text-2xl font-bold text-gray-900">{t.home.about}</h2>
-            <p className="mt-4 whitespace-pre-line leading-relaxed text-gray-600">
+            <p className="eyebrow">{t.home.about}</p>
+            <h2 className="section-title mt-1.5">{settings.companyName}</h2>
+            <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-gray-600">
               {settings.about}
             </p>
           </>
         )}
         {settings.workingHours && (
-          <p className="mt-6 inline-block rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
-            🕒 {t.home.workingHours}: {settings.workingHours}
+          <p className="mt-7 inline-flex items-center gap-2 rounded-full bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand">
+            <span aria-hidden>🕒</span>
+            {t.home.workingHours}: {settings.workingHours}
           </p>
         )}
       </div>
