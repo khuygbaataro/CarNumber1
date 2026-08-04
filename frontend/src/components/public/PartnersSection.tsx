@@ -5,14 +5,17 @@ export default function PartnersSection({ partners }: { partners: string[] }) {
   if (!partners || partners.length === 0) return null;
 
   return (
-    <section className="bg-white py-10">
+    <section className="border-y border-gray-200 bg-white py-12">
       <div className="container-page">
-        <h2 className="text-center text-2xl font-bold text-gray-900">
+        <h2 className="text-center text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
           {t.home.partners}
         </h2>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-8">
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
           {partners.map((url, i) => (
-            <div key={url + i} className="relative h-12 w-28 grayscale transition hover:grayscale-0">
+            <div
+              key={url + i}
+              className="relative h-12 w-28 opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0"
+            >
               <Image
                 src={url}
                 alt={`partner-${i + 1}`}

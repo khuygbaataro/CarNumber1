@@ -20,25 +20,29 @@ export default function Pagination({ page, pages, query }: Props) {
   };
 
   return (
-    <nav className="mt-8 flex items-center justify-center gap-3">
+    <nav className="mt-10 flex items-center justify-center gap-3">
       {page > 1 ? (
-        <Link href={hrefForPage(page - 1)} className="btn-outline">
-          ←
+        <Link href={hrefForPage(page - 1)} aria-label="Prev" className="btn-outline px-4">
+          <span aria-hidden>←</span>
         </Link>
       ) : (
-        <span className="btn-outline cursor-not-allowed opacity-50">←</span>
+        <span className="btn-outline pointer-events-none px-4 opacity-40" aria-hidden>
+          ←
+        </span>
       )}
 
-      <span className="text-sm font-medium text-gray-700">
+      <span className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200">
         {page} / {pages}
       </span>
 
       {page < pages ? (
-        <Link href={hrefForPage(page + 1)} className="btn-outline">
-          →
+        <Link href={hrefForPage(page + 1)} aria-label="Next" className="btn-outline px-4">
+          <span aria-hidden>→</span>
         </Link>
       ) : (
-        <span className="btn-outline cursor-not-allowed opacity-50">→</span>
+        <span className="btn-outline pointer-events-none px-4 opacity-40" aria-hidden>
+          →
+        </span>
       )}
     </nav>
   );

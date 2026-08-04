@@ -1,7 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { calcLoanAmount, calcEqualPrincipal, DEFAULT_LOAN_CONFIG } from '@/lib/loan';
+import {
+  calcLoanAmount,
+  calcEqualPrincipal,
+  pickDisplayTerm,
+  DEFAULT_LOAN_CONFIG,
+} from '@/lib/loan';
 import { formatPrice } from '@/lib/format';
 import { t } from '@/lib/labels';
 import { LoanConfig } from '@/types';
@@ -19,7 +24,9 @@ export default function LoanCalculator({
   const terms = cfg.termOptions?.length ? cfg.termOptions : [12, 24, 36];
 
   const [downPercent, setDownPercent] = useState(minDown);
-  const [term, setTerm] = useState(terms[0]);
+  // Opens on the same term the cards advertise, so the buyer sees the figure
+  // they clicked through for instead of the shortest, scariest one.
+  const [term, setTerm] = useState(() => pickDisplayTerm(cfg.termOptions));
 
   const downAmount = useMemo(
     () => Math.max(0, (Math.max(0, price) * downPercent) / 100),
@@ -37,8 +44,11 @@ export default function LoanCalculator({
   };
 
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
-      <h2 className="text-lg font-bold text-gray-900">{t.loan.title}</h2>
+    <div className="rounded-2xl bg-white p-5 shadow-card ring-1 ring-gray-200 sm:p-7">
+      <p className="eyebrow">{t.common.monthly}</p>
+      <h2 className="mt-1.5 text-xl font-bold tracking-tight text-gray-900">
+        {t.loan.title}
+      </h2>
 
       {/* Inputs */}
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -71,16 +81,18 @@ export default function LoanCalculator({
         <p className="label">
           {t.loan.term} ({t.loan.months})
         </p>
-        <div className="grid grid-cols-3 gap-3">
+        {/* Wrapping flex rather than a fixed grid, so any number of term
+            options fills the row evenly instead of leaving empty cells. */}
+        <div className="flex flex-wrap gap-3">
           {terms.map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setTerm(m)}
-              className={`rounded-lg border py-3 text-center text-lg font-bold transition ${
+              className={`min-h-[52px] min-w-[88px] flex-1 rounded-xl border text-center text-lg font-bold transition active:scale-[0.98] ${
                 m === term
-                  ? 'border-brand bg-brand text-white shadow'
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-brand'
+                  ? 'border-brand bg-brand text-white shadow-md'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:bg-brand-50'
               }`}
             >
               {m}
@@ -91,19 +103,19 @@ export default function LoanCalculator({
 
       {/* Highlighted result — the figures buyers care about most */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl bg-gradient-to-br from-brand to-brand-dark p-6 text-center text-white shadow-lg">
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-100">
+        <div className="rounded-2xl bg-gradient-to-br from-brand-700 via-brand to-brand-dark p-6 text-center text-white shadow-lg">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-blue-100">
             {t.loan.downAmount}
           </p>
-          <p className="mt-2 text-3xl font-extrabold sm:text-4xl">
+          <p className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
             {formatPrice(downAmount)}
           </p>
         </div>
-        <div className="rounded-2xl border-2 border-brand bg-blue-50 p-6 text-center shadow-lg">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand/70">
+        <div className="rounded-2xl border-2 border-brand bg-brand-50 p-6 text-center shadow-lg">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand/70">
             {t.loan.firstMonth} · {term} {t.loan.months}
           </p>
-          <p className="mt-2 text-3xl font-extrabold text-brand sm:text-4xl">
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-brand sm:text-4xl">
             {formatPrice(schedule.first)}
           </p>
           <p className="mt-2 text-xs font-medium text-brand/70">

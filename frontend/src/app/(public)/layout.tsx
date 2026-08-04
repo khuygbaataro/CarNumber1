@@ -1,6 +1,7 @@
 import { getSettingsSafe } from '@/lib/api';
 import Navbar from '@/components/public/Navbar';
 import Footer from '@/components/public/Footer';
+import StickyContactBar from '@/components/public/StickyContactBar';
 
 export default async function PublicLayout({
   children,
@@ -13,6 +14,8 @@ export default async function PublicLayout({
       <Navbar settings={settings} />
       <main className="flex-1">{children}</main>
       <Footer settings={settings} />
+      {/* Fixed Call / Messenger bar — mobile only. */}
+      <StickyContactBar settings={settings} />
     </div>
   );
 }

@@ -6,6 +6,27 @@ export const DEFAULT_LOAN_CONFIG: LoanConfig = {
   termOptions: [12, 24, 36],
 };
 
+/**
+ * Term used for the headline monthly figure on cards, in the detail price
+ * block, and as the calculator's starting selection. Most sales here run
+ * 48 months, so that is the number worth advertising — not the longest
+ * term on offer, which flatters the monthly payment, and not the shortest,
+ * which scares people off. Change this one value to re-point all three.
+ */
+export const DISPLAY_TERM_MONTHS = 48;
+
+/**
+ * The configured term closest to DISPLAY_TERM_MONTHS. Falls back sensibly
+ * when the admin has not offered a 48-month option.
+ */
+export function pickDisplayTerm(termOptions?: number[]): number {
+  const terms = termOptions?.length ? termOptions : DEFAULT_LOAN_CONFIG.termOptions;
+  if (terms.includes(DISPLAY_TERM_MONTHS)) return DISPLAY_TERM_MONTHS;
+  return terms.reduce((best, term) =>
+    Math.abs(term - DISPLAY_TERM_MONTHS) < Math.abs(best - DISPLAY_TERM_MONTHS) ? term : best
+  );
+}
+
 /** Loan principal after the down payment. */
 export function calcLoanAmount(price: number, downPercent: number): number {
   const p = Math.max(0, price || 0);

@@ -1,4 +1,5 @@
 import { Settings } from '@/types';
+import { telHref, messengerHref, primaryPhone } from '@/lib/contact';
 import { t } from '@/lib/labels';
 import LeadForm from './LeadForm';
 
@@ -22,6 +23,9 @@ export default function ContactSection({ settings }: { settings: Settings }) {
   const coords = parseCoords(contact.mapUrl) || DEFAULT_MAP_COORDS;
   const mapEmbedSrc = `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=16&output=embed`;
 
+  const tel = telHref(contact?.phone);
+  const messenger = messengerHref(social?.facebook);
+
   const socialLinks = [
     { href: social.facebook, label: 'Facebook' },
     { href: social.instagram, label: 'Instagram' },
@@ -29,30 +33,55 @@ export default function ContactSection({ settings }: { settings: Settings }) {
   ].filter((s) => s.href);
 
   return (
-    <section id="contact" className="bg-white py-14">
+    <section id="contact" className="scroll-mt-20 bg-white py-14 sm:py-20">
       <div className="container-page">
-        <h2 className="text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-          {t.contact.title}
-        </h2>
+        <div className="text-center">
+          <p className="eyebrow">{t.contact.followUs}</p>
+          <h2 className="section-title mt-1.5">{t.contact.title}</h2>
+        </div>
 
-        <div className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-3">
-          {contact.phone && (
+        <div className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {tel && (
+            <a href={tel} className="group rounded-2xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:bg-white hover:shadow-card hover:ring-brand">
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <PhoneIcon />
+              </span>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t.contact.phone}
+              </p>
+              <p className="mt-1 font-bold text-gray-900">{primaryPhone(contact.phone)}</p>
+            </a>
+          )}
+
+          {messenger && (
             <a
-              href={`tel:${contact.phone}`}
-              className="rounded-xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:ring-brand"
+              href={messenger}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group rounded-2xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:bg-white hover:shadow-card hover:ring-brand"
             >
-              <p className="text-sm font-medium text-gray-500">{t.contact.phone}</p>
-              <p className="mt-1 font-semibold text-gray-900">{contact.phone}</p>
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-[#0084FF]">
+                <ChatIcon />
+              </span>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t.cta.messenger}
+              </p>
+              <p className="mt-1 font-bold text-gray-900">{t.cta.messengerLong}</p>
             </a>
           )}
 
           {contact.email && (
             <a
               href={`mailto:${contact.email}`}
-              className="rounded-xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:ring-brand"
+              className="group rounded-2xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:bg-white hover:shadow-card hover:ring-brand"
             >
-              <p className="text-sm font-medium text-gray-500">{t.contact.email}</p>
-              <p className="mt-1 break-all font-semibold text-gray-900">{contact.email}</p>
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gray-200 text-gray-700">
+                <MailIcon />
+              </span>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t.contact.email}
+              </p>
+              <p className="mt-1 break-all font-bold text-gray-900">{contact.email}</p>
             </a>
           )}
 
@@ -61,58 +90,92 @@ export default function ContactSection({ settings }: { settings: Settings }) {
               href={mapHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:ring-brand"
+              className="group rounded-2xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:bg-white hover:shadow-card hover:ring-brand"
             >
-              <p className="text-sm font-medium text-gray-500">{t.contact.address}</p>
-              <p className="mt-1 font-semibold text-gray-900">{contact.address}</p>
-              <p className="mt-1 text-xs text-brand">{t.contact.viewMap}</p>
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand">
+                <PinIcon />
+              </span>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t.contact.address}
+              </p>
+              <p className="mt-1 font-bold text-gray-900">{contact.address}</p>
+              <p className="mt-1 text-xs font-medium text-brand">{t.contact.viewMap}</p>
             </a>
           )}
         </div>
 
         {socialLinks.length > 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-sm font-medium text-gray-500">{t.contact.followUs}</p>
-            <div className="mt-3 flex justify-center gap-4">
-              {socialLinks.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-brand hover:text-brand"
-                >
-                  {s.label}
-                </a>
-              ))}
-            </div>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {socialLinks.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="chip"
+              >
+                {s.label}
+              </a>
+            ))}
           </div>
         )}
 
-        <div className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-xl ring-1 ring-gray-200">
+        <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-2xl shadow-card ring-1 ring-gray-200">
           <iframe
             title="map"
             src={mapEmbedSrc}
-            className="h-64 w-full border-0"
+            className="h-72 w-full border-0"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
-        <p className="mt-2 text-center">
+        <p className="mt-3 text-center">
           <a
             href={mapHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-brand hover:underline"
+            className="text-sm font-semibold text-brand hover:underline"
           >
             {t.contact.viewMap}
           </a>
         </p>
 
-        <div className="mx-auto mt-10 max-w-2xl">
+        <div className="mx-auto mt-12 max-w-2xl">
           <LeadForm />
         </div>
       </div>
     </section>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.28-.28.7-.37 1.05-.25 1.15.38 2.39.59 3.65.59.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.85 21 3 13.15 3 3.9c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.27.2 2.5.59 3.65.12.35.03.77-.25 1.05l-2.24 2.2z" />
+    </svg>
+  );
+}
+
+function ChatIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2.4c-5.3 0-9.6 3.9-9.6 8.7 0 2.6 1.26 4.94 3.25 6.52v3.34a.6.6 0 0 0 .9.52l3.06-1.74c.76.16 1.56.25 2.39.25 5.3 0 9.6-3.9 9.6-8.7S17.3 2.4 12 2.4z" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M3.5 5.5h17A1.5 1.5 0 0 1 22 7v10a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 17V7a1.5 1.5 0 0 1 1.5-1.5zm.9 2L12 12.35 19.6 7.5H4.4z" />
+    </svg>
+  );
+}
+
+function PinIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2.5A6.5 6.5 0 0 0 5.5 9c0 4.6 5.6 11.3 5.84 11.58a.86.86 0 0 0 1.32 0C12.9 20.3 18.5 13.6 18.5 9A6.5 6.5 0 0 0 12 2.5zm0 9a2.5 2.5 0 1 1 2.5-2.5A2.5 2.5 0 0 1 12 11.5z" />
+    </svg>
   );
 }

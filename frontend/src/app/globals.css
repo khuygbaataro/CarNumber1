@@ -4,14 +4,21 @@
 
 :root {
   color-scheme: light;
+  /* Height of the sticky mobile action bar — pages add this as bottom
+     padding so the bar never covers the last bit of content. */
+  --action-bar-h: 4.5rem;
 }
 
 html {
   scroll-behavior: smooth;
+  /* Sticky header is 4rem tall — stop #contact jumps landing underneath it. */
+  scroll-padding-top: 5rem;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   @apply bg-gray-50 text-gray-900 antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Remove the up/down spinner arrows on number inputs */
@@ -28,22 +35,113 @@ input[type='number'] {
 /* Reusable component classes */
 @layer components {
   .container-page {
-    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6;
   }
 
+  /* --- Buttons. Min height 44px everywhere so every tap target is
+     comfortable on a phone. --- */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-60;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-60 disabled:active:scale-100;
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2;
   }
 
+  .btn-ghost {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 active:scale-[0.98];
+  }
+
+  /* Call = green (phone), Messenger = its own blue. Recognisable at a glance. */
+  .btn-call {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98];
+  }
+
+  .btn-messenger {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-[#0084FF] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#0072db] active:scale-[0.98];
+  }
+
+  /* --- Surfaces --- */
+  .card {
+    @apply rounded-2xl bg-white shadow-card ring-1 ring-gray-200;
+  }
+
+  /* --- Forms --- */
   .input {
-    @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand;
+    @apply w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
   }
 
   .label {
-    @apply mb-1 block text-sm font-medium text-gray-700;
+    @apply mb-1.5 block text-sm font-medium text-gray-700;
+  }
+
+  /* --- Badges & chips --- */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide;
+  }
+
+  .badge-new {
+    @apply inline-flex items-center gap-1 rounded-full bg-fresh px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm;
+  }
+
+  .badge-sold {
+    @apply inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm;
+  }
+
+  .badge-muted {
+    @apply inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-700 shadow-sm backdrop-blur;
+  }
+
+  /* Pill used for sort options and quick filters. */
+  .chip {
+    @apply inline-flex min-h-[40px] shrink-0 items-center rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:border-gray-400 active:scale-[0.98];
+  }
+
+  .chip-active {
+    @apply border-brand bg-brand text-white hover:border-brand;
+  }
+
+  /* --- Section headings --- */
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-[0.14em] text-brand;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl;
+  }
+}
+
+@layer utilities {
+  /* Horizontal scrollers (thumbnails, sort chips) without a visible bar. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Snap scrolling for the swipeable image gallery. */
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+  }
+  .snap-start-always {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* Respect the iPhone home indicator under the sticky action bar. */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Pages that render the sticky action bar reserve room for it on mobile. */
+  .pb-action-bar {
+    padding-bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 1024px) {
+    .pb-action-bar {
+      padding-bottom: 0;
+    }
   }
 }

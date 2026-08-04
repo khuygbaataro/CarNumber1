@@ -1,8 +1,10 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import SearchFilters from '@/components/public/SearchFilters';
 import VehicleCard from '@/components/public/VehicleCard';
 import Pagination from '@/components/public/Pagination';
 import { getVehiclesSafe, getSettingsSafe } from '@/lib/api';
+import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { t } from '@/lib/labels';
 import { VehicleQuery } from '@/types';
 
@@ -40,13 +42,13 @@ export default async function VehiclesPage({
     getVehiclesSafe({ ...query, status: 'available', limit: '50' }),
     getSettingsSafe(),
   ]);
-  const downPercent = settings.loan?.minDownPercent ?? 30;
+  const loan = settings.loan ?? DEFAULT_LOAN_CONFIG;
+  const downPercent = loan.minDownPercent ?? 30;
 
   return (
-    <div className="container-page py-8">
-      <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-        {t.vehicles.title}
-      </h1>
+    <div className="container-page py-8 sm:py-10">
+      <p className="eyebrow">{t.home.catalog}</p>
+      <h1 className="section-title mt-1.5">{t.vehicles.title}</h1>
 
       <div className="mt-6">
         <Suspense fallback={null}>
@@ -54,18 +56,28 @@ export default async function VehiclesPage({
         </Suspense>
       </div>
 
-      <p className="mt-6 text-sm text-gray-500">
+      <p className="mt-6 text-sm font-semibold text-gray-600">
         {t.vehicles.resultsCount(pagination.total)}
       </p>
 
       {items.length > 0 ? (
-        <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((vehicle) => (
-            <VehicleCard key={vehicle._id} vehicle={vehicle} downPercent={downPercent} />
+            <VehicleCard
+              key={vehicle._id}
+              vehicle={vehicle}
+              downPercent={downPercent}
+              loan={loan}
+            />
           ))}
         </div>
       ) : (
-        <p className="mt-10 text-center text-gray-500">{t.vehicles.noResults}</p>
+        <div className="mt-6 rounded-2xl bg-white p-10 text-center ring-1 ring-gray-200">
+          <p className="text-gray-500">{t.vehicles.noResults}</p>
+          <Link href="/vehicles" className="btn-outline mt-5">
+            {t.vehicles.filters.reset}
+          </Link>
+        </div>
       )}
 
       <Pagination page={pagination.page} pages={pagination.pages} query={query} />
