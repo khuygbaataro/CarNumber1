@@ -18,6 +18,7 @@ import {
   formatMileage,
   formatTimeAgo,
   formatPaymentRange,
+  formatYear,
 } from '@/lib/format';
 import { telHref, messengerHref, primaryPhone } from '@/lib/contact';
 import { isNewArrival } from '@/lib/vehicle';
@@ -34,9 +35,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const vehicle = await getVehicle(id);
     const title = `${vehicle.brand} ${vehicle.model}`;
     // Give Facebook a proper link preview — most traffic arrives from there.
-    const description = `${vehicle.year} · ${formatMileage(vehicle.mileage)} · ${formatPrice(
-      vehicle.price
-    )}`;
+    const description = `${formatYear(vehicle.year, vehicle.month)} · ${formatMileage(
+      vehicle.mileage
+    )} · ${formatPrice(vehicle.price)}`;
     return {
       title,
       description,
@@ -135,7 +136,7 @@ export default async function VehicleDetailPage({ params }: Props) {
             {title}
           </h1>
           <p className="mt-2 text-sm text-gray-500">
-            {[String(vehicle.year), formatMileage(vehicle.mileage), vehicle.engine]
+            {[formatYear(vehicle.year, vehicle.month), formatMileage(vehicle.mileage), vehicle.engine]
               .filter(Boolean)
               .join(' · ')}
           </p>
@@ -190,7 +191,7 @@ export default async function VehicleDetailPage({ params }: Props) {
           )}
 
           <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-0 rounded-2xl bg-white px-5 py-2 ring-1 ring-gray-200">
-            <Spec label={t.detail.year} value={String(vehicle.year)} />
+            <Spec label={t.detail.year} value={formatYear(vehicle.year, vehicle.month)} />
             <Spec label={t.detail.mileage} value={formatMileage(vehicle.mileage)} />
             <Spec label={t.detail.engine} value={vehicle.engine} />
             <Spec label={t.detail.transmission} value={vehicle.transmission || ''} />

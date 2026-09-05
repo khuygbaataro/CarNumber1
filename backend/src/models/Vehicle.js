@@ -5,6 +5,7 @@ const vehicleSchema = new mongoose.Schema(
     brand: { type: String, required: true, trim: true, index: true },
     model: { type: String, required: true, trim: true, index: true },
     year: { type: Number, required: true, index: true },
+    month: { type: Number, default: null }, // үйлдвэрлэсэн сар (1-12), сонголт
     price: { type: Number, required: true, min: 0, index: true }, // MNT
     mileage: { type: Number, required: true, min: 0 }, // km
     engine: { type: String, trim: true, default: '' },

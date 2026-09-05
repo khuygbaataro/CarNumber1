@@ -17,6 +17,17 @@ export const formatPriceShort = (price: number): string => {
 
 export const formatMileage = (km: number): string => `${formatNumber(km)} км`;
 
+// Үйлдвэрлэсэн он, сартай бол сарыг нь хамт: (2015, 11) -> "2015 оны 11 сар".
+// Хуучин өгөгдөлд он аравтын бутархайгаар (2015.11) сар шифрлэсэн байдгийг ч зохицуулна.
+export const formatYear = (year?: number, month?: number | null): string => {
+  const y = Number(year) || 0;
+  const yr = Math.trunc(y);
+  let mo = Number(month) || 0;
+  if (!mo && !Number.isInteger(y)) mo = Math.round((y - yr) * 100); // legacy 2015.11 -> 11
+  if (mo >= 1 && mo <= 12) return `${yr} оны ${String(mo).padStart(2, '0')} сар`;
+  return `${yr} он`;
+};
+
 // Monthly payment span for an equal-principal loan: the instalment starts
 // high and falls every month, so both ends are shown — "669,760 → 288,120₮".
 // One ₮ at the end covers the pair and keeps the line short enough for a card.

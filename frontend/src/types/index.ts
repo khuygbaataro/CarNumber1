@@ -5,6 +5,7 @@ export interface Vehicle {
   brand: string;
   model: string;
   year: number;
+  month?: number | null; // үйлдвэрлэсэн сар (1-12), сонголт
   price: number;
   mileage: number;
   engine: string;
@@ -101,6 +102,7 @@ export interface VehicleFormData {
   brand: string;
   model: string;
   year: number;
+  month?: number | null;
   price: number;
   mileage: number;
   engine: string;

@@ -36,9 +36,14 @@ function buildPostTemplate(v: any, opts: { sold?: boolean } = {}): string {
     priceMln >= 1
       ? `${priceMln.toLocaleString('en-US', { maximumFractionDigits: 1 })} сая₮`
       : `${(Number(v.price) || 0).toLocaleString('en-US')}₮`;
-  // Years like 2015.11 mean year.month → "2015.11 сар"; whole years → "2015 он".
+  // Үйлдвэрлэсэн он (+ сар). v.month (1-12) байвал ашиглана; хуучин 2015.11
+  // хэлбэрийн бутархай оноос сарыг задлана. Ж: "2015 оны 11 сар".
   const yearNum = Number(v.year) || 0;
-  const yearStr = Number.isInteger(yearNum) ? `${yearNum} он` : `${yearNum} сар`;
+  const yr = Math.trunc(yearNum);
+  let mo = Number(v.month) || 0;
+  if (!mo && !Number.isInteger(yearNum)) mo = Math.round((yearNum - yr) * 100);
+  const yearStr =
+    mo >= 1 && mo <= 12 ? `${yr} оны ${String(mo).padStart(2, '0')} сар` : `${yr} он`;
   const importYear = new Date().getFullYear();
 
   const lines = [
@@ -64,7 +69,7 @@ function buildPostTemplate(v: any, opts: { sold?: boolean } = {}): string {
     `🏦 Зээл: Урьдчилгаа 20–30% ➡️ Банк бус шийдэл шуурхай`,
     `👉 Victory Car – Чанарыг бид эрхэмлэнэ!`,
     `📍 Хаяг:`,
-    `Хорооллын өргөөгөөр өгсөөд 🏢 → Энхболдын замаар 🚗 1.7 км`,
+    `1-р хороолол, 32-р гүүрний хойно, Эрчим худалдааны төвөөс дээшээ 200 метр`,
     `👉 Victory Car Auto Showroom`,
     `⏰ Цагийн хуваарь:`,
     `Өглөө 09:00 – Орой 19:00 🕘➡️🕖`,
@@ -91,7 +96,7 @@ const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин
 ЦУГЛУУЛАХ ТАЛБАРУУД (бүгд заавал):
 1. Загвар
 2. Арлын дугаарын сүүлийн 4 орон
-3. Он
+3. Үйлдвэрлэсэн он (сар нэмж хэлж болно)
 4. Гүйлт (км)
 5. Үнэ
 6. Гадна өнгө
@@ -99,6 +104,10 @@ const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин
 
 Нэг мессежд хэдийг ч өгч болно — өгснийг ав, дутууг НЭГ мөрөнд асуу. Ж: "Дутуу: үнэ, дотор өнгө."
 Цуглуулах явцад авснаа давтаж харуулахгүй, зөвхөн дутууг асуу.
+
+ОН/САР:
+- Ажилтан "2015 оны 11 сар", "2015.11", "2015 11-р сар" гэх мэт сар НЭМЖ хэлж болно. Тэгвэл year=2015, month=11 гэж publish_vehicle-д дамжуул. Сар нэмж бичсэнийг "буруу он" гэж БҮҮ үз — энэ нь зөв.
+- Зөвхөн он (ж: "2015") бол month хоосон орхи.
 
 АВТОМАТ (асуухгүй):
 - Марк: өгөөгүй бол Toyota. Машиныг загвараар нэрл ("Prius 41"), өөр марк хэлбэл түүнийг ав.
@@ -111,7 +120,7 @@ const SYSTEM_PROMPT = `Та бол VictoryCar-ийн каталогт машин
 
 БАТАЛГААЖУУЛАЛТ:
 - Бүх талбар + зураг бүрдмэгц ШУУД, дахин юу ч асуулгүй, бүх мэдээллийг мөр мөрөөр харуулаад "Зөв бол confirm гэж бичээрэй." гэ.
-- Эмхэтгэлийн мөрүүд: Загвар, Арал (сүүлийн 4), Он, Гүйлт, Үнэ, Гадна өнгө, Дотор өнгө, Хөдөлгүүр/Хайрцаг/Жолоо, Зураг N.
+- Эмхэтгэлийн мөрүүд: Загвар, Арал (сүүлийн 4), Он (сартай бол "2015 оны 11 сар"), Гүйлт, Үнэ, Гадна өнгө, Дотор өнгө, Хөдөлгүүр/Хайрцаг/Жолоо, Зураг N.
 - Үнэ, гүйлтийг цэгээр тусгаарлаж нэгжтэй харуул: 20.000.000₮, 120.000 км.
 - "confirm" гэсэн үед Л publish_vehicle дууд.
 - Нийтлэгдсэний дараа tool-ийн үр дүнг нэг мөрөөр дамжуул. Урилга нэмэхгүй.
@@ -133,7 +142,11 @@ const tools: Anthropic.Tool[] = [
           type: 'string',
           description: 'Араалын дугаарын сүүлийн 4 орон, ж: 0938',
         },
-        year: { type: 'number', description: 'Үйлдвэрлэсэн он' },
+        year: { type: 'number', description: 'Үйлдвэрлэсэн он (бүхэл тоо, ж: 2015)' },
+        month: {
+          type: 'number',
+          description: 'Үйлдвэрлэсэн сар 1-12 (ажилтан хэлсэн бол). Ж: "2015 оны 11 сар" → month=11',
+        },
         price: { type: 'number', description: 'Үнэ төгрөгөөр (бодит тоо)' },
         mileage: { type: 'number', description: 'Явсан км' },
         engine: { type: 'string', description: 'Танил загвар бол өөрөө бөгл' },
@@ -193,7 +206,10 @@ async function runTool(
     const doc = await Vehicle.create({
       brand,
       model: modelName,
-      year: Number(input.year) || 0,
+      year: Math.trunc(Number(input.year) || 0),
+      month: input.month != null && Number(input.month) >= 1 && Number(input.month) <= 12
+        ? Math.trunc(Number(input.month))
+        : null,
       price: Number(input.price) || 0,
       mileage: Number(input.mileage) || 0,
       engine,

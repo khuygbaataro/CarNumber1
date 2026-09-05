@@ -6,6 +6,7 @@ import {
   formatMileage,
   formatTimeAgo,
   formatPaymentRange,
+  formatYear,
 } from '@/lib/format';
 import {
   calcLoanAmount,
@@ -97,7 +98,7 @@ export default function VehicleCard({
             {vehicle.brand} {vehicle.model}
           </h3>
           <span className="shrink-0 rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-semibold text-gray-600">
-            {vehicle.year}
+            {formatYear(vehicle.year, vehicle.month)}
           </span>
         </div>
 

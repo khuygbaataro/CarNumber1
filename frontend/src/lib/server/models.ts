@@ -10,6 +10,7 @@ const vehicleSchema = new Schema(
     brand: { type: String, required: true, trim: true },
     model: { type: String, required: true, trim: true },
     year: { type: Number, required: true },
+    month: { type: Number, default: null }, // үйлдвэрлэсэн сар (1-12)
     price: { type: Number, required: true, min: 0 },
     mileage: { type: Number, required: true, min: 0 },
     engine: { type: String, trim: true, default: '' },

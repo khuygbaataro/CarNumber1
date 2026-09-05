@@ -15,6 +15,7 @@ const empty: VehicleFormData = {
   brand: '',
   model: '',
   year: new Date().getFullYear(),
+  month: null,
   price: 0,
   mileage: 0,
   engine: '',
@@ -36,6 +37,7 @@ function fromVehicle(v: Vehicle): VehicleFormData {
     brand: v.brand,
     model: v.model,
     year: v.year,
+    month: v.month ?? null,
     price: v.price,
     mileage: v.mileage,
     engine: v.engine ?? '',
@@ -100,6 +102,16 @@ export default function VehicleForm({
           </Field>
           <Field label={t.admin.form.year} required>
             <input type="number" className="input" value={form.year} onChange={(e) => set('year', num(e.target.value))} />
+          </Field>
+          <Field label="Үйлдвэрлэсэн сар (1-12, заавал биш)">
+            <input
+              type="number"
+              min={1}
+              max={12}
+              className="input"
+              value={form.month ?? ''}
+              onChange={(e) => set('month', e.target.value ? num(e.target.value) : null)}
+            />
           </Field>
           <Field label={t.admin.form.price} required>
             <input type="number" className="input" value={form.price} onChange={(e) => set('price', num(e.target.value))} />
