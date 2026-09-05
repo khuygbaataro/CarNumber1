@@ -8,7 +8,6 @@ const DEFAULT_MAP_URL = 'https://maps.app.goo.gl/HUBdEAkvM99RbFxn7';
 const DEFAULT_MAP_COORDS = { lat: '47.9387587', lng: '106.8651526' };
 
 // Pull lat/lng out of a Google Maps URL so we can build an embeddable map.
-// Short links (maps.app.goo.gl) carry no coords → caller falls back.
 function parseCoords(url: string): { lat: string; lng: string } | null {
   const m =
     url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
@@ -17,11 +16,35 @@ function parseCoords(url: string): { lat: string; lng: string } | null {
   return m ? { lat: m[1], lng: m[2] } : null;
 }
 
-export default function ContactSection({ settings }: { settings: Settings }) {
+// Admin ихэвчлэн богино линк (maps.app.goo.gl) тавьдаг — тэнд координат
+// байдаггүй. Богино линкийг задалж (redirect дагаад), координат эсвэл
+// байршлын нэр/Plus Code-оор embed хийх боломжтой URL болгоно.
+async function resolveMapEmbed(mapUrl: string): Promise<string> {
+  let full = mapUrl || '';
+  if (/(maps\.app\.goo\.gl|goo\.gl\/maps)/.test(full)) {
+    try {
+      const res = await fetch(full, { redirect: 'follow', next: { revalidate: 86400 } });
+      if (res?.url) full = res.url;
+    } catch {
+      /* богино линк хэвээр — доор fallback */
+    }
+  }
+  const c = parseCoords(full);
+  if (c) return `https://www.google.com/maps?q=${c.lat},${c.lng}&z=16&output=embed`;
+
+  // /place/<нэр эсвэл Plus Code>/ хэсгийг query болгоно
+  const pm = full.match(/\/place\/([^/@?]+)/);
+  if (pm) {
+    const place = decodeURIComponent(pm[1].replace(/\+/g, ' '));
+    return `https://www.google.com/maps?q=${encodeURIComponent(place)}&z=16&output=embed`;
+  }
+  return `https://www.google.com/maps?q=${DEFAULT_MAP_COORDS.lat},${DEFAULT_MAP_COORDS.lng}&z=16&output=embed`;
+}
+
+export default async function ContactSection({ settings }: { settings: Settings }) {
   const { contact, social } = settings;
   const mapHref = contact.mapUrl || DEFAULT_MAP_URL;
-  const coords = parseCoords(contact.mapUrl) || DEFAULT_MAP_COORDS;
-  const mapEmbedSrc = `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=16&output=embed`;
+  const mapEmbedSrc = await resolveMapEmbed(mapHref);
 
   const tel = telHref(contact?.phone);
   const messenger = messengerHref(social?.facebook);

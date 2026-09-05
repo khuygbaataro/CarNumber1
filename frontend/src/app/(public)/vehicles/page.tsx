@@ -35,8 +35,8 @@ export default async function VehiclesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const query = toQuery(await searchParams);
-  // Default ordering: cheapest first.
-  if (!query.sort) query.sort = 'price_asc';
+  // Default ordering: newest cars first.
+  if (!query.sort) query.sort = 'year_desc';
   // Public site never shows sold vehicles — always restrict to available.
   // Show up to 50 cars per page, then paginate to the next page.
   const [{ items, pagination }, settings, cats] = await Promise.all([

@@ -51,19 +51,23 @@ export default function Navbar({ settings }: { settings: Settings }) {
 
         {/* Desktop links */}
         <div className="hidden items-center gap-1 md:flex">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                isActive(link.href)
-                  ? 'bg-brand-50 text-brand'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) => {
+            const cls = `rounded-lg px-3 py-2 text-sm font-medium transition ${
+              isActive(link.href)
+                ? 'bg-brand-50 text-brand'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`;
+            // Hash линк (/#contact) — native <a> найдвартай гүйнэ.
+            return link.href.includes('#') ? (
+              <a key={link.href} href={link.href} className={cls}>
+                {link.label}
+              </a>
+            ) : (
+              <Link key={link.href} href={link.href} className={cls}>
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Desktop contact actions */}
@@ -116,20 +120,27 @@ export default function Navbar({ settings }: { settings: Settings }) {
       {open && (
         <div className="animate-fade-up border-t border-gray-200 bg-white md:hidden">
           <div className="container-page flex flex-col py-2">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-lg px-3 py-3.5 text-sm font-semibold transition ${
-                  isActive(link.href)
-                    ? 'bg-brand-50 text-brand'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const cls = `rounded-lg px-3 py-3.5 text-sm font-semibold transition ${
+                isActive(link.href)
+                  ? 'bg-brand-50 text-brand'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`;
+              return link.href.includes('#') ? (
+                <a key={link.href} href={link.href} className={cls} onClick={() => setOpen(false)}>
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cls}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

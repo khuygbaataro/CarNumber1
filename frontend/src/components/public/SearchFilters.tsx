@@ -6,7 +6,7 @@ import { t } from '@/lib/labels';
 // Дараалал: он шинэ→хуучин, он хуучин→шинэ, дараа нь үнэ бага→их, их→бага.
 const SORT_KEYS = ['year_desc', 'year_asc', 'price_asc', 'price_desc'] as const;
 
-const DEFAULT_SORT = 'price_asc';
+const DEFAULT_SORT = 'year_desc';
 
 export default function SearchFilters() {
   const router = useRouter();
