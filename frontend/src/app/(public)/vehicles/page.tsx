@@ -54,15 +54,21 @@ export default async function VehiclesPage({
 
       {cats.categories.length > 0 && (
         <div className="mt-5">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">
+            Маркаар сонгох
+          </p>
           <Suspense fallback={null}>
             <CategoryBrowser categories={cats.categories} />
           </Suspense>
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-4 border-t border-gray-200 pt-4">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">
+          Эрэмбэлэх
+        </p>
         <Suspense fallback={null}>
-          <SearchFilters years={cats.years} />
+          <SearchFilters />
         </Suspense>
       </div>
 
