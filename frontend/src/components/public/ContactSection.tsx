@@ -4,8 +4,19 @@ import { t } from '@/lib/labels';
 import LeadForm from './LeadForm';
 
 // Fallback location (VICTORY CAR) used when no map link is set in admin.
-const DEFAULT_MAP_URL = 'https://maps.app.goo.gl/HUBdEAkvM99RbFxn7';
-const DEFAULT_MAP_COORDS = { lat: '47.9387587', lng: '106.8651526' };
+const DEFAULT_MAP_URL = 'https://maps.app.goo.gl/crPvnAgt4YE8tdtEA';
+const DEFAULT_MAP_COORDS = { lat: '47.9133696', lng: '106.8990464' };
+
+// Google-ийн place хуудасны HTML-ээс координат олно. Таслал нь ихэвчлэн
+// URL-кодлогдсон (%2C) байдаг. staticmap-ийн center=LAT,LNG хамгийн найдвартай.
+function coordsFromHtml(html: string): { lat: string; lng: string } | null {
+  const m = html.match(/[?&]center=(-?\d{1,3}\.\d{3,})(?:,|%2C)(-?\d{1,3}\.\d{3,})/i);
+  if (m) return { lat: m[1], lng: m[2] };
+  // Нөөц: !2d<уртраг>!3d<өргөрөг> (кодлогдсон байж болно)
+  const m2 = html.match(/2d(-?\d{1,3}\.\d{3,}).{0,6}3d(-?\d{1,3}\.\d{3,})/);
+  if (m2) return { lat: m2[2], lng: m2[1] };
+  return null;
+}
 
 // Pull lat/lng out of a Google Maps URL so we can build an embeddable map.
 function parseCoords(url: string): { lat: string; lng: string } | null {
@@ -20,25 +31,40 @@ function parseCoords(url: string): { lat: string; lng: string } | null {
 // байдаггүй. Богино линкийг задалж (redirect дагаад), координат эсвэл
 // байршлын нэр/Plus Code-оор embed хийх боломжтой URL болгоно.
 async function resolveMapEmbed(mapUrl: string): Promise<string> {
+  const embed = (lat: string, lng: string) =>
+    `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+
   let full = mapUrl || '';
-  if (/(maps\.app\.goo\.gl|goo\.gl\/maps)/.test(full)) {
+  let html = '';
+  const isShort = /(maps\.app\.goo\.gl|goo\.gl\/maps)/.test(full);
+  if (isShort || /google\.[^/]+\/maps/.test(full)) {
     try {
-      const res = await fetch(full, { redirect: 'follow', next: { revalidate: 86400 } });
+      const res = await fetch(full, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en',
+        },
+        next: { revalidate: 86400 },
+      });
       if (res?.url) full = res.url;
+      html = await res.text();
     } catch {
-      /* богино линк хэвээр — доор fallback */
+      /* доор fallback */
     }
   }
-  const c = parseCoords(full);
-  if (c) return `https://www.google.com/maps?q=${c.lat},${c.lng}&z=16&output=embed`;
 
-  // /place/<нэр эсвэл Plus Code>/ хэсгийг query болгоно
-  const pm = full.match(/\/place\/([^/@?]+)/);
-  if (pm) {
-    const place = decodeURIComponent(pm[1].replace(/\+/g, ' '));
-    return `https://www.google.com/maps?q=${encodeURIComponent(place)}&z=16&output=embed`;
-  }
-  return `https://www.google.com/maps?q=${DEFAULT_MAP_COORDS.lat},${DEFAULT_MAP_COORDS.lng}&z=16&output=embed`;
+  // 1) URL-д координат байвал шууд (заавал улаан pin гарна)
+  const c = parseCoords(full);
+  if (c) return embed(c.lat, c.lng);
+
+  // 2) place хуудасны HTML-ээс координат гаргана
+  const h = coordsFromHtml(html);
+  if (h) return embed(h.lat, h.lng);
+
+  // 3) fallback — VICTORY CAR-ийн координат
+  return embed(DEFAULT_MAP_COORDS.lat, DEFAULT_MAP_COORDS.lng);
 }
 
 export default async function ContactSection({ settings }: { settings: Settings }) {
