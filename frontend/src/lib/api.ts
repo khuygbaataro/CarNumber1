@@ -86,9 +86,36 @@ export interface CategoriesResponse {
   years: number[];
   total: number;
 }
+// Ангиллыг frontend дээр /vehicles-ээс тооцно (тусдаа backend endpoint-оос
+// хамаарахгүй — backend redeploy шаардлагагүй). Каталог жижиг тул бүх машиныг
+// татаад бүлэглэнэ (хуудас тус бүр 50, дээд тал нь ~6 хуудас).
 export async function getCategoriesSafe(): Promise<CategoriesResponse> {
   try {
-    return await apiGet<CategoriesResponse>('/vehicles/categories');
+    const { categoryOf } = await import('./category');
+    const first = await getVehicles({ status: 'available', limit: '50', page: '1' });
+    let items = first.items;
+    const pages = Math.min(first.pagination.pages || 1, 6);
+    for (let p = 2; p <= pages; p++) {
+      const more = await getVehicles({ status: 'available', limit: '50', page: String(p) });
+      items = items.concat(more.items);
+    }
+
+    const counts: Record<string, number> = {};
+    const years = new Set<number>();
+    for (const v of items) {
+      const c = categoryOf(v.model);
+      counts[c] = (counts[c] || 0) + 1;
+      const y = Math.trunc(Number(v.year));
+      if (y >= 1990 && y <= 2030) years.add(y);
+    }
+    const categories: CategoryInfo[] = Object.entries(counts)
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => {
+        if (a.label === 'Бусад') return 1;
+        if (b.label === 'Бусад') return -1;
+        return b.count - a.count;
+      });
+    return { categories, years: [...years].sort((a, b) => b - a), total: items.length };
   } catch {
     return { categories: [], years: [], total: 0 };
   }
