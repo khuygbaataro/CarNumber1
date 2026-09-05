@@ -77,6 +77,23 @@ export async function getSettingsSafe(): Promise<Settings> {
   }
 }
 
+export interface CategoryInfo {
+  label: string;
+  count: number;
+}
+export interface CategoriesResponse {
+  categories: CategoryInfo[];
+  years: number[];
+  total: number;
+}
+export async function getCategoriesSafe(): Promise<CategoriesResponse> {
+  try {
+    return await apiGet<CategoriesResponse>('/vehicles/categories');
+  } catch {
+    return { categories: [], years: [], total: 0 };
+  }
+}
+
 export async function getFeaturedSafe(): Promise<Vehicle[]> {
   try {
     return await apiGet<Vehicle[]>('/vehicles/featured');

@@ -3,6 +3,7 @@ const {
   getVehicles,
   getFeatured,
   getLatest,
+  getCategories,
   getVehicle,
   createVehicle,
   updateVehicle,
@@ -17,6 +18,7 @@ const router = express.Router();
 router.get('/', getVehicles);
 router.get('/featured', getFeatured);
 router.get('/latest', getLatest);
+router.get('/categories', getCategories);
 router.get('/:id', getVehicle);
 
 // Admin

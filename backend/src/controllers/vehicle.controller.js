@@ -96,6 +96,56 @@ const getLatest = async (req, res, next) => {
   }
 };
 
+// Загварын нэрээс ангилал гаргана (Prius 41, Sai, RX, ... эсвэл Бусад)
+function categoryOf(model) {
+  const m = String(model || '').trim();
+  const prius = m.match(/prius\s*(\d{2})/i);
+  if (prius) return `Prius ${prius[1]}`;
+  if (/prius/i.test(m)) return 'Prius';
+  if (/^aqua/i.test(m)) return 'Aqua';
+  if (/^sai/i.test(m)) return 'Sai';
+  if (/^alphard/i.test(m)) return 'Alphard';
+  if (/^crown/i.test(m)) return 'Crown';
+  if (/^camry/i.test(m)) return 'Camry';
+  if (/^harrier/i.test(m)) return 'Harrier';
+  if (/^vellfire/i.test(m)) return 'Vellfire';
+  if (/land\s*cruiser/i.test(m)) return 'Land Cruiser';
+  if (/^rx/i.test(m)) return 'RX';
+  if (/^hs/i.test(m)) return 'HS';
+  if (/^gs/i.test(m)) return 'GS';
+  if (/^c-?hr/i.test(m)) return 'CHR';
+  return 'Бусад';
+}
+
+// GET /api/vehicles/categories — маркаар ангилсан тоо + боломжит онууд
+const getCategories = async (req, res, next) => {
+  try {
+    const docs = await Vehicle.find({ status: 'available' }).select('model year').lean();
+    const counts = {};
+    const years = new Set();
+    for (const d of docs) {
+      const c = categoryOf(d.model);
+      counts[c] = (counts[c] || 0) + 1;
+      const y = Math.trunc(Number(d.year));
+      if (y >= 1990 && y <= 2030) years.add(y); // алдаатай онуудыг (ж: 203) хасна
+    }
+    // "Бусад"-ыг үргэлж хамгийн сүүлд, бусдыг тоогоор нь буурахаар
+    const categories = Object.entries(counts)
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => {
+        if (a.label === 'Бусад') return 1;
+        if (b.label === 'Бусад') return -1;
+        return b.count - a.count;
+      });
+    res.json({
+      success: true,
+      data: { categories, years: [...years].sort((a, b) => b - a), total: docs.length },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // GET /api/vehicles/:id
 const getVehicle = async (req, res, next) => {
   try {
@@ -165,6 +215,7 @@ module.exports = {
   getVehicles,
   getFeatured,
   getLatest,
+  getCategories,
   getVehicle,
   createVehicle,
   updateVehicle,

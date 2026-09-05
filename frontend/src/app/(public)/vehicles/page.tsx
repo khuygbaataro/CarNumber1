@@ -1,9 +1,10 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import SearchFilters from '@/components/public/SearchFilters';
+import CategoryBrowser from '@/components/public/CategoryBrowser';
 import VehicleCard from '@/components/public/VehicleCard';
 import Pagination from '@/components/public/Pagination';
-import { getVehiclesSafe, getSettingsSafe } from '@/lib/api';
+import { getVehiclesSafe, getSettingsSafe, getCategoriesSafe } from '@/lib/api';
 import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { t } from '@/lib/labels';
 import { VehicleQuery } from '@/types';
@@ -38,9 +39,10 @@ export default async function VehiclesPage({
   if (!query.sort) query.sort = 'price_asc';
   // Public site never shows sold vehicles — always restrict to available.
   // Show up to 50 cars per page, then paginate to the next page.
-  const [{ items, pagination }, settings] = await Promise.all([
+  const [{ items, pagination }, settings, cats] = await Promise.all([
     getVehiclesSafe({ ...query, status: 'available', limit: '50' }),
     getSettingsSafe(),
+    getCategoriesSafe(),
   ]);
   const loan = settings.loan ?? DEFAULT_LOAN_CONFIG;
   const downPercent = loan.minDownPercent ?? 30;
@@ -50,9 +52,17 @@ export default async function VehiclesPage({
       <p className="eyebrow">{t.home.catalog}</p>
       <h1 className="section-title mt-1.5">{t.vehicles.title}</h1>
 
-      <div className="mt-6">
+      {cats.categories.length > 0 && (
+        <div className="mt-5">
+          <Suspense fallback={null}>
+            <CategoryBrowser categories={cats.categories} />
+          </Suspense>
+        </div>
+      )}
+
+      <div className="mt-4">
         <Suspense fallback={null}>
-          <SearchFilters />
+          <SearchFilters years={cats.years} />
         </Suspense>
       </div>
 
