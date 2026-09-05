@@ -1,12 +1,14 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import Banner from '@/components/public/Banner';
 import TrustStrip from '@/components/public/TrustStrip';
 import VehicleCard from '@/components/public/VehicleCard';
+import CategoryBrowser from '@/components/public/CategoryBrowser';
 import ContactSection from '@/components/public/ContactSection';
 import AboutSection from '@/components/public/AboutSection';
 import TestimonialsSection from '@/components/public/TestimonialsSection';
 import PartnersSection from '@/components/public/PartnersSection';
-import { getSettingsSafe, getVehiclesSafe } from '@/lib/api';
+import { getSettingsSafe, getVehiclesSafe, getCategoriesSafe } from '@/lib/api';
 import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { t } from '@/lib/labels';
 
@@ -16,13 +18,14 @@ import { t } from '@/lib/labels';
 const HOME_VEHICLE_LIMIT = 12;
 
 export default async function HomePage() {
-  const [settings, data] = await Promise.all([
+  const [settings, data, cats] = await Promise.all([
     getSettingsSafe(),
     getVehiclesSafe({
       status: 'available',
       sort: 'newest',
       limit: String(HOME_VEHICLE_LIMIT),
     }),
+    getCategoriesSafe(),
   ]);
 
   const vehicles = data.items;
@@ -49,6 +52,15 @@ export default async function HomePage() {
             <span aria-hidden>→</span>
           </Link>
         </div>
+
+        {cats.categories.length > 0 && (
+          <div className="mt-6">
+            <p className="mb-2 text-sm font-semibold text-gray-600">Маркаар сонгох</p>
+            <Suspense fallback={null}>
+              <CategoryBrowser categories={cats.categories} />
+            </Suspense>
+          </div>
+        )}
 
         {vehicles.length > 0 ? (
           <>
