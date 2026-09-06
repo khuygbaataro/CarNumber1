@@ -4,8 +4,8 @@ import { t } from '@/lib/labels';
 import LeadForm from './LeadForm';
 
 // Fallback location (VICTORY CAR) used when no map link is set in admin.
-const DEFAULT_MAP_URL = 'https://maps.app.goo.gl/crPvnAgt4YE8tdtEA';
-const DEFAULT_MAP_COORDS = { lat: '47.9133696', lng: '106.8990464' };
+const DEFAULT_MAP_URL = 'https://maps.app.goo.gl/vRGZ3AAqY6DtDLNH8';
+const DEFAULT_MAP_COORDS = { lat: '47.9194896', lng: '106.8303357' };
 
 // Google-ийн place хуудасны HTML-ээс координат олно. Google серверийн бүснээс
 // хамаарч Монголоос ГАДУУРХ (жишээ нь default) координат орж болзошгүй тул
@@ -14,7 +14,11 @@ const inMongolia = (lat: number, lng: number) =>
   lat >= 41 && lat <= 52 && lng >= 87 && lng <= 120;
 
 function coordsFromHtml(html: string): { lat: string; lng: string } | null {
-  // staticmap center=LAT,LNG (таслал ихэвчлэн %2C)
+  // !3d<өргөрөг>!4d<уртраг> — байршлын ЯГ pin (хамгийн зөв)
+  for (const m of html.matchAll(/3d(-?\d{1,3}\.\d{3,}).{0,4}4d(-?\d{1,3}\.\d{3,})/g)) {
+    if (inMongolia(parseFloat(m[1]), parseFloat(m[2]))) return { lat: m[1], lng: m[2] };
+  }
+  // staticmap center=LAT,LNG (таслал ихэвчлэн %2C) — харагдацын төв
   for (const m of html.matchAll(
     /[?&]center=(-?\d{1,3}\.\d{3,})(?:,|%2C)(-?\d{1,3}\.\d{3,})/gi
   )) {

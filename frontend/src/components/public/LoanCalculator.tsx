@@ -102,8 +102,8 @@ export default function LoanCalculator({
       </div>
 
       {/* Highlighted result — the figures buyers care about most */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl bg-gradient-to-br from-brand-700 via-brand to-brand-dark p-6 text-center text-white shadow-lg">
+      <div className="mt-6 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2">
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 via-brand to-brand-dark p-6 text-center text-white shadow-lg">
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-blue-100">
             {t.loan.downAmount}
           </p>
@@ -111,28 +111,27 @@ export default function LoanCalculator({
             {formatPrice(downAmount)}
           </p>
         </div>
-        <div className="rounded-2xl border-2 border-brand bg-brand-50 p-6 text-center shadow-lg">
+        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-brand bg-brand-50 p-6 text-center shadow-lg">
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand/70">
             {t.loan.firstMonth} · {term} {t.loan.months}
           </p>
           <p className="mt-2 text-3xl font-extrabold tracking-tight text-brand sm:text-4xl">
             {formatPrice(schedule.first)}
           </p>
-          <p className="mt-2 text-xs font-medium text-brand/70">
-            {t.loan.lastMonthNote}
-          </p>
+          <p className="mt-2 text-xs font-medium text-brand/70">{t.loan.lastMonthNote}</p>
           <p className="text-sm font-semibold text-brand">
             {t.loan.lastMonth}: {formatPrice(schedule.last)}
           </p>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-        <span>
-          {t.loan.totalInterest}: <b>{formatPrice(schedule.totalInterest)}</b>
+      <div className="mt-5 text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-4 py-2 text-xs font-medium text-gray-600">
+          {t.loan.totalInterest}:
+          <b className="text-sm text-gray-900">{formatPrice(schedule.totalInterest)}</b>
         </span>
       </div>
-      <p className="mt-2 text-xs text-gray-400">{t.loan.disclaimer}</p>
+      <p className="mt-3 text-center text-xs text-gray-400">{t.loan.disclaimer}</p>
     </div>
   );
 }
