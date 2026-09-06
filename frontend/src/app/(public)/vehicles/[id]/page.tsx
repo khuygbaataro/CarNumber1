@@ -86,9 +86,23 @@ export default async function VehicleDetailPage({ params }: Props) {
     <div className="container-page py-6 sm:py-8">
       <Link
         href="/vehicles"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 transition hover:text-brand"
+        className="group inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-brand hover:text-brand hover:shadow-md"
       >
-        <span aria-hidden>←</span> {t.common.back}
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        >
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
+        {t.common.back}
       </Link>
 
       <div className="mt-4 grid items-start gap-8 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
