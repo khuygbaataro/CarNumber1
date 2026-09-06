@@ -7,14 +7,23 @@ import LeadForm from './LeadForm';
 const DEFAULT_MAP_URL = 'https://maps.app.goo.gl/crPvnAgt4YE8tdtEA';
 const DEFAULT_MAP_COORDS = { lat: '47.9133696', lng: '106.8990464' };
 
-// Google-ийн place хуудасны HTML-ээс координат олно. Таслал нь ихэвчлэн
-// URL-кодлогдсон (%2C) байдаг. staticmap-ийн center=LAT,LNG хамгийн найдвартай.
+// Google-ийн place хуудасны HTML-ээс координат олно. Google серверийн бүснээс
+// хамаарч Монголоос ГАДУУРХ (жишээ нь default) координат орж болзошгүй тул
+// ЗӨВХӨН Монголын хүрээн доторх (өргөрөг 41–52, уртраг 87–120) утгыг авна.
+const inMongolia = (lat: number, lng: number) =>
+  lat >= 41 && lat <= 52 && lng >= 87 && lng <= 120;
+
 function coordsFromHtml(html: string): { lat: string; lng: string } | null {
-  const m = html.match(/[?&]center=(-?\d{1,3}\.\d{3,})(?:,|%2C)(-?\d{1,3}\.\d{3,})/i);
-  if (m) return { lat: m[1], lng: m[2] };
-  // Нөөц: !2d<уртраг>!3d<өргөрөг> (кодлогдсон байж болно)
-  const m2 = html.match(/2d(-?\d{1,3}\.\d{3,}).{0,6}3d(-?\d{1,3}\.\d{3,})/);
-  if (m2) return { lat: m2[2], lng: m2[1] };
+  // staticmap center=LAT,LNG (таслал ихэвчлэн %2C)
+  for (const m of html.matchAll(
+    /[?&]center=(-?\d{1,3}\.\d{3,})(?:,|%2C)(-?\d{1,3}\.\d{3,})/gi
+  )) {
+    if (inMongolia(parseFloat(m[1]), parseFloat(m[2]))) return { lat: m[1], lng: m[2] };
+  }
+  // !2d<уртраг>!3d<өргөрөг>
+  for (const m of html.matchAll(/2d(-?\d{1,3}\.\d{3,}).{0,6}3d(-?\d{1,3}\.\d{3,})/g)) {
+    if (inMongolia(parseFloat(m[2]), parseFloat(m[1]))) return { lat: m[2], lng: m[1] };
+  }
   return null;
 }
 
@@ -55,9 +64,9 @@ async function resolveMapEmbed(mapUrl: string): Promise<string> {
     }
   }
 
-  // 1) URL-д координат байвал шууд (заавал улаан pin гарна)
+  // 1) URL-д координат байвал (Монголын хүрээнд байвал л) шууд
   const c = parseCoords(full);
-  if (c) return embed(c.lat, c.lng);
+  if (c && inMongolia(parseFloat(c.lat), parseFloat(c.lng))) return embed(c.lat, c.lng);
 
   // 2) place хуудасны HTML-ээс координат гаргана
   const h = coordsFromHtml(html);
