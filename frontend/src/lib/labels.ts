@@ -226,8 +226,11 @@ export const t = {
       photo: 'Зураг',
       term: 'Хугацаа',
       downPercent: 'Урьдчилгаа (%)',
+      phone: 'Утас',
+      address: 'Хаяг',
       website: 'Вэб хаяг',
-      websiteHint: 'Постер дээр баруун доор гарна.',
+      contactHint:
+        'Тохиргоо → Холбоо барихаас автоматаар орж ирнэ. Энд засвал зөвхөн постерт нөлөөлнө (админаас гарах хүртэл хадгалагдана).',
       // Explains where the single monthly figure came from.
       averageNote: (first: string, last: string) =>
         `Эхний сар ${first} → сүүлийн сар ${last}. Постер дээр эдгээрийн дундаж ((эхний + сүүлийн) ÷ 2) гарна.`,

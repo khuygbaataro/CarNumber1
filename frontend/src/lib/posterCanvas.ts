@@ -47,6 +47,7 @@ export interface PosterContent {
   priceLabel: string;
   downLabel: string;
   monthlyLabel: string;
+  termLabel: string; // "48 сар" — qualifies the monthly figure
   phone: string;
   website: string;
   address: string;
@@ -367,15 +368,44 @@ function layoutTitle(ctx: Ctx, title: string, stack: string, beside: number): Ti
   };
 }
 
+interface Tile {
+  label: string;
+  value: string;
+  accent: boolean;
+  /** Small right-aligned qualifier on the label row, e.g. "48 САР". */
+  note: string;
+}
+
+const LABEL_TRACK = 0.17; // tracking as a share of the label size
+const NOTE_RATIO = 0.85; // note size as a share of the label size
+
 function drawTiles(ctx: Ctx, c: PosterContent) {
-  const tiles = [
-    { label: t.admin.poster.priceLabel, value: c.priceLabel, accent: true },
-    { label: t.admin.poster.downLabel, value: c.downLabel, accent: false },
-    { label: t.admin.poster.monthlyLabel, value: c.monthlyLabel, accent: false },
+  const tiles: Tile[] = [
+    { label: t.admin.poster.priceLabel, value: c.priceLabel, accent: true, note: '' },
+    { label: t.admin.poster.downLabel, value: c.downLabel, accent: false, note: '' },
+    {
+      label: t.admin.poster.monthlyLabel,
+      value: c.monthlyLabel,
+      accent: false,
+      // The monthly figure means nothing without the term it was worked
+      // out over, so the poster says so instead of leaving it implied.
+      note: c.termLabel,
+      },
   ];
   const gap = 16;
   const w = (CW - gap * 2) / 3;
   const pad = 22;
+  const inner = w - pad * 2;
+
+  // One label size across all three tiles, set by whichever needs the most
+  // room — a single shrunken label beside two full-size ones reads as a
+  // mistake, and only the monthly tile carries a note.
+  let labelSize = 23;
+  while (labelSize > 15 && tiles.some((tile) => tileLabelWidth(ctx, tile, labelSize, c.fontStack) > inner)) {
+    labelSize -= 1;
+  }
+  const noteSize = Math.round(labelSize * NOTE_RATIO);
+  const tracking = labelSize * LABEL_TRACK;
 
   tiles.forEach((tile, i) => {
     const x = M + i * (w + gap);
@@ -388,20 +418,42 @@ function drawTiles(ctx: Ctx, c: PosterContent) {
       ctx.stroke();
     }
 
-    ctx.font = font(600, 23, c.fontStack);
+    let labelRoom = inner;
+    if (tile.note) {
+      const note = tile.note.toUpperCase();
+      ctx.font = font(600, noteSize, c.fontStack);
+      const noteW = measureTracked(ctx, note, tracking * 0.8);
+      ctx.fillStyle = tile.accent ? 'rgba(255,255,255,0.7)' : '#6f6f6f';
+      fillTracked(ctx, note, x + w - pad - noteW, TILES_Y + 46, tracking * 0.8);
+      labelRoom -= noteW + 12;
+    }
+
+    ctx.font = font(600, labelSize, c.fontStack);
     ctx.fillStyle = tile.accent ? 'rgba(255,255,255,0.88)' : MUTED;
     fillTracked(
       ctx,
-      ellipsize(ctx, tile.label.toUpperCase(), w - pad * 2, 4),
+      ellipsize(ctx, tile.label.toUpperCase(), labelRoom, tracking),
       x + pad,
       TILES_Y + 46,
-      4
+      tracking
     );
 
-    fitSize(ctx, tile.value, 700, c.fontStack, w - pad * 2, 50, 24);
+    fitSize(ctx, tile.value, 700, c.fontStack, inner, 50, 24);
     ctx.fillStyle = WHITE;
     ctx.fillText(tile.value, x + pad, TILES_Y + 108);
   });
+}
+
+/** Label plus its note, at `size`, as the label row would draw them. */
+function tileLabelWidth(ctx: Ctx, tile: Tile, size: number, stack: string): number {
+  const tracking = size * LABEL_TRACK;
+  ctx.font = font(600, size, stack);
+  let width = measureTracked(ctx, tile.label.toUpperCase(), tracking);
+  if (tile.note) {
+    ctx.font = font(600, Math.round(size * NOTE_RATIO), stack);
+    width += 12 + measureTracked(ctx, tile.note.toUpperCase(), tracking * 0.8);
+  }
+  return width;
 }
 
 function drawFooter(ctx: Ctx, c: PosterContent) {

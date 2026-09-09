@@ -22,6 +22,11 @@ import { POSTER_FONT_STACK, ensurePosterFont, posterFont } from '@/lib/posterFon
 // admin works through the list, so the fetch is shared across openings.
 let settingsCache: Settings | null = null;
 
+// Contact lines the admin retyped for a poster. Kept for as long as the
+// panel stays open so a correction only has to be made once for a whole
+// batch, but never written back — the lasting fix is Тохиргоо.
+const contactOverrides: { phone?: string; address?: string; website?: string } = {};
+
 /**
  * Loads an image ready for canvas export. `crossOrigin` is what keeps the
  * canvas exportable — without it a remote photo taints it and toBlob throws.
@@ -60,7 +65,11 @@ export default function PosterModal({
   const [photoFailed, setPhotoFailed] = useState(false);
   const [logo, setLogo] = useState<HTMLImageElement | null>(null);
   const [fontReady, setFontReady] = useState(false);
-  const [website, setWebsite] = useState(posterWebsite);
+  const [phone, setPhone] = useState(contactOverrides.phone ?? '');
+  const [address, setAddress] = useState(contactOverrides.address ?? '');
+  const [website, setWebsite] = useState(
+    () => contactOverrides.website ?? posterWebsite()
+  );
   const [term, setTerm] = useState<number | null>(null);
   const [downPercent, setDownPercent] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -92,6 +101,24 @@ export default function PosterModal({
   useEffect(() => {
     ensurePosterFont().then(() => setFontReady(true));
   }, []);
+
+  // Seed the contact lines from settings, unless the admin already retyped
+  // them for an earlier poster in this sitting.
+  useEffect(() => {
+    if (!settings) return;
+    if (contactOverrides.phone === undefined) {
+      setPhone(primaryPhone(settings.contact?.phone ?? ''));
+    }
+    if (contactOverrides.address === undefined) {
+      setAddress(settings.contact?.address ?? '');
+    }
+  }, [settings]);
+
+  const editContact =
+    (key: 'phone' | 'address' | 'website', set: (v: string) => void) => (value: string) => {
+      contactOverrides[key] = value;
+      set(value);
+    };
 
   useEffect(() => {
     if (settingsCache) return;
@@ -153,9 +180,10 @@ export default function PosterModal({
       priceLabel: formatPrice(figures.price),
       downLabel: formatPrice(figures.downAmount),
       monthlyLabel: formatPrice(figures.monthly),
-      phone: primaryPhone(branding.phone),
+      termLabel: `${figures.term} ${t.common.months}`,
+      phone: phone.trim(),
       website: website.trim().toUpperCase(),
-      address: branding.address,
+      address: address.trim(),
       badge: t.admin.poster.badge,
       companyName: branding.companyName,
       photo,
@@ -166,6 +194,8 @@ export default function PosterModal({
     fontReady,
     photo,
     logo,
+    phone,
+    address,
     website,
     vehicle.brand,
     vehicle.model,
@@ -175,8 +205,7 @@ export default function PosterModal({
     figures.price,
     figures.downAmount,
     figures.monthly,
-    branding.phone,
-    branding.address,
+    figures.term,
     branding.companyName,
   ]);
 
@@ -309,19 +338,48 @@ export default function PosterModal({
               </div>
             </div>
 
+            {/* Footer lines. Prefilled from settings, editable per poster. */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="poster-phone">
+                  {t.admin.poster.phone}
+                </label>
+                <input
+                  id="poster-phone"
+                  type="text"
+                  className="input"
+                  value={phone}
+                  placeholder="+976 8000-4020"
+                  onChange={(e) => editContact('phone', setPhone)(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="poster-website">
+                  {t.admin.poster.website}
+                </label>
+                <input
+                  id="poster-website"
+                  type="text"
+                  className="input"
+                  value={website}
+                  placeholder="WWW.VICTORYCAR.MN"
+                  onChange={(e) => editContact('website', setWebsite)(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="label" htmlFor="poster-website">
-                {t.admin.poster.website}
+              <label className="label" htmlFor="poster-address">
+                {t.admin.poster.address}
               </label>
               <input
-                id="poster-website"
+                id="poster-address"
                 type="text"
                 className="input"
-                value={website}
-                placeholder="WWW.VICTORYCAR.MN"
-                onChange={(e) => setWebsite(e.target.value)}
+                value={address}
+                onChange={(e) => editContact('address', setAddress)(e.target.value)}
               />
-              <p className="mt-1 text-xs text-gray-400">{t.admin.poster.websiteHint}</p>
+              <p className="mt-1 text-xs text-gray-400">{t.admin.poster.contactHint}</p>
             </div>
 
             {/* Where the single monthly figure on the poster comes from. */}
