@@ -226,11 +226,14 @@ export const t = {
       photo: 'Зураг',
       term: 'Хугацаа',
       downPercent: 'Урьдчилгаа (%)',
+      // Small print on the poster, under the price tiles.
+      termNote: (months: number) =>
+        `Сарын төлбөрийг ${months} сарын лизингээр бодсон дундаж дүн.`,
       phone: 'Утас',
       address: 'Хаяг',
       website: 'Вэб хаяг',
       contactHint:
-        'Тохиргоо → Холбоо барихаас автоматаар орж ирнэ. Энд засвал зөвхөн постерт нөлөөлнө (админаас гарах хүртэл хадгалагдана).',
+        'Утас нь Тохиргооноос, хаяг нь постерийн үндсэн хаягаас орж ирнэ. Энд засвал зөвхөн постерт нөлөөлнө (админаас гарах хүртэл хадгалагдана).',
       // Explains where the single monthly figure came from.
       averageNote: (first: string, last: string) =>
         `Эхний сар ${first} → сүүлийн сар ${last}. Постер дээр эдгээрийн дундаж ((эхний + сүүлийн) ÷ 2) гарна.`,

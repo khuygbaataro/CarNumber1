@@ -35,10 +35,11 @@ const PHOTO_R = 16;
 const ROW_BASE = 978; // title baseline; the chips sit on the same line
 const CHIP_H = 56;
 
-const TILES_Y = 1012;
-const TILE_H = 140;
+const TILES_Y = 1006;
+const TILE_H = 136;
 
-const BAR_Y = 1204; // red contact bar, runs to the bottom edge
+const NOTE_BASE = 1176; // one-line footnote under the tiles
+const BAR_Y = 1202; // red contact bar, runs to the bottom edge
 
 export interface PosterContent {
   title: string; // "TOYOTA AQUA"
@@ -48,6 +49,7 @@ export interface PosterContent {
   downLabel: string;
   monthlyLabel: string;
   termLabel: string; // "48 сар" — qualifies the monthly figure
+  termNote: string; // spelled-out footnote under the tiles
   phone: string;
   website: string;
   address: string;
@@ -424,7 +426,7 @@ function drawTiles(ctx: Ctx, c: PosterContent) {
       ctx.font = font(600, noteSize, c.fontStack);
       const noteW = measureTracked(ctx, note, tracking * 0.8);
       ctx.fillStyle = tile.accent ? 'rgba(255,255,255,0.7)' : '#6f6f6f';
-      fillTracked(ctx, note, x + w - pad - noteW, TILES_Y + 46, tracking * 0.8);
+      fillTracked(ctx, note, x + w - pad - noteW, TILES_Y + 45, tracking * 0.8);
       labelRoom -= noteW + 12;
     }
 
@@ -434,13 +436,13 @@ function drawTiles(ctx: Ctx, c: PosterContent) {
       ctx,
       ellipsize(ctx, tile.label.toUpperCase(), labelRoom, tracking),
       x + pad,
-      TILES_Y + 46,
+      TILES_Y + 45,
       tracking
     );
 
     fitSize(ctx, tile.value, 700, c.fontStack, inner, 50, 24);
     ctx.fillStyle = WHITE;
-    ctx.fillText(tile.value, x + pad, TILES_Y + 108);
+    ctx.fillText(tile.value, x + pad, TILES_Y + 106);
   });
 }
 
@@ -456,12 +458,30 @@ function tileLabelWidth(ctx: Ctx, tile: Tile, size: number, stack: string): numb
   return width;
 }
 
+/**
+ * "Сарын төлбөрийг 48 сарын лизингээр бодсон дундаж дүн." — the small
+ * print between the tiles and the contact bar. The tile already carries
+ * the term, but a number this prominent deserves saying in full.
+ */
+function drawTermNote(ctx: Ctx, c: PosterContent) {
+  if (!c.termNote) return;
+  fitSize(ctx, c.termNote, 500, c.fontStack, CW, 23, 16);
+  ctx.fillStyle = '#7d7d7d';
+  ctx.fillText(ellipsize(ctx, c.termNote, CW, 0), M, NOTE_BASE);
+}
+
+/**
+ * Red contact bar: phone on the left and the web address on the right of
+ * one line, then a hairline, then the address centred beneath it. The
+ * rule and the centring are what stop the address reading as an
+ * afterthought squeezed into the bottom edge.
+ */
 function drawFooter(ctx: Ctx, c: PosterContent) {
   ctx.fillStyle = RED;
   ctx.fillRect(0, BAR_Y, POSTER_W, POSTER_H - BAR_Y);
 
-  // With an address underneath, the phone line sits higher in the bar.
-  const base = BAR_Y + (c.address ? 74 : 90);
+  // Without an address the top line has the whole bar to sit in.
+  const base = BAR_Y + (c.address ? 62 : 88);
 
   if (c.website) {
     const size = fitSize(ctx, c.website, 700, c.fontStack, 380, 40, 22, 2);
@@ -484,16 +504,21 @@ function drawFooter(ctx: Ctx, c: PosterContent) {
     x += measureTracked(ctx, label, 4) + 22;
 
     // Leave room for the web address on the right of the same line.
-    fitSize(ctx, c.phone, 700, c.fontStack, POSTER_W - M - 420 - x, 70, 34);
+    fitSize(ctx, c.phone, 700, c.fontStack, POSTER_W - M - 420 - x, 66, 34);
     ctx.fillStyle = WHITE;
     ctx.fillText(c.phone, x, base);
   }
 
-  if (c.address) {
-    fitSize(ctx, c.address, 500, c.fontStack, CW, 27, 18);
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.fillText(ellipsize(ctx, c.address, CW, 0), M, BAR_Y + 118);
-  }
+  if (!c.address) return;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.fillRect(M, BAR_Y + 88, CW, 1.5);
+
+  fitSize(ctx, c.address, 500, c.fontStack, CW, 26, 17);
+  ctx.fillStyle = WHITE;
+  ctx.textAlign = 'center';
+  ctx.fillText(ellipsize(ctx, c.address, CW, 0), POSTER_W / 2, BAR_Y + 128);
+  ctx.textAlign = 'left';
 }
 
 /** Repaints `canvas` with the poster. Sizes the bitmap itself. */
@@ -518,6 +543,7 @@ export function drawPoster(
   drawPhoto(ctx, content);
   drawTitleRow(ctx, content);
   drawTiles(ctx, content);
+  drawTermNote(ctx, content);
   drawFooter(ctx, content);
   ctx.restore();
 }

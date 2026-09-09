@@ -8,6 +8,7 @@ import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { formatMileage, formatPrice } from '@/lib/format';
 import { primaryPhone } from '@/lib/contact';
 import {
+  POSTER_ADDRESS,
   posterBranding,
   posterFigures,
   posterFileName,
@@ -66,7 +67,7 @@ export default function PosterModal({
   const [logo, setLogo] = useState<HTMLImageElement | null>(null);
   const [fontReady, setFontReady] = useState(false);
   const [phone, setPhone] = useState(contactOverrides.phone ?? '');
-  const [address, setAddress] = useState(contactOverrides.address ?? '');
+  const [address, setAddress] = useState(contactOverrides.address ?? POSTER_ADDRESS);
   const [website, setWebsite] = useState(
     () => contactOverrides.website ?? posterWebsite()
   );
@@ -102,16 +103,12 @@ export default function PosterModal({
     ensurePosterFont().then(() => setFontReady(true));
   }, []);
 
-  // Seed the contact lines from settings, unless the admin already retyped
-  // them for an earlier poster in this sitting.
+  // Phone comes from settings once they arrive, unless the admin already
+  // retyped it for an earlier poster in this sitting. (The address does
+  // not — the poster has its own line, see POSTER_ADDRESS.)
   useEffect(() => {
-    if (!settings) return;
-    if (contactOverrides.phone === undefined) {
-      setPhone(primaryPhone(settings.contact?.phone ?? ''));
-    }
-    if (contactOverrides.address === undefined) {
-      setAddress(settings.contact?.address ?? '');
-    }
+    if (!settings || contactOverrides.phone !== undefined) return;
+    setPhone(primaryPhone(posterBranding(settings).phone));
   }, [settings]);
 
   const editContact =
@@ -181,6 +178,7 @@ export default function PosterModal({
       downLabel: formatPrice(figures.downAmount),
       monthlyLabel: formatPrice(figures.monthly),
       termLabel: `${figures.term} ${t.common.months}`,
+      termNote: t.admin.poster.termNote(figures.term),
       phone: phone.trim(),
       website: website.trim().toUpperCase(),
       address: address.trim(),

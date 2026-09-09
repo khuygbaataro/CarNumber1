@@ -130,12 +130,23 @@ export function posterFileName(
   return `${slug || 'poster'}.png`;
 }
 
-/** Phone/address/company for the poster footer, with safe fallbacks. */
+/**
+ * The address line the posters carry.
+ *
+ * Deliberately its own constant rather than Тохиргоо → Холбоо барих: the
+ * poster wants the short "how to find us" version with the emoji, while
+ * the site's contact block wants the formal address. Edit this one line
+ * to change the default on every poster; the modal can still override it
+ * for a single one.
+ */
+export const POSTER_ADDRESS =
+  '1-р хороолол Эрчим худалдааны төвөөс дээшээ 200 метр 🏢🚗';
+
+/** Phone/logo/company for the poster footer, with safe fallbacks. */
 export function posterBranding(settings?: Settings | null) {
   return {
     companyName: settings?.companyName?.trim() || '',
     logo: settings?.logo || '',
     phone: settings?.contact?.phone?.trim() || '',
-    address: settings?.contact?.address?.trim() || '',
   };
 }
