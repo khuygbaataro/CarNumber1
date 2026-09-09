@@ -211,6 +211,32 @@ export const t = {
       markSoldSelected: 'Сонгосныг зарагдсан болгох',
       selectedCount: 'сонгосон',
       working: 'Гүйцэтгэж байна...',
+      poster: 'Постер',
+    },
+    // Downloadable social/print poster for a single vehicle.
+    poster: {
+      title: 'Постер татах',
+      subtitle: 'Facebook, Instagram-д тавихад бэлэн (4:5, PNG)',
+      badge: 'Лизингээр',
+      yearChip: 'Он:',
+      mileageChip: 'Гүйлт:',
+      priceLabel: 'Үнэ',
+      downLabel: 'Урьдчилгаа',
+      monthlyLabel: 'Сарын төлбөр',
+      photo: 'Зураг',
+      term: 'Хугацаа',
+      downPercent: 'Урьдчилгаа (%)',
+      website: 'Вэб хаяг',
+      websiteHint: 'Постер дээр баруун доор гарна.',
+      // Explains where the single monthly figure came from.
+      averageNote: (first: string, last: string) =>
+        `Эхний сар ${first} → сүүлийн сар ${last}. Постер дээр эдгээрийн дундаж ((эхний + сүүлийн) ÷ 2) гарна.`,
+      roundingNote: 'Дүнг ойролцоогоор 1,000₮ хүртэл бүхэлчилсэн.',
+      noPhoto: 'Энэ машинд зураг алга — постер зураггүй гарна.',
+      download: 'PNG татах',
+      preparing: 'Бэлдэж байна...',
+      close: 'Хаах',
+      error: 'Постер үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.',
     },
     form: {
       addTitle: 'Шинэ машин нэмэх',

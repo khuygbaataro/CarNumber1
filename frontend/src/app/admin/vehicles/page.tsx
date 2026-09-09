@@ -7,6 +7,7 @@ import { adminApi } from '@/lib/adminApi';
 import { Vehicle } from '@/types';
 import { formatPrice, formatTimeAgo } from '@/lib/format';
 import { t } from '@/lib/labels';
+import PosterModal from '@/components/admin/PosterModal';
 
 export default function AdminVehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -16,6 +17,8 @@ export default function AdminVehiclesPage() {
   const [filter, setFilter] = useState<'all' | 'available' | 'sold'>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  // Vehicle whose poster is open, or null.
+  const [poster, setPoster] = useState<Vehicle | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -240,6 +243,13 @@ export default function AdminVehiclesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPoster(v)}
+                          className="rounded-md border border-brand/30 px-3 py-1 text-xs font-medium text-brand hover:bg-brand/5"
+                        >
+                          {t.admin.vehicles.poster}
+                        </button>
                         <Link
                           href={`/admin/vehicles/${v._id}`}
                           className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
@@ -263,6 +273,8 @@ export default function AdminVehiclesPage() {
           </div>
         )}
       </div>
+
+      {poster && <PosterModal vehicle={poster} onClose={() => setPoster(null)} />}
     </div>
   );
 }
