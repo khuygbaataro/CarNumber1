@@ -28,6 +28,17 @@ export const formatYear = (year?: number, month?: number | null): string => {
   return `${yr} он`;
 };
 
+// Compact build date for tight spots — a poster chip, a printed table
+// column: "2015", or "2015/11" when the month is known. Same legacy
+// 2015.11 handling as formatYear, just without the words.
+export const formatYearShort = (year?: number, month?: number | null): string => {
+  const y = Number(year) || 0;
+  const yr = Math.trunc(y);
+  let mo = Number(month) || 0;
+  if (!mo && !Number.isInteger(y)) mo = Math.round((y - yr) * 100);
+  return mo >= 1 && mo <= 12 ? `${yr}/${String(mo).padStart(2, '0')}` : String(yr);
+};
+
 // Monthly payment span for an equal-principal loan: the instalment starts
 // high and falls every month, so both ends are shown — "669,760 → 288,120₮".
 // One ₮ at the end covers the pair and keeps the line short enough for a card.

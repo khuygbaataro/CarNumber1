@@ -32,6 +32,23 @@ input[type='number'] {
   appearance: textfield;
 }
 
+/* Printing — the admin stock-check sheet is the only page meant for paper.
+   Portrait A4 with a comfortable writing margin, and colours kept so the
+   table headers and the "no photos" flag survive the printer. */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* Reusable component classes */
 @layer components {
   .container-page {

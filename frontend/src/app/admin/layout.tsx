@@ -39,9 +39,13 @@ export default function AdminLayout({
   if (isLogin) return <>{children}</>;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    // The print rules let the checklist page fill the paper: no grey ground,
+    // no width cap, no page padding on top of the @page margin.
+    <div className="min-h-screen bg-gray-100 print:min-h-0 print:bg-white">
       <AdminNav />
-      <div className="mx-auto max-w-6xl px-4 py-8">{children}</div>
+      <div className="mx-auto max-w-6xl px-4 py-8 print:max-w-none print:p-0">
+        {children}
+      </div>
     </div>
   );
 }

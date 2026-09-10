@@ -18,3 +18,22 @@ export function isNewArrival(createdAt?: string): boolean {
   if (!Number.isFinite(added)) return false;
   return Date.now() - added < NEW_ARRIVAL_DAYS * 24 * 60 * 60 * 1000;
 }
+
+/**
+ * Stock numbers live inside the model field as "Prius 41 #8088" — the last
+ * digits staff use to call a car on the lot. Split them out so a listing
+ * can show the number in its own column without repeating it in the name.
+ *
+ * Only an explicit "#" counts. A bare trailing number is part of the model
+ * itself often enough ("Land Cruiser 200", "RX 450") that guessing would
+ * strip real names.
+ */
+export function splitStockCode(model?: string): { code: string; name: string } {
+  const full = (model || '').trim();
+  const match = full.match(/#\s*([A-Za-z0-9-]+)/);
+  if (!match) return { code: '', name: full };
+  return {
+    code: match[1],
+    name: full.replace(match[0], '').replace(/\s{2,}/g, ' ').trim(),
+  };
+}

@@ -5,7 +5,7 @@ import { adminApi } from '@/lib/adminApi';
 import { Settings, Vehicle } from '@/types';
 import { t } from '@/lib/labels';
 import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
-import { formatMileage, formatPrice } from '@/lib/format';
+import { formatMileage, formatPrice, formatYearShort } from '@/lib/format';
 import { primaryPhone } from '@/lib/contact';
 import {
   POSTER_ADDRESS,
@@ -14,7 +14,6 @@ import {
   posterFileName,
   posterPhotoUrl,
   posterWebsite,
-  posterYear,
 } from '@/lib/poster';
 import { POSTER_H, POSTER_SCALE, POSTER_W, drawPoster } from '@/lib/posterCanvas';
 import { POSTER_FONT_STACK, ensurePosterFont, posterFont } from '@/lib/posterFont';
@@ -172,7 +171,7 @@ export default function PosterModal({
     if (!canvas || !fontReady) return;
     drawPoster(canvas, {
       title: `${vehicle.brand} ${vehicle.model}`,
-      yearLabel: posterYear(vehicle.year, vehicle.month),
+      yearLabel: formatYearShort(vehicle.year, vehicle.month),
       mileageLabel: vehicle.mileage ? formatMileage(vehicle.mileage) : '',
       priceLabel: formatPrice(figures.price),
       downLabel: formatPrice(figures.downAmount),

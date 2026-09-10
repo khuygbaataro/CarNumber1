@@ -12,6 +12,7 @@ export default function AdminNav() {
   const links = [
     { href: '/admin', label: t.admin.nav.dashboard },
     { href: '/admin/vehicles', label: t.admin.nav.vehicles },
+    { href: '/admin/checklist', label: t.admin.nav.checklist },
     { href: '/admin/leads', label: t.admin.nav.leads },
     { href: '/admin/settings', label: t.admin.nav.settings },
     { href: '/admin/help', label: t.admin.nav.help },
@@ -26,7 +27,7 @@ export default function AdminNav() {
   };
 
   return (
-    <header className="border-b border-gray-200 bg-white">
+    <header className="border-b border-gray-200 bg-white print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <span className="text-lg font-bold text-brand">Админ</span>
 

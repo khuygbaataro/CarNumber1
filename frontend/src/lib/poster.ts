@@ -82,19 +82,6 @@ export function posterFigures(
 }
 
 /**
- * Compact year for the poster chip: "2015", or "2015/11" when the build
- * month is known. Handles the legacy 2015.11 encoding the same way
- * formatYear does.
- */
-export function posterYear(year?: number, month?: number | null): string {
-  const y = Number(year) || 0;
-  const yr = Math.trunc(y);
-  let mo = Number(month) || 0;
-  if (!mo && !Number.isInteger(y)) mo = Math.round((y - yr) * 100);
-  return mo >= 1 && mo <= 12 ? `${yr}/${String(mo).padStart(2, '0')}` : String(yr);
-}
-
-/**
  * Default for the poster's web-address line. Taken from the domain the
  * admin panel is being served from, so it is right in production without
  * another setting to fill in. Comes back empty on localhost — the modal
