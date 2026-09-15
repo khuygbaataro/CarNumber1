@@ -95,22 +95,26 @@ export function posterWebsite(): string {
 }
 
 /**
- * Ask Cloudinary for the photo already cropped to the poster's 4:3 frame at
+ * Ask Cloudinary for the photo already cropped to the poster's frame at
  * the resolution it will be drawn at — its resampling beats upscaling a
- * thumbnail on the canvas. Non-Cloudinary URLs are returned untouched, and
- * the caller falls back to the original if this variant fails to load.
+ * thumbnail on the canvas. `ratio` is the frame's height over its width,
+ * which differs between the feed and reel layouts. Non-Cloudinary URLs are
+ * returned untouched, and the caller falls back to the original if this
+ * variant fails to load.
  */
-export function posterPhotoUrl(url: string, width: number): string {
+export function posterPhotoUrl(url: string, width: number, ratio: number): string {
   if (!url.includes('res.cloudinary.com/') || !url.includes('/upload/')) return url;
-  const height = Math.round((width * 3) / 4);
+  const height = Math.round(width * ratio);
   return url.replace('/upload/', `/upload/w_${width},h_${height},c_fill,q_auto/`);
 }
 
-/** "toyota-aqua-2015.png" */
+/** "toyota-aqua-2015-9x16.png" — the shape is in the name so the two
+ *  downloads of one car never overwrite each other. */
 export function posterFileName(
-  vehicle: Pick<Vehicle, 'brand' | 'model' | 'year'>
+  vehicle: Pick<Vehicle, 'brand' | 'model' | 'year'>,
+  suffix = ''
 ): string {
-  const slug = `${vehicle.brand} ${vehicle.model} ${Math.trunc(vehicle.year) || ''}`
+  const slug = `${vehicle.brand} ${vehicle.model} ${Math.trunc(vehicle.year) || ''} ${suffix}`
     .toLowerCase()
     .replace(/[^a-z0-9Ѐ-ӿ]+/gi, '-')
     .replace(/^-+|-+$/g, '');

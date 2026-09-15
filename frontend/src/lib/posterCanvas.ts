@@ -1,15 +1,92 @@
 // Draws the downloadable vehicle poster onto a canvas.
 //
-// The whole layout is written against a fixed 1080 × 1350 (4:5 — the
-// portrait shape Facebook and Instagram show largest) coordinate space and
-// then drawn through a scale transform. One set of numbers therefore
-// produces both the small preview in the modal and the full-resolution PNG.
+// The layout is written against a fixed coordinate space and then drawn
+// through a scale transform, so one set of numbers produces both the small
+// preview in the modal and the full-resolution PNG.
+//
+// Two shapes are built from the same code: the 4:5 feed post and the 9:16
+// reel/story. They are hand-tuned rather than derived from one another — a
+// reel is not a stretched post. It gets a taller photo, roomier gaps and
+// type a fifth larger, because it is watched full-screen on a phone rather
+// than scrolled past in a feed.
 
 import { t } from './labels';
 
-export const POSTER_W = 1080;
-export const POSTER_H = 1350;
-/** Export multiplier — 2 gives a 2160 × 2700 PNG, crisp in any feed. */
+export type PosterFormat = 'feed' | 'reel';
+
+export interface PosterLayout {
+  format: PosterFormat;
+  W: number;
+  H: number;
+  /** Type scale. Every font size and padding is multiplied by this. */
+  k: number;
+  /** Photo height as a share of the content width. */
+  photoRatio: number;
+  M: number;
+  CW: number;
+  headerY: number;
+  logoH: number;
+  photoY: number;
+  photoH: number;
+  /** Title baseline; the year/mileage chips sit on the same line. */
+  rowBase: number;
+  tilesY: number;
+  tileH: number;
+  /** Baseline of the one-line footnote under the tiles. */
+  noteBase: number;
+  barY: number;
+  barH: number;
+}
+
+const M = 56;
+const CW = 1080 - M * 2; // 968 — both formats are 1080 wide
+
+export const POSTER_LAYOUTS: Record<PosterFormat, PosterLayout> = {
+  // 4:5 — the tallest shape Facebook and Instagram show in a feed.
+  feed: {
+    format: 'feed',
+    W: 1080,
+    H: 1350,
+    k: 1,
+    photoRatio: 0.75, // 4:3
+    M,
+    CW,
+    headerY: 28,
+    logoH: 88,
+    photoY: 136,
+    photoH: Math.round(CW * 0.75), // 726
+    rowBase: 978,
+    tilesY: 1006,
+    tileH: 136,
+    noteBase: 1176,
+    barY: 1202,
+    barH: 148,
+  },
+  // 9:16 — reels and stories. The photo grows towards square, which is as
+  // tall as a landscape car shot can go before c_fill starts cutting
+  // bumpers off the sides; the rest of the height becomes air and scale.
+  reel: {
+    format: 'reel',
+    W: 1080,
+    H: 1920,
+    k: 1.2,
+    photoRatio: 0.9,
+    M,
+    CW,
+    headerY: 70,
+    logoH: 118,
+    photoY: 296,
+    photoH: Math.round(CW * 0.9), // 871
+    rowBase: 1330,
+    tilesY: 1390,
+    tileH: 176,
+    noteBase: 1624,
+    barY: 1684,
+    barH: 236,
+  },
+};
+
+/** Export multiplier — 2 gives a 2160 × 2700 (or × 3840) PNG. */
 export const POSTER_SCALE = 2;
 
 // Poster palette. Deliberately independent of the site's blue theme: this
@@ -20,26 +97,6 @@ const TILE_BG = '#161616';
 const TILE_LINE = '#2c2c2c';
 const WHITE = '#ffffff';
 const MUTED = '#8f8f8f';
-
-const M = 56; // outer margin
-const CW = POSTER_W - M * 2; // content width — 968
-
-const HEADER_Y = 28;
-const LOGO_H = 88;
-const LOGO_MAX_W = 330;
-
-const PHOTO_Y = 136;
-const PHOTO_H = Math.round((CW * 3) / 4); // 4:3 photo — 726
-const PHOTO_R = 16;
-
-const ROW_BASE = 978; // title baseline; the chips sit on the same line
-const CHIP_H = 56;
-
-const TILES_Y = 1006;
-const TILE_H = 136;
-
-const NOTE_BASE = 1176; // one-line footnote under the tiles
-const BAR_Y = 1202; // red contact bar, runs to the bottom edge
 
 export interface PosterContent {
   title: string; // "TOYOTA AQUA"
@@ -173,62 +230,71 @@ function drawContainLeft(
   ctx.drawImage(img, x, y + (h - ih * scale) / 2, iw * scale, ih * scale);
 }
 
-function drawHeader(ctx: Ctx, c: PosterContent) {
+function drawHeader(ctx: Ctx, c: PosterContent, L: PosterLayout) {
+  const fs = (n: number) => Math.round(n * L.k);
+  const sp = (n: number) => n * L.k;
+
   // The badge is measured first; the logo takes whatever width is left.
   const badgeText = c.badge.trim().toUpperCase();
-  const badgeH = 66;
-  const badgeY = HEADER_Y + (LOGO_H - badgeH) / 2;
+  const badgeH = Math.round(66 * L.k);
+  const badgeY = L.headerY + (L.logoH - badgeH) / 2;
   let badgeW = 0;
 
   if (badgeText) {
-    ctx.font = font(700, 30, c.fontStack);
-    badgeW = measureTracked(ctx, badgeText, 5) + 56;
-    const bx = POSTER_W - M - badgeW;
+    ctx.font = font(700, fs(30), c.fontStack);
+    badgeW = measureTracked(ctx, badgeText, sp(5)) + sp(56);
+    const bx = L.W - L.M - badgeW;
     ctx.fillStyle = RED;
-    roundRectPath(ctx, bx, badgeY, badgeW, badgeH, 6);
+    roundRectPath(ctx, bx, badgeY, badgeW, badgeH, sp(6));
     ctx.fill();
     ctx.fillStyle = WHITE;
-    fillTracked(ctx, badgeText, bx + 28, badgeY + badgeH / 2 + 11, 5);
+    fillTracked(ctx, badgeText, bx + sp(28), badgeY + badgeH / 2 + sp(11), sp(5));
   }
 
-  const logoW = Math.min(LOGO_MAX_W, Math.max(160, CW - badgeW - 40));
+  const logoW = Math.min(sp(330), Math.max(sp(160), L.CW - badgeW - sp(40)));
   if (c.logo) {
-    drawContainLeft(ctx, c.logo, M, HEADER_Y, logoW, LOGO_H);
+    drawContainLeft(ctx, c.logo, L.M, L.headerY, logoW, L.logoH);
   } else if (c.companyName) {
     const name = c.companyName.toUpperCase();
-    const size = fitSize(ctx, name, 700, c.fontStack, logoW, 46, 24, 2);
+    const size = fitSize(ctx, name, 700, c.fontStack, logoW, fs(46), fs(24), sp(2));
     ctx.fillStyle = WHITE;
-    fillTracked(ctx, name, M, HEADER_Y + LOGO_H / 2 + size * 0.35, 2);
+    fillTracked(ctx, name, L.M, L.headerY + L.logoH / 2 + size * 0.35, sp(2));
   }
 }
 
-function drawPhoto(ctx: Ctx, c: PosterContent) {
+function drawPhoto(ctx: Ctx, c: PosterContent, L: PosterLayout) {
+  const fs = (n: number) => Math.round(n * L.k);
+  const sp = (n: number) => n * L.k;
+  const radius = sp(16);
+
   ctx.save();
-  roundRectPath(ctx, M, PHOTO_Y, CW, PHOTO_H, PHOTO_R);
+  roundRectPath(ctx, L.M, L.photoY, L.CW, L.photoH, radius);
   ctx.clip();
 
   if (c.photo) {
-    drawCover(ctx, c.photo, M, PHOTO_Y, CW, PHOTO_H);
+    drawCover(ctx, c.photo, L.M, L.photoY, L.CW, L.photoH);
   } else {
     ctx.fillStyle = '#1b1b1b';
-    ctx.fillRect(M, PHOTO_Y, CW, PHOTO_H);
+    ctx.fillRect(L.M, L.photoY, L.CW, L.photoH);
     ctx.fillStyle = MUTED;
-    ctx.font = font(500, 32, c.fontStack);
+    ctx.font = font(500, fs(32), c.fontStack);
     ctx.textAlign = 'center';
-    ctx.fillText(t.common.noImage, POSTER_W / 2, PHOTO_Y + PHOTO_H / 2);
+    ctx.fillText(t.common.noImage, L.W / 2, L.photoY + L.photoH / 2);
     ctx.textAlign = 'left';
   }
 
   // Corner tag — drawn inside the clip so it follows the rounded corner.
+  // Its type does NOT take the format's scale: both posters are 1080 wide,
+  // so scaling here would only shove a long company name into an ellipsis.
   const tag = c.companyName.trim().toUpperCase();
   if (tag) {
     ctx.font = font(700, 26, c.fontStack);
-    const tagW = Math.min(CW * 0.6, measureTracked(ctx, tag, 5) + 64);
+    const tagW = Math.min(L.CW * 0.68, measureTracked(ctx, tag, 5) + 64);
     const tagH = 58;
-    const tx = M + CW - tagW;
-    const ty = PHOTO_Y + PHOTO_H - tagH;
+    const tx = L.M + L.CW - tagW;
+    const ty = L.photoY + L.photoH - tagH;
     ctx.fillStyle = RED;
-    roundRectPath(ctx, tx, ty, tagW, tagH, [PHOTO_R, 0, 0, 0]);
+    roundRectPath(ctx, tx, ty, tagW, tagH, [radius, 0, 0, 0]);
     ctx.fill();
     ctx.fillStyle = WHITE;
     fillTracked(ctx, ellipsize(ctx, tag, tagW - 64, 5), tx + 32, ty + tagH / 2 + 9, 5);
@@ -236,9 +302,17 @@ function drawPhoto(ctx: Ctx, c: PosterContent) {
   ctx.restore();
 
   // Frame last, so it stays crisp on top of the photo.
+  const line = sp(3);
   ctx.strokeStyle = RED;
-  ctx.lineWidth = 3;
-  roundRectPath(ctx, M + 1.5, PHOTO_Y + 1.5, CW - 3, PHOTO_H - 3, PHOTO_R - 1);
+  ctx.lineWidth = line;
+  roundRectPath(
+    ctx,
+    L.M + line / 2,
+    L.photoY + line / 2,
+    L.CW - line,
+    L.photoH - line,
+    radius - 1
+  );
   ctx.stroke();
 }
 
@@ -252,7 +326,15 @@ function drawPhoto(ctx: Ctx, c: PosterContent) {
  * width of the poster. The chips also come down a size when it wraps, so
  * they never end up shouting louder than the model name.
  */
-function drawTitleRow(ctx: Ctx, c: PosterContent) {
+function drawTitleRow(ctx: Ctx, c: PosterContent, L: PosterLayout) {
+  const sp = (n: number) => n * L.k;
+  // Chip sizes do NOT take the format's scale. Both posters are 1080 wide,
+  // so every pixel a bigger chip takes is one the model name loses — and
+  // the name is the thing that should be big on a reel, not the mileage.
+  const chipFull = 56;
+  const chipWrapped = 46;
+  const gap = 14;
+
   const chips = [
     { label: t.admin.poster.yearChip, value: c.yearLabel },
     { label: t.admin.poster.mileageChip, value: c.mileageLabel },
@@ -260,18 +342,18 @@ function drawTitleRow(ctx: Ctx, c: PosterContent) {
 
   // Measured at full size first: the title is laid out against the width
   // that leaves, and shrinking the chips afterwards only ever gives it more.
-  const full = measureChips(ctx, chips, CHIP_H, c.fontStack);
-  const beside = Math.max(220, POSTER_W - M * 2 - full.total - 28);
+  const full = measureChips(ctx, chips, chipFull, c.fontStack, gap);
+  const beside = Math.max(220, L.CW - full.total - 28);
 
   const title = c.title.trim().toUpperCase();
-  const layout = layoutTitle(ctx, title, c.fontStack, beside);
+  const layout = layoutTitle(ctx, title, c.fontStack, beside, L);
 
-  const chipH = layout.lines.length > 1 ? 46 : CHIP_H;
-  const metrics = chipH === CHIP_H ? full : measureChips(ctx, chips, chipH, c.fontStack);
+  const chipH = layout.lines.length > 1 ? chipWrapped : chipFull;
+  const metrics = chipH === chipFull ? full : measureChips(ctx, chips, chipH, c.fontStack, gap);
   // Chips centre on the first line's optical middle, whatever size it took.
   const chipY = layout.firstBaseline - layout.size * 0.36 - chipH / 2;
 
-  let cx = POSTER_W - M - metrics.total;
+  let cx = L.W - L.M - metrics.total;
   const labelSize = Math.round(chipH * 0.46);
   const valueSize = Math.round(chipH * 0.5);
 
@@ -293,14 +375,14 @@ function drawTitleRow(ctx: Ctx, c: PosterContent) {
     ctx.fillStyle = WHITE;
     ctx.fillText(chip.value, cx + pad + labelW, chipY + chipH / 2 + valueSize * 0.35);
 
-    cx += w + 14;
+    cx += w + gap;
   });
 
   if (!title) return;
   ctx.font = font(700, layout.size, c.fontStack);
   ctx.fillStyle = WHITE;
   layout.lines.forEach((line, i) => {
-    fillTracked(ctx, line, M, layout.firstBaseline + i * (layout.size + 14), 1);
+    fillTracked(ctx, line, L.M, layout.firstBaseline + i * (layout.size + sp(14)), 1);
   });
 }
 
@@ -308,7 +390,8 @@ function measureChips(
   ctx: Ctx,
   chips: { label: string; value: string }[],
   chipH: number,
-  stack: string
+  stack: string,
+  gap: number
 ): { widths: number[]; total: number } {
   const labelSize = Math.round(chipH * 0.46);
   const valueSize = Math.round(chipH * 0.5);
@@ -320,30 +403,37 @@ function measureChips(
   });
   return {
     widths,
-    total: widths.reduce((a, b) => a + b, 0) + 14 * Math.max(0, chips.length - 1),
+    total: widths.reduce((a, b) => a + b, 0) + gap * Math.max(0, chips.length - 1),
   };
 }
 
 interface TitleLayout {
   lines: string[];
   size: number;
-  /** Baseline of the first line. The last line always lands on ROW_BASE. */
+  /** Baseline of the first line. The last line always lands on rowBase. */
   firstBaseline: number;
 }
 
-function layoutTitle(ctx: Ctx, title: string, stack: string, beside: number): TitleLayout {
-  if (!title) return { lines: [], size: 78, firstBaseline: ROW_BASE };
+function layoutTitle(
+  ctx: Ctx,
+  title: string,
+  stack: string,
+  beside: number,
+  L: PosterLayout
+): TitleLayout {
+  const fs = (n: number) => Math.round(n * L.k);
+  if (!title) return { lines: [], size: fs(78), firstBaseline: L.rowBase };
 
   // One line, as large as it can be next to the chips.
-  const size = fitSize(ctx, title, 700, stack, beside, 78, 48, 1);
+  const size = fitSize(ctx, title, 700, stack, beside, fs(78), fs(48), 1);
   if (measureTracked(ctx, title, 1) <= beside) {
-    return { lines: [title], size, firstBaseline: ROW_BASE };
+    return { lines: [title], size, firstBaseline: L.rowBase };
   }
 
   // Two lines: first beside the chips, the rest across the full width.
   const words = title.split(/\s+/).filter(Boolean);
   if (words.length > 1) {
-    for (let s = 50; s >= 34; s -= 1) {
+    for (let s = fs(50); s >= fs(34); s -= 1) {
       ctx.font = font(700, s, stack);
       let split = 0;
       for (let i = 1; i < words.length - 1; i++) {
@@ -354,19 +444,19 @@ function layoutTitle(ctx: Ctx, title: string, stack: string, beside: number): Ti
       const second = words.slice(split + 1).join(' ');
       if (
         measureTracked(ctx, first, 1) <= beside &&
-        measureTracked(ctx, second, 1) <= CW
+        measureTracked(ctx, second, 1) <= L.CW
       ) {
-        return { lines: [first, second], size: s, firstBaseline: ROW_BASE - s - 14 };
+        return { lines: [first, second], size: s, firstBaseline: L.rowBase - s - 14 * L.k };
       }
     }
   }
 
   // One unbreakable word — one line, trimmed.
-  const small = fitSize(ctx, title, 700, stack, beside, 78, 34, 1);
+  const small = fitSize(ctx, title, 700, stack, beside, fs(78), fs(34), 1);
   return {
     lines: [ellipsize(ctx, title, beside, 1)],
     size: small,
-    firstBaseline: ROW_BASE,
+    firstBaseline: L.rowBase,
   };
 }
 
@@ -381,7 +471,10 @@ interface Tile {
 const LABEL_TRACK = 0.17; // tracking as a share of the label size
 const NOTE_RATIO = 0.85; // note size as a share of the label size
 
-function drawTiles(ctx: Ctx, c: PosterContent) {
+function drawTiles(ctx: Ctx, c: PosterContent, L: PosterLayout) {
+  const fs = (n: number) => Math.round(n * L.k);
+  const sp = (n: number) => n * L.k;
+
   const tiles: Tile[] = [
     { label: t.admin.poster.priceLabel, value: c.priceLabel, accent: true, note: '' },
     { label: t.admin.poster.downLabel, value: c.downLabel, accent: false, note: '' },
@@ -392,31 +485,38 @@ function drawTiles(ctx: Ctx, c: PosterContent) {
       // The monthly figure means nothing without the term it was worked
       // out over, so the poster says so instead of leaving it implied.
       note: c.termLabel,
-      },
+    },
   ];
-  const gap = 16;
-  const w = (CW - gap * 2) / 3;
-  const pad = 22;
+  const gap = sp(16);
+  const w = (L.CW - gap * 2) / 3;
+  const pad = sp(22);
   const inner = w - pad * 2;
+  // Inner baselines follow the tile height, so both formats sit the same.
+  const labelBase = L.tilesY + L.tileH * 0.331;
+  const valueBase = L.tilesY + L.tileH * 0.779;
 
   // One label size across all three tiles, set by whichever needs the most
   // room — a single shrunken label beside two full-size ones reads as a
   // mistake, and only the monthly tile carries a note.
-  let labelSize = 23;
-  while (labelSize > 15 && tiles.some((tile) => tileLabelWidth(ctx, tile, labelSize, c.fontStack) > inner)) {
+  let labelSize = fs(23);
+  const minLabel = fs(15);
+  while (
+    labelSize > minLabel &&
+    tiles.some((tile) => tileLabelWidth(ctx, tile, labelSize, c.fontStack, sp(12)) > inner)
+  ) {
     labelSize -= 1;
   }
   const noteSize = Math.round(labelSize * NOTE_RATIO);
   const tracking = labelSize * LABEL_TRACK;
 
   tiles.forEach((tile, i) => {
-    const x = M + i * (w + gap);
-    roundRectPath(ctx, x, TILES_Y, w, TILE_H, 16);
+    const x = L.M + i * (w + gap);
+    roundRectPath(ctx, x, L.tilesY, w, L.tileH, sp(16));
     ctx.fillStyle = tile.accent ? RED : TILE_BG;
     ctx.fill();
     if (!tile.accent) {
       ctx.strokeStyle = TILE_LINE;
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = sp(1.5);
       ctx.stroke();
     }
 
@@ -426,8 +526,8 @@ function drawTiles(ctx: Ctx, c: PosterContent) {
       ctx.font = font(600, noteSize, c.fontStack);
       const noteW = measureTracked(ctx, note, tracking * 0.8);
       ctx.fillStyle = tile.accent ? 'rgba(255,255,255,0.7)' : '#6f6f6f';
-      fillTracked(ctx, note, x + w - pad - noteW, TILES_Y + 45, tracking * 0.8);
-      labelRoom -= noteW + 12;
+      fillTracked(ctx, note, x + w - pad - noteW, labelBase, tracking * 0.8);
+      labelRoom -= noteW + sp(12);
     }
 
     ctx.font = font(600, labelSize, c.fontStack);
@@ -436,24 +536,30 @@ function drawTiles(ctx: Ctx, c: PosterContent) {
       ctx,
       ellipsize(ctx, tile.label.toUpperCase(), labelRoom, tracking),
       x + pad,
-      TILES_Y + 45,
+      labelBase,
       tracking
     );
 
-    fitSize(ctx, tile.value, 700, c.fontStack, inner, 50, 24);
+    fitSize(ctx, tile.value, 700, c.fontStack, inner, fs(50), fs(24));
     ctx.fillStyle = WHITE;
-    ctx.fillText(tile.value, x + pad, TILES_Y + 106);
+    ctx.fillText(tile.value, x + pad, valueBase);
   });
 }
 
 /** Label plus its note, at `size`, as the label row would draw them. */
-function tileLabelWidth(ctx: Ctx, tile: Tile, size: number, stack: string): number {
+function tileLabelWidth(
+  ctx: Ctx,
+  tile: Tile,
+  size: number,
+  stack: string,
+  noteGap: number
+): number {
   const tracking = size * LABEL_TRACK;
   ctx.font = font(600, size, stack);
   let width = measureTracked(ctx, tile.label.toUpperCase(), tracking);
   if (tile.note) {
     ctx.font = font(600, Math.round(size * NOTE_RATIO), stack);
-    width += 12 + measureTracked(ctx, tile.note.toUpperCase(), tracking * 0.8);
+    width += noteGap + measureTracked(ctx, tile.note.toUpperCase(), tracking * 0.8);
   }
   return width;
 }
@@ -463,48 +569,57 @@ function tileLabelWidth(ctx: Ctx, tile: Tile, size: number, stack: string): numb
  * print between the tiles and the contact bar. The tile already carries
  * the term, but a number this prominent deserves saying in full.
  */
-function drawTermNote(ctx: Ctx, c: PosterContent) {
+function drawTermNote(ctx: Ctx, c: PosterContent, L: PosterLayout) {
   if (!c.termNote) return;
-  fitSize(ctx, c.termNote, 500, c.fontStack, CW, 23, 16);
+  const fs = (n: number) => Math.round(n * L.k);
+  fitSize(ctx, c.termNote, 500, c.fontStack, L.CW, fs(23), fs(16));
   ctx.fillStyle = '#7d7d7d';
-  ctx.fillText(ellipsize(ctx, c.termNote, CW, 0), M, NOTE_BASE);
+  ctx.fillText(ellipsize(ctx, c.termNote, L.CW, 0), L.M, L.noteBase);
 }
 
 /**
  * Red contact bar: phone on the left and the web address on the right of
  * one line, then a hairline, then the address centred beneath it. The
  * rule and the centring are what stop the address reading as an
- * afterthought squeezed into the bottom edge.
+ * afterthought squeezed into the bottom edge. Every position inside the
+ * bar is a share of its height, so it holds together at either format.
  */
-function drawFooter(ctx: Ctx, c: PosterContent) {
-  ctx.fillStyle = RED;
-  ctx.fillRect(0, BAR_Y, POSTER_W, POSTER_H - BAR_Y);
+function drawFooter(ctx: Ctx, c: PosterContent, L: PosterLayout) {
+  const fs = (n: number) => Math.round(n * L.k);
+  const sp = (n: number) => n * L.k;
 
-  // Without an address the top line has the whole bar to sit in.
-  const base = BAR_Y + (c.address ? 62 : 88);
+  ctx.fillStyle = RED;
+  ctx.fillRect(0, L.barY, L.W, L.H - L.barY);
+
+  // The two lines are laid out as one block and centred in the bar, rather
+  // than pinned at percentages of its height — the reel's bar is taller
+  // than the feed's by more than its type is bigger, and percentages would
+  // leave a pool of empty red above the phone number.
+  const blockTop = L.barY + (L.barH - sp(112)) / 2;
+  const base = c.address ? blockTop + sp(56) : L.barY + L.barH / 2 + sp(22);
 
   if (c.website) {
-    const size = fitSize(ctx, c.website, 700, c.fontStack, 380, 40, 22, 2);
+    const size = fitSize(ctx, c.website, 700, c.fontStack, sp(380), fs(40), fs(22), sp(2));
     ctx.fillStyle = WHITE;
     fillTracked(
       ctx,
       c.website,
-      POSTER_W - M - measureTracked(ctx, c.website, 2),
+      L.W - L.M - measureTracked(ctx, c.website, sp(2)),
       base - Math.round(size * 0.15),
-      2
+      sp(2)
     );
   }
 
   if (c.phone) {
-    let x = M;
+    let x = L.M;
     const label = t.contact.phone.toUpperCase();
-    ctx.font = font(500, 30, c.fontStack);
+    ctx.font = font(500, fs(30), c.fontStack);
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    fillTracked(ctx, label, x, base, 4);
-    x += measureTracked(ctx, label, 4) + 22;
+    fillTracked(ctx, label, x, base, sp(4));
+    x += measureTracked(ctx, label, sp(4)) + sp(22);
 
     // Leave room for the web address on the right of the same line.
-    fitSize(ctx, c.phone, 700, c.fontStack, POSTER_W - M - 420 - x, 66, 34);
+    fitSize(ctx, c.phone, 700, c.fontStack, L.W - L.M - sp(420) - x, fs(66), fs(34));
     ctx.fillStyle = WHITE;
     ctx.fillText(c.phone, x, base);
   }
@@ -512,12 +627,12 @@ function drawFooter(ctx: Ctx, c: PosterContent) {
   if (!c.address) return;
 
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fillRect(M, BAR_Y + 88, CW, 1.5);
+  ctx.fillRect(L.M, blockTop + sp(70), L.CW, sp(1.5));
 
-  fitSize(ctx, c.address, 500, c.fontStack, CW, 26, 17);
+  fitSize(ctx, c.address, 500, c.fontStack, L.CW, fs(26), fs(17));
   ctx.fillStyle = WHITE;
   ctx.textAlign = 'center';
-  ctx.fillText(ellipsize(ctx, c.address, CW, 0), POSTER_W / 2, BAR_Y + 128);
+  ctx.fillText(ellipsize(ctx, c.address, L.CW, 0), L.W / 2, blockTop + sp(110));
   ctx.textAlign = 'left';
 }
 
@@ -525,10 +640,12 @@ function drawFooter(ctx: Ctx, c: PosterContent) {
 export function drawPoster(
   canvas: HTMLCanvasElement,
   content: PosterContent,
+  format: PosterFormat = 'feed',
   scale: number = POSTER_SCALE
 ) {
-  canvas.width = Math.round(POSTER_W * scale);
-  canvas.height = Math.round(POSTER_H * scale);
+  const L = POSTER_LAYOUTS[format] ?? POSTER_LAYOUTS.feed;
+  canvas.width = Math.round(L.W * scale);
+  canvas.height = Math.round(L.H * scale);
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -537,13 +654,13 @@ export function drawPoster(
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
   ctx.fillStyle = BLACK;
-  ctx.fillRect(0, 0, POSTER_W, POSTER_H);
+  ctx.fillRect(0, 0, L.W, L.H);
 
-  drawHeader(ctx, content);
-  drawPhoto(ctx, content);
-  drawTitleRow(ctx, content);
-  drawTiles(ctx, content);
-  drawTermNote(ctx, content);
-  drawFooter(ctx, content);
+  drawHeader(ctx, content, L);
+  drawPhoto(ctx, content, L);
+  drawTitleRow(ctx, content, L);
+  drawTiles(ctx, content, L);
+  drawTermNote(ctx, content, L);
+  drawFooter(ctx, content, L);
   ctx.restore();
 }

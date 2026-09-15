@@ -15,7 +15,12 @@ import {
   posterPhotoUrl,
   posterWebsite,
 } from '@/lib/poster';
-import { POSTER_H, POSTER_SCALE, POSTER_W, drawPoster } from '@/lib/posterCanvas';
+import {
+  POSTER_LAYOUTS,
+  POSTER_SCALE,
+  PosterFormat,
+  drawPoster,
+} from '@/lib/posterCanvas';
 import { POSTER_FONT_STACK, ensurePosterFont, posterFont } from '@/lib/posterFont';
 
 // Settings barely change and the modal is opened over and over while the
@@ -72,8 +77,10 @@ export default function PosterModal({
   );
   const [term, setTerm] = useState<number | null>(null);
   const [downPercent, setDownPercent] = useState<number | null>(null);
+  const [format, setFormat] = useState<PosterFormat>('feed');
   const [error, setError] = useState('');
 
+  const layout = POSTER_LAYOUTS[format];
   const photos = vehicle.images ?? [];
   const photoSrc = photos[photoIndex] || '';
   const loan = settings?.loan ?? DEFAULT_LOAN_CONFIG;
@@ -133,7 +140,8 @@ export default function PosterModal({
     };
   }, []);
 
-  // Vehicle photo — asked for at the resolution it will be drawn at.
+  // Vehicle photo — asked for at the resolution and crop it will be drawn
+  // at, which differs between the two formats.
   useEffect(() => {
     if (!photoSrc) {
       setPhoto(null);
@@ -141,7 +149,8 @@ export default function PosterModal({
       return;
     }
     let alive = true;
-    loadImage(posterPhotoUrl(photoSrc, POSTER_W * POSTER_SCALE), photoSrc).then((img) => {
+    const width = layout.W * POSTER_SCALE;
+    loadImage(posterPhotoUrl(photoSrc, width, layout.photoRatio), photoSrc).then((img) => {
       if (!alive) return;
       setPhoto(img);
       setPhotoFailed(!img);
@@ -149,7 +158,7 @@ export default function PosterModal({
     return () => {
       alive = false;
     };
-  }, [photoSrc]);
+  }, [photoSrc, layout.W, layout.photoRatio]);
 
   useEffect(() => {
     if (!branding.logo) {
@@ -186,8 +195,9 @@ export default function PosterModal({
       photo,
       logo,
       fontStack: POSTER_FONT_STACK,
-    });
+    }, format);
   }, [
+    format,
     fontReady,
     photo,
     logo,
@@ -219,7 +229,7 @@ export default function PosterModal({
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = posterFileName(vehicle);
+        link.download = posterFileName(vehicle, format === 'reel' ? '9x16' : '4x5');
         link.click();
         // Give the browser a tick to start the download before revoking.
         setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -227,7 +237,7 @@ export default function PosterModal({
     } catch {
       setError(t.admin.poster.error);
     }
-  }, [vehicle]);
+  }, [vehicle, format]);
 
   return (
     <div
@@ -263,20 +273,61 @@ export default function PosterModal({
         </div>
 
         <div className="grid gap-6 p-5 sm:grid-cols-[minmax(0,300px)_1fr]">
-          {/* Preview — the very canvas that gets exported, just scaled down. */}
+          {/* Preview — the very canvas that gets exported, just scaled down.
+              Capped by height as well as width so the tall 9:16 poster does
+              not push the controls off the screen. */}
           <div className="mx-auto w-full max-w-[300px]">
             <canvas
               ref={canvasRef}
-              width={POSTER_W * POSTER_SCALE}
-              height={POSTER_H * POSTER_SCALE}
-              className="block w-full rounded-xl bg-black shadow-md ring-1 ring-gray-200"
+              width={layout.W * POSTER_SCALE}
+              height={layout.H * POSTER_SCALE}
+              className="mx-auto block max-h-[52vh] w-auto max-w-full rounded-xl bg-black shadow-md ring-1 ring-gray-200"
             />
             <p className="mt-2 text-center text-[11px] text-gray-400">
-              {POSTER_W * POSTER_SCALE} × {POSTER_H * POSTER_SCALE} px
+              {layout.W * POSTER_SCALE} × {layout.H * POSTER_SCALE} px
             </p>
           </div>
 
           <div className="space-y-4">
+            {/* Feed post or reel — the layout changes, not just the canvas. */}
+            <div>
+              <span className="label">{t.admin.poster.format}</span>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    {
+                      key: 'feed' as const,
+                      label: t.admin.poster.formatFeed,
+                      hint: t.admin.poster.formatFeedHint,
+                    },
+                    {
+                      key: 'reel' as const,
+                      label: t.admin.poster.formatReel,
+                      hint: t.admin.poster.formatReelHint,
+                    },
+                  ]
+                ).map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setFormat(option.key)}
+                    className={`rounded-xl border px-3 py-2 text-left transition ${
+                      format === option.key
+                        ? 'border-brand bg-brand/5 ring-2 ring-brand'
+                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold text-gray-900">
+                      {option.label}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-snug text-gray-500">
+                      {option.hint}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {photos.length > 1 && (
               <div>
                 <span className="label">{t.admin.poster.photo}</span>

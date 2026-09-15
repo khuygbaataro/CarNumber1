@@ -249,7 +249,12 @@ export const t = {
     // Downloadable social/print poster for a single vehicle.
     poster: {
       title: 'Постер татах',
-      subtitle: 'Facebook, Instagram-д тавихад бэлэн (4:5, PNG)',
+      subtitle: 'Facebook, Instagram-д тавихад бэлэн PNG',
+      format: 'Хэмжээ',
+      formatFeed: '4:5 · Пост',
+      formatFeedHint: 'Feed дээр хамгийн том харагдана',
+      formatReel: '9:16 · Reel / Story',
+      formatReelHint: 'Дэлгэц дүүрэн, босоо',
       badge: 'Лизингээр',
       yearChip: 'Он:',
       mileageChip: 'Гүйлт:',
