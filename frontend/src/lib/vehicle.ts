@@ -1,3 +1,5 @@
+import { categoryOf } from './category';
+
 // Shared vehicle-level rules used by both cards and pages.
 
 /**
@@ -17,6 +19,30 @@ export function isNewArrival(createdAt?: string): boolean {
   const added = new Date(createdAt).getTime();
   if (!Number.isFinite(added)) return false;
   return Date.now() - added < NEW_ARRIVAL_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * Groups by the same model category the public site browses by — Prius 41,
+ * Aqua, Sai — biggest group first, with the "Бусад" catch-all pushed last
+ * so it never heads the list. Each group keeps the order it was given.
+ */
+export function groupByCategory<T extends { model: string }>(
+  items: T[]
+): { label: string; items: T[] }[] {
+  const groups = new Map<string, T[]>();
+  items.forEach((item) => {
+    const label = categoryOf(item.model);
+    const list = groups.get(label);
+    if (list) list.push(item);
+    else groups.set(label, [item]);
+  });
+  return [...groups.entries()]
+    .map(([label, list]) => ({ label, items: list }))
+    .sort((a, b) => {
+      if (a.label === 'Бусад') return 1;
+      if (b.label === 'Бусад') return -1;
+      return b.items.length - a.items.length || a.label.localeCompare(b.label);
+    });
 }
 
 /** Grouping key for a brand — trimmed and upper-cased, blanks folded to "—". */

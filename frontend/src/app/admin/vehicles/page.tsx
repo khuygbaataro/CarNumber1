@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { adminApi } from '@/lib/adminApi';
 import { Vehicle, VehicleStatus } from '@/types';
 import { formatPrice, formatTimeAgo } from '@/lib/format';
-import { brandKey, groupByBrand } from '@/lib/vehicle';
+import { brandKey, groupByBrand, groupByCategory } from '@/lib/vehicle';
 import { t } from '@/lib/labels';
 import PosterModal from '@/components/admin/PosterModal';
 
@@ -36,6 +36,7 @@ export default function AdminVehiclesPage() {
   // page opens on what is actually for sale.
   const [filter, setFilter] = useState<'all' | 'available' | 'sold'>('available');
   const [brand, setBrand] = useState(ALL);
+  const [category, setCategory] = useState(ALL);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -100,8 +101,25 @@ export default function AdminVehiclesPage() {
   // A brand can empty out when the status filter changes under it — fall
   // back to all rather than leaving the page blank with no way back.
   const activeBrand = brandGroups.some((g) => g.brand === brand) ? brand : ALL;
-  const groups =
-    activeBrand === ALL ? brandGroups : brandGroups.filter((g) => g.brand === activeBrand);
+  const inBrand =
+    activeBrand === ALL
+      ? byStatus
+      : brandGroups.find((g) => g.brand === activeBrand)?.items ?? [];
+
+  // Model tabs only mean something inside one make — "Prius 41" sitting
+  // next to "RX" would just be a flat list of every model in the yard. Same
+  // categories the public site browses by, so the two never disagree.
+  const categoryGroups = activeBrand === ALL ? [] : groupByCategory(inBrand);
+  const activeCategory = categoryGroups.some((g) => g.label === category) ? category : ALL;
+
+  // The table's sections follow the deepest level in play: brands at the
+  // top, models once a brand is picked, one section once a model is.
+  const groups: { label: string; items: Vehicle[] }[] =
+    activeBrand === ALL
+      ? brandGroups.map((g) => ({ label: g.brand, items: g.items }))
+      : activeCategory === ALL
+        ? categoryGroups
+        : categoryGroups.filter((g) => g.label === activeCategory);
   const shown = groups.flatMap((g) => g.items);
 
   // Only available vehicles can be bulk-marked as sold.
@@ -124,8 +142,16 @@ export default function AdminVehiclesPage() {
     setSelected(new Set());
   };
 
+  // Picking a different make throws away the model underneath it — "Aqua"
+  // means nothing once you have switched to Lexus.
   const changeBrand = (key: string) => {
     setBrand(key);
+    setCategory(ALL);
+    setSelected(new Set());
+  };
+
+  const changeCategory = (key: string) => {
+    setCategory(key);
     setSelected(new Set());
   };
 
@@ -282,6 +308,45 @@ export default function AdminVehiclesPage() {
         </div>
       )}
 
+      {/* Model categories inside the chosen make — the same Prius 41 / Aqua
+          / Sai split the public site browses by, in its chip styling. */}
+      {categoryGroups.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[{ label: t.admin.vehicles.allModels, key: ALL, count: inBrand.length }]
+            .concat(
+              categoryGroups.map((g) => ({
+                label: g.label,
+                key: g.label,
+                count: g.items.length,
+              }))
+            )
+            .map((chip) => {
+              const isActive = activeCategory === chip.key;
+              return (
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={() => changeCategory(chip.key)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${
+                    isActive
+                      ? 'border-brand bg-brand text-white shadow-sm'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand'
+                  }`}
+                >
+                  {chip.label}
+                  <span
+                    className={`rounded-full px-1.5 text-xs font-bold ${
+                      isActive ? 'bg-white/25' : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    {chip.count}
+                  </span>
+                </button>
+              );
+            })}
+        </div>
+      )}
+
       {/* Bulk action bar — appears when vehicles are selected */}
       {selected.size > 0 && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand/5 px-4 py-3 ring-1 ring-brand/20">
@@ -343,13 +408,13 @@ export default function AdminVehiclesPage() {
                 </tr>
               </thead>
               {groups.map((group) => (
-              <tbody key={group.brand} className="divide-y divide-gray-100">
+              <tbody key={group.label} className="divide-y divide-gray-100">
                 <tr className="bg-gray-50">
                   <td
                     colSpan={7}
                     className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-gray-500"
                   >
-                    {group.brand}
+                    {group.label}
                     <span className="ml-1.5 font-medium normal-case text-gray-400">
                       · {group.items.length}
                     </span>
@@ -383,7 +448,9 @@ export default function AdminVehiclesPage() {
                         {/* The brand heads the group, so the row carries
                             only what distinguishes one car from the next. */}
                         <span className="font-medium text-gray-900">
-                          {brandKey(v.brand) === group.brand ? v.model : `${v.brand} ${v.model}`}
+                          {activeBrand !== ALL || brandKey(v.brand) === group.label
+                            ? v.model
+                            : `${v.brand} ${v.model}`}
                         </span>
                       </div>
                     </td>

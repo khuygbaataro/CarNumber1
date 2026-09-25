@@ -234,6 +234,7 @@ export const t = {
       loadError: 'Мэдээлэл татахад алдаа гарлаа.',
       filterAll: 'Бүгд',
       allBrands: 'Бүх брэнд',
+      allModels: 'Бүх загвар',
       searchPlaceholder: 'Дугаар, модель, брэндээр хайх…   ( / )',
       searchClear: 'Хайлт цэвэрлэх',
       noSearchResults: (q: string) => `«${q}» хайлтад тохирох машин олдсонгүй.`,
