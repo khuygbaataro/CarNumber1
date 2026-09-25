@@ -6,6 +6,7 @@ import { adminApi } from '@/lib/adminApi';
 import { Settings } from '@/types';
 import { DEFAULT_SETTINGS } from '@/lib/api';
 import { t } from '@/lib/labels';
+import { INTEREST_BANDS } from '@/lib/loan';
 import ImageUploader from '@/components/admin/ImageUploader';
 
 export default function AdminSettingsPage() {
@@ -279,20 +280,31 @@ export default function AdminSettingsPage() {
               }
             />
           </div>
+          {/* The rate is no longer one number — it is a table keyed on the
+              down payment, so it is shown here rather than edited. A single
+              editable field that nothing reads would be worse than none. */}
           <div>
             <label className="label">{t.admin.settings.monthlyInterestRate}</label>
-            <input
-              type="number"
-              step="0.1"
-              className="input"
-              value={form.loan.monthlyInterestRate}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  loan: { ...form.loan, monthlyInterestRate: Number(e.target.value) },
-                })
-              }
-            />
+            <div className="rounded-xl bg-gray-50 px-3.5 py-2.5 ring-1 ring-gray-200">
+              <ul className="space-y-1 text-sm text-gray-700">
+                {INTEREST_BANDS.map((band, i) => {
+                  const above = INTEREST_BANDS[i - 1];
+                  return (
+                    <li key={band.minDown} className="flex justify-between gap-3">
+                      <span className="text-gray-500">
+                        {above
+                          ? t.loan.rateBandRange(band.minDown, above.minDown)
+                          : t.loan.rateBandFrom(band.minDown)}
+                      </span>
+                      <b className="tabular-nums">{band.rate}%</b>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <p className="mt-1 text-xs text-gray-400">
+              {t.admin.settings.interestBandsHint}
+            </p>
           </div>
           <div>
             <label className="label">{t.admin.settings.termOptions}</label>

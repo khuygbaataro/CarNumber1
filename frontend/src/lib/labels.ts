@@ -112,11 +112,16 @@ export const t = {
     downAmount: 'Урьдчилгааны дүн',
     loanAmount: 'Зээлийн дүн',
     monthlyPayment: 'Сарын төлбөр',
-    firstMonth: 'Эхний сарын төлбөр',
-    lastMonthNote: 'Сүүлийн сар хүртэл аажмаар буурна',
-    lastMonth: 'Сүүлийн сар',
+    // Equal-payment loan: the same amount every month, start to finish.
+    equalNote: 'Сар бүр ижил дүнгээр төлнө',
     totalInterest: 'Нийт хүү',
-    minDownNote: 'Хамгийн бага урьдчилгаа',
+    downRange: (min: number, max: number) => `${min}–${max}% хооронд сонгоно`,
+    betterRateHint: (minDown: number, rate: number) =>
+      `Урьдчилгааг ${minDown}% болговол хүү ${rate}% болно`,
+    bestRateHint: 'Хамгийн бага хүүтэй',
+    rateTableTitle: 'Урьдчилгаанаас хамаарах сарын хүү',
+    rateBandFrom: (minDown: number) => `${minDown}%-с дээш`,
+    rateBandRange: (from: number, to: number) => `${from}–${to}%`,
     disclaimer:
       'Энэхүү тооцоолол нь зөвхөн ойролцоо дүн бөгөөд албан ёсны санал биш.',
   },
@@ -274,16 +279,16 @@ export const t = {
       term: 'Хугацаа',
       downPercent: 'Урьдчилгаа (%)',
       // Small print on the poster, under the price tiles.
-      termNote: (months: number) =>
-        `Сарын төлбөрийг ${months} сарын лизингээр бодсон дундаж дүн.`,
+      termNote: (months: number, rate: number) =>
+        `Сарын төлбөрийг ${months} сарын лизингээр, сарын ${rate}% хүүгээр бодсон. Сар бүр ижил дүнгээр төлнө.`,
       phone: 'Утас',
       address: 'Хаяг',
       website: 'Вэб хаяг',
       contactHint:
         'Утас нь Тохиргооноос, хаяг нь постерийн үндсэн хаягаас орж ирнэ. Энд засвал зөвхөн постерт нөлөөлнө (админаас гарах хүртэл хадгалагдана).',
-      // Explains where the single monthly figure came from.
-      averageNote: (first: string, last: string) =>
-        `Эхний сар ${first} → сүүлийн сар ${last}. Постер дээр эдгээрийн дундаж ((эхний + сүүлийн) ÷ 2) гарна.`,
+      // Explains how the monthly figure was reached.
+      calcNote: (rate: number, down: number, interest: string) =>
+        `Урьдчилгаа ${down}% → сарын хүү ${rate}%. Тэнцүү төлөлтөөр бодсон, нийт хүү ${interest}.`,
       roundingNote: 'Дүнг ойролцоогоор 1,000₮ хүртэл бүхэлчилсэн.',
       noPhoto: 'Энэ машинд зураг алга — постер зураггүй гарна.',
       download: 'PNG татах',
@@ -351,8 +356,9 @@ export const t = {
       remove: 'Устгах',
       partnersSection: 'Хамтрагчийн лого',
       loanSection: 'Зээлийн тохиргоо',
-      minDownPercent: 'Хамгийн бага урьдчилгаа (%)',
-      monthlyInterestRate: 'Сарын хүү (%)',
+      minDownPercent: 'Үндсэн урьдчилгаа (%)',
+      monthlyInterestRate: 'Сарын хүү (урьдчилгаанаас хамаарна)',
+      interestBandsHint: 'Хүүг lib/loan.ts доторх INTEREST_BANDS хүснэгтээс өөрчилнө.',
       termOptions: 'Хугацааны сонголт (сараар)',
       termOptionsHint: 'Таслалаар тусгаарлана. Жишээ: 12, 24, 36',
       imagesSection: 'Зургийн боловсруулалт',

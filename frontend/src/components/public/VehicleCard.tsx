@@ -5,14 +5,13 @@ import {
   formatPriceShort,
   formatMileage,
   formatTimeAgo,
-  formatPaymentRange,
   formatYear,
 } from '@/lib/format';
 import {
   calcLoanAmount,
-  calcEqualPrincipal,
+  calcAnnuity,
+  rateForDownPercent,
   pickDisplayTerm,
-  DEFAULT_LOAN_CONFIG,
 } from '@/lib/loan';
 import { isNewArrival } from '@/lib/vehicle';
 import { t } from '@/lib/labels';
@@ -36,10 +35,11 @@ export default function VehicleCard({
   const downAmount = Math.max(0, (vehicle.price * effectiveDown) / 100);
 
   // Monthly figures use the exact same maths as the calculator on the detail
-  // page, over the same term the calculator opens on, so they always agree.
-  const rate = loan?.monthlyInterestRate ?? DEFAULT_LOAN_CONFIG.monthlyInterestRate;
+  // page, over the same term the calculator opens on, so they always agree —
+  // including the rate, which the down payment decides rather than a setting.
+  const rate = rateForDownPercent(effectiveDown);
   const term = pickDisplayTerm(loan?.termOptions);
-  const schedule = calcEqualPrincipal(
+  const schedule = calcAnnuity(
     calcLoanAmount(vehicle.price, effectiveDown),
     rate,
     term
@@ -125,7 +125,7 @@ export default function VehicleCard({
               {t.common.monthlyShort} · {term} {t.common.months}
             </span>
             <span className="text-[13px] font-bold text-brand">
-              {formatPaymentRange(schedule.first, schedule.last)}
+              {formatPriceShort(schedule.monthly)}
             </span>
           </div>
         </div>

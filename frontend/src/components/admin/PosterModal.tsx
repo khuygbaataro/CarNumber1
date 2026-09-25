@@ -186,7 +186,7 @@ export default function PosterModal({
       downLabel: formatPrice(figures.downAmount),
       monthlyLabel: formatPrice(figures.monthly),
       termLabel: `${figures.term} ${t.common.months}`,
-      termNote: t.admin.poster.termNote(figures.term),
+      termNote: t.admin.poster.termNote(figures.term, figures.rate),
       phone: phone.trim(),
       website: website.trim().toUpperCase(),
       address: address.trim(),
@@ -212,6 +212,7 @@ export default function PosterModal({
     figures.price,
     figures.downAmount,
     figures.monthly,
+    figures.rate,
     figures.term,
     branding.companyName,
   ]);
@@ -433,9 +434,10 @@ export default function PosterModal({
             {/* Where the single monthly figure on the poster comes from. */}
             <div className="rounded-xl bg-brand-50 px-4 py-3 text-xs leading-relaxed text-brand-800">
               <p>
-                {t.admin.poster.averageNote(
-                  formatPrice(figures.first),
-                  formatPrice(figures.last)
+                {t.admin.poster.calcNote(
+                  figures.rate,
+                  figures.downPercent,
+                  formatPrice(figures.totalInterest)
                 )}
               </p>
               <p className="mt-1 text-brand-600">{t.admin.poster.roundingNote}</p>

@@ -7,21 +7,11 @@
 import { LoanConfig, Settings, Vehicle } from '@/types';
 import {
   DEFAULT_LOAN_CONFIG,
-  calcEqualPrincipal,
+  calcAnnuity,
   calcLoanAmount,
   pickDisplayTerm,
+  rateForDownPercent,
 } from './loan';
-
-/**
- * Эхний сарын төлбөр + сүүлийн сарын төлбөр ÷ 2.
- *
- * With equal principal the instalment falls in a straight line from the
- * first month to the last, so the midpoint of those two ends is also the
- * true mean of every payment in between — the average is exact, not an
- * approximation.
- */
-export const averageMonthly = (first: number, last: number): number =>
-  ((first || 0) + (last || 0)) / 2;
 
 /** Poster money is shown to the nearest 1,000₮ — nobody prints 743,182₮. */
 export const POSTER_ROUND_TO = 1000;
@@ -30,18 +20,18 @@ export const roundPosterAmount = (value: number): number =>
   Math.round((value || 0) / POSTER_ROUND_TO) * POSTER_ROUND_TO;
 
 export interface PosterFigures {
-  /** Down payment % actually used (per-vehicle override → global → 30). */
+  /** Down payment % actually used (per-vehicle override → global → default). */
   downPercent: number;
   /** Term the monthly figure is based on, in months. */
   term: number;
+  /** Monthly rate the down payment earns. Shown as context, not on the poster. */
+  rate: number;
   price: number;
   downAmount: number;
-  /** First month — the highest instalment. Shown as context, not on the poster. */
-  first: number;
-  /** Last month — the lowest instalment. */
-  last: number;
-  /** (first + last) / 2, rounded. This is the poster's "Сарын төлбөр". */
+  /** The equal monthly instalment, rounded. The poster's "Сарын төлбөр". */
   monthly: number;
+  /** Interest over the whole term. Context for the admin, not the poster. */
+  totalInterest: number;
 }
 
 /**
@@ -65,19 +55,20 @@ export function posterFigures(
     )
   );
   const term = override.term ?? pickDisplayTerm(cfg.termOptions);
-  const rate = cfg.monthlyInterestRate ?? DEFAULT_LOAN_CONFIG.monthlyInterestRate;
+  // The down payment decides the rate, exactly as it does on the site.
+  const rate = rateForDownPercent(downPercent);
   const price = Math.max(0, vehicle.price || 0);
 
-  const schedule = calcEqualPrincipal(calcLoanAmount(price, downPercent), rate, term);
+  const schedule = calcAnnuity(calcLoanAmount(price, downPercent), rate, term);
 
   return {
     downPercent,
     term,
+    rate,
     price,
     downAmount: roundPosterAmount((price * downPercent) / 100),
-    first: schedule.first,
-    last: schedule.last,
-    monthly: roundPosterAmount(averageMonthly(schedule.first, schedule.last)),
+    monthly: roundPosterAmount(schedule.monthly),
+    totalInterest: schedule.totalInterest,
   };
 }
 

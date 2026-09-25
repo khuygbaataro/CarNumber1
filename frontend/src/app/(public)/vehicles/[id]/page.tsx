@@ -9,7 +9,8 @@ import { getVehicle, getSettingsSafe, getVehiclesSafe } from '@/lib/api';
 import {
   DEFAULT_LOAN_CONFIG,
   calcLoanAmount,
-  calcEqualPrincipal,
+  calcAnnuity,
+  rateForDownPercent,
   pickDisplayTerm,
 } from '@/lib/loan';
 import {
@@ -17,7 +18,6 @@ import {
   formatPriceShort,
   formatMileage,
   formatTimeAgo,
-  formatPaymentRange,
   formatYear,
 } from '@/lib/format';
 import { telHref, messengerHref, primaryPhone } from '@/lib/contact';
@@ -76,9 +76,9 @@ export default async function VehicleDetailPage({ params }: Props) {
   const downAmount = Math.max(0, (vehicle.price * effectiveDown) / 100);
   // Same term the calculator below opens on, so the two never disagree.
   const term = pickDisplayTerm(loanConfig.termOptions);
-  const schedule = calcEqualPrincipal(
+  const schedule = calcAnnuity(
     calcLoanAmount(vehicle.price, effectiveDown),
-    loanConfig.monthlyInterestRate ?? DEFAULT_LOAN_CONFIG.monthlyInterestRate,
+    rateForDownPercent(effectiveDown),
     term
   );
 
@@ -180,13 +180,11 @@ export default async function VehicleDetailPage({ params }: Props) {
                     {t.common.monthlyShort} · {term} {t.common.months}
                   </span>
                   <span className="text-base font-bold text-brand">
-                    {formatPaymentRange(schedule.first, schedule.last)}
+                    {formatPriceShort(schedule.monthly)}
                   </span>
                 </div>
-                {/* The instalment falls every month — say so, or the two
-                    numbers look like a mistake. */}
                 <p className="mt-1 text-right text-[11px] text-brand/60">
-                  {t.loan.lastMonthNote}
+                  {t.loan.equalNote}
                 </p>
               </div>
             </div>
