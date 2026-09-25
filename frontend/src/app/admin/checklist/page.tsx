@@ -4,28 +4,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { adminApi } from '@/lib/adminApi';
 import { Settings, Vehicle } from '@/types';
 import { formatNumber, formatYearShort } from '@/lib/format';
-import { splitStockCode } from '@/lib/vehicle';
+import { groupByBrand, splitStockCode } from '@/lib/vehicle';
 import { t } from '@/lib/labels';
 
 /** Brand groups, brands A→Z and cars sorted by model then stock number. */
-function groupByBrand(vehicles: Vehicle[]) {
-  const groups = new Map<string, Vehicle[]>();
-  vehicles.forEach((v) => {
-    const brand = (v.brand || '—').trim().toUpperCase();
-    const list = groups.get(brand);
-    if (list) list.push(v);
-    else groups.set(brand, [v]);
-  });
-  return [...groups.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([brand, items]) => ({
-      brand,
-      items: items.sort((a, b) => {
-        const A = splitStockCode(a.model);
-        const B = splitStockCode(b.model);
-        return A.name.localeCompare(B.name) || A.code.localeCompare(B.code, undefined, { numeric: true });
-      }),
-    }));
+function groupForSheet(vehicles: Vehicle[]) {
+  return groupByBrand(vehicles).map((group) => ({
+    brand: group.brand,
+    items: [...group.items].sort((a, b) => {
+      const A = splitStockCode(a.model);
+      const B = splitStockCode(b.model);
+      return (
+        A.name.localeCompare(B.name) ||
+        A.code.localeCompare(B.code, undefined, { numeric: true })
+      );
+    }),
+  }));
 }
 
 const today = () => {
@@ -57,7 +51,7 @@ export default function ChecklistPage() {
   }, []);
 
   const groups = useMemo(
-    () => groupByBrand(vehicles.filter((v) => includeSold || v.status === 'available')),
+    () => groupForSheet(vehicles.filter((v) => includeSold || v.status === 'available')),
     [vehicles, includeSold]
   );
   const shownCount = groups.reduce((sum, g) => sum + g.items.length, 0);

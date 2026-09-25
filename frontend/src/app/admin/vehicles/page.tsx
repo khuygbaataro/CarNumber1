@@ -6,8 +6,11 @@ import Image from 'next/image';
 import { adminApi } from '@/lib/adminApi';
 import { Vehicle } from '@/types';
 import { formatPrice, formatTimeAgo } from '@/lib/format';
+import { brandKey, groupByBrand } from '@/lib/vehicle';
 import { t } from '@/lib/labels';
 import PosterModal from '@/components/admin/PosterModal';
+
+const ALL = '__all__';
 
 export default function AdminVehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -15,6 +18,7 @@ export default function AdminVehiclesPage() {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState('');
   const [filter, setFilter] = useState<'all' | 'available' | 'sold'>('all');
+  const [brand, setBrand] = useState(ALL);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   // Vehicle whose poster is open, or null.
@@ -36,7 +40,17 @@ export default function AdminVehiclesPage() {
     available: vehicles.filter((v) => v.status === 'available').length,
     sold: vehicles.filter((v) => v.status === 'sold').length,
   };
-  const shown = filter === 'all' ? vehicles : vehicles.filter((v) => v.status === filter);
+  const byStatus = filter === 'all' ? vehicles : vehicles.filter((v) => v.status === filter);
+
+  // Brand tabs are built from whatever the status filter left, so their
+  // counts always match what clicking one would actually show.
+  const brandGroups = groupByBrand(byStatus);
+  // A brand can empty out when the status filter changes under it — fall
+  // back to all rather than leaving the page blank with no way back.
+  const activeBrand = brandGroups.some((g) => g.brand === brand) ? brand : ALL;
+  const groups =
+    activeBrand === ALL ? brandGroups : brandGroups.filter((g) => g.brand === activeBrand);
+  const shown = groups.flatMap((g) => g.items);
 
   // Only available vehicles can be bulk-marked as sold.
   const selectableIds = shown.filter((v) => v.status === 'available').map((v) => v._id);
@@ -55,6 +69,11 @@ export default function AdminVehiclesPage() {
 
   const changeFilter = (key: 'all' | 'available' | 'sold') => {
     setFilter(key);
+    setSelected(new Set());
+  };
+
+  const changeBrand = (key: string) => {
+    setBrand(key);
     setSelected(new Set());
   };
 
@@ -139,6 +158,38 @@ export default function AdminVehiclesPage() {
         ))}
       </div>
 
+      {/* Brand tabs — the catalogue is mostly one or two makes, so jumping
+          straight to a brand beats scrolling the whole list. */}
+      {brandGroups.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => changeBrand(ALL)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              activeBrand === ALL
+                ? 'bg-gray-900 text-white'
+                : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            {t.admin.vehicles.allBrands} ({byStatus.length})
+          </button>
+          {brandGroups.map((group) => (
+            <button
+              key={group.brand}
+              type="button"
+              onClick={() => changeBrand(group.brand)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                activeBrand === group.brand
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {group.brand} ({group.items.length})
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Bulk action bar — appears when vehicles are selected */}
       {selected.size > 0 && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand/5 px-4 py-3 ring-1 ring-brand/20">
@@ -184,8 +235,20 @@ export default function AdminVehiclesPage() {
                   <th className="px-4 py-3 text-right">{t.admin.vehicles.colActions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {shown.map((v) => (
+              {groups.map((group) => (
+              <tbody key={group.brand} className="divide-y divide-gray-100">
+                <tr className="bg-gray-50">
+                  <td
+                    colSpan={7}
+                    className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-gray-500"
+                  >
+                    {group.brand}
+                    <span className="ml-1.5 font-medium normal-case text-gray-400">
+                      · {group.items.length}
+                    </span>
+                  </td>
+                </tr>
+                {group.items.map((v) => (
                   <tr key={v._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <input
@@ -210,8 +273,10 @@ export default function AdminVehiclesPage() {
                             />
                           )}
                         </div>
+                        {/* The brand heads the group, so the row carries
+                            only what distinguishes one car from the next. */}
                         <span className="font-medium text-gray-900">
-                          {v.brand} {v.model}
+                          {brandKey(v.brand) === group.brand ? v.model : `${v.brand} ${v.model}`}
                         </span>
                       </div>
                     </td>
@@ -269,6 +334,7 @@ export default function AdminVehiclesPage() {
                   </tr>
                 ))}
               </tbody>
+              ))}
             </table>
           </div>
         )}

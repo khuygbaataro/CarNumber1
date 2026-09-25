@@ -19,6 +19,30 @@ export function isNewArrival(createdAt?: string): boolean {
   return Date.now() - added < NEW_ARRIVAL_DAYS * 24 * 60 * 60 * 1000;
 }
 
+/** Grouping key for a brand — trimmed and upper-cased, blanks folded to "—". */
+export function brandKey(brand?: string): string {
+  return (brand || '').trim().toUpperCase() || '—';
+}
+
+/**
+ * Groups vehicles by brand, brands A→Z. Each group keeps the order it was
+ * given, so a caller that handed over a sorted list gets it back sorted.
+ */
+export function groupByBrand<T extends { brand: string }>(
+  items: T[]
+): { brand: string; items: T[] }[] {
+  const groups = new Map<string, T[]>();
+  items.forEach((item) => {
+    const key = brandKey(item.brand);
+    const list = groups.get(key);
+    if (list) list.push(item);
+    else groups.set(key, [item]);
+  });
+  return [...groups.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([brand, list]) => ({ brand, items: list }));
+}
+
 /**
  * Stock numbers live inside the model field as "Prius 41 #8088" — the last
  * digits staff use to call a car on the lot. Split them out so a listing

@@ -233,6 +233,7 @@ export const t = {
       empty: 'Машин бүртгэгдээгүй байна.',
       loadError: 'Мэдээлэл татахад алдаа гарлаа.',
       filterAll: 'Бүгд',
+      allBrands: 'Бүх брэнд',
       colVehicle: 'Машин',
       colYear: 'Он',
       colPrice: 'Үнэ',
