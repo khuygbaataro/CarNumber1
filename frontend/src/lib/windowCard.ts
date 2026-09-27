@@ -4,8 +4,7 @@
 // the salesperson talking them through it. Both want round numbers they
 // can hold in their head — not 3,570,000₮.
 
-import { LoanConfig } from '@/types';
-import { DEFAULT_LOAN_CONFIG, calcAnnuity, rateForDownPercent } from './loan';
+import { calcAnnuity, rateForDownPercent } from './loan';
 
 /** The headline down payment these sheets quote. */
 export const WINDOW_DOWN_PERCENT = 15;
@@ -22,8 +21,8 @@ export const DOWN_STEP = 500_000;
 /** Monthly figures are evened to the nearest 10,000₮. */
 export const MONTHLY_STEP = 10_000;
 
-/** The two terms shown side by side, so a buyer can weigh them up. */
-export const WINDOW_TERMS = [48, 60];
+/** The only term the sheet quotes. */
+export const WINDOW_TERMS = [48];
 
 export interface WindowTermFigure {
   months: number;
@@ -46,11 +45,7 @@ const floorTo = (value: number, step: number) =>
 const roundTo = (value: number, step: number) =>
   Math.max(0, Math.round((value || 0) / step) * step);
 
-export function windowCardFigures(
-  price: number,
-  loan?: LoanConfig | null
-): WindowCardFigures {
-  const cfg = loan ?? DEFAULT_LOAN_CONFIG;
+export function windowCardFigures(price: number): WindowCardFigures {
   const p = Math.max(0, price || 0);
 
   const downAmount = floorTo((p * WINDOW_DOWN_PERCENT) / 100, DOWN_STEP);
@@ -59,12 +54,10 @@ export function windowCardFigures(
   const downPercent = p > 0 ? (downAmount / p) * 100 : 0;
   const rate = rateForDownPercent(downPercent);
 
-  const terms = (cfg.termOptions?.length ? WINDOW_TERMS : WINDOW_TERMS).map(
-    (months) => ({
-      months,
-      monthly: roundTo(calcAnnuity(loanAmount, rate, months).monthly, MONTHLY_STEP),
-    })
-  );
+  const terms = WINDOW_TERMS.map((months) => ({
+    months,
+    monthly: roundTo(calcAnnuity(loanAmount, rate, months).monthly, MONTHLY_STEP),
+  }));
 
   return { price: p, downPercent, downAmount, loanAmount, rate, terms };
 }

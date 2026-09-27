@@ -2,17 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { adminApi } from '@/lib/adminApi';
-import { Settings, Vehicle } from '@/types';
+import { Vehicle } from '@/types';
 import { formatNumber, formatMileage, formatYearShort } from '@/lib/format';
-import { primaryPhone } from '@/lib/contact';
 import { splitStockCode } from '@/lib/vehicle';
-import { POSTER_ADDRESS, posterWebsite } from '@/lib/poster';
-import { WINDOW_DOWN_PERCENT, windowCardFigures } from '@/lib/windowCard';
+import { windowCardFigures } from '@/lib/windowCard';
 import { t } from '@/lib/labels';
 
 export default function WindowCardsPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [withPhoto, setWithPhoto] = useState(false);
@@ -21,7 +19,10 @@ export default function WindowCardsPage() {
   useEffect(() => {
     Promise.all([
       adminApi.listVehicles().then((data) => setVehicles(data.items)),
-      adminApi.getSettings().then(setSettings).catch(() => {}),
+      adminApi
+        .getSettings()
+        .then((s) => setCompanyName(s.companyName || ''))
+        .catch(() => {}),
     ])
       .catch(() => setError(t.admin.windowCards.loadError))
       .finally(() => setLoading(false));
@@ -37,9 +38,6 @@ export default function WindowCardsPage() {
         return terms.every((term) => hay.includes(term));
       });
   }, [vehicles, query]);
-
-  const phone = primaryPhone(settings?.contact?.phone ?? '');
-  const website = posterWebsite();
 
   return (
     <div>
@@ -103,9 +101,7 @@ export default function WindowCardsPage() {
             <Card
               key={v._id}
               vehicle={v}
-              settings={settings}
-              phone={phone}
-              website={website}
+              companyName={companyName}
               withPhoto={withPhoto}
             />
           ))}
@@ -115,131 +111,115 @@ export default function WindowCardsPage() {
   );
 }
 
+/**
+ * One A4 page per car.
+ *
+ * Everything on it is something a person standing at the car wants: which
+ * car it is, how old, how far it has run, and the three numbers. No phone,
+ * no web address, no directions — they are already in the showroom, and a
+ * contact strip would only steal room from figures read through glass.
+ */
 function Card({
   vehicle,
-  settings,
-  phone,
-  website,
+  companyName,
   withPhoto,
 }: {
   vehicle: Vehicle;
-  settings: Settings | null;
-  phone: string;
-  website: string;
+  companyName: string;
   withPhoto: boolean;
 }) {
   const { code, name } = splitStockCode(vehicle.model);
-  const f = windowCardFigures(vehicle.price, settings?.loan);
-  const specs = [
-    formatYearShort(vehicle.year, vehicle.month),
-    vehicle.mileage ? formatMileage(vehicle.mileage) : '',
-    vehicle.engine,
-    vehicle.transmission,
-  ].filter(Boolean);
+  const f = windowCardFigures(vehicle.price);
+  const monthly = f.terms[0];
   const photo = vehicle.images?.[0];
 
   return (
-    // One A4 page each. Mostly white: a full-bleed dark sheet would drink
-    // a cartridge over thirty cars, and this is printed in quantity.
-    <article className="mx-auto flex h-[273mm] w-[186mm] break-after-page flex-col bg-white p-0 text-gray-900 shadow-sm ring-1 ring-gray-200 print:shadow-none print:ring-0">
+    <article className="mx-auto flex h-[273mm] w-[186mm] break-after-page flex-col bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 print:shadow-none print:ring-0">
       <header className="flex items-center justify-between border-b-4 border-gray-900 pb-3">
         <span className="text-2xl font-extrabold tracking-tight">
-          {settings?.companyName || 'VICTORY CAR'}
+          {companyName || 'VICTORY CAR'}
         </span>
         <span className="rounded bg-[#e11b22] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.18em] text-white">
           {t.admin.windowCards.badge}
         </span>
       </header>
 
-      {/* Name and stock number — the number is what staff match to the car. */}
-      <div className="mt-6 flex items-start justify-between gap-6">
+      <div className="mt-7 flex items-start justify-between gap-6">
         <div className="min-w-0">
-          <h2 className="text-[42px] font-extrabold uppercase leading-[1.05] tracking-tight">
+          <h2 className="text-[50px] font-extrabold uppercase leading-[1.03] tracking-tight">
             {vehicle.brand} {name || vehicle.model}
           </h2>
-          <p className="mt-2 text-lg font-medium text-gray-600">{specs.join(' · ')}</p>
+          <dl className="mt-4 space-y-1.5 text-[22px] font-medium text-gray-600">
+            <div className="flex gap-3">
+              <dt className="text-gray-400">{t.admin.windowCards.year}</dt>
+              <dd className="font-bold text-gray-900">
+                {formatYearShort(vehicle.year, vehicle.month)}
+              </dd>
+            </div>
+            {vehicle.mileage > 0 && (
+              <div className="flex gap-3">
+                <dt className="text-gray-400">{t.admin.windowCards.mileage}</dt>
+                <dd className="font-bold text-gray-900">
+                  {formatMileage(vehicle.mileage)}
+                </dd>
+              </div>
+            )}
+          </dl>
         </div>
         <div className="shrink-0 text-right">
           <span className="block text-[13px] font-bold uppercase tracking-[0.18em] text-gray-400">
             {t.admin.checklist.colCode}
           </span>
-          <span className="block text-[44px] font-extrabold leading-none tabular-nums">
+          <span className="block text-[58px] font-extrabold leading-none tabular-nums">
             {code || '—'}
           </span>
         </div>
       </div>
 
       {withPhoto && photo && (
-        <div className="mt-5 h-[62mm] w-full overflow-hidden rounded-lg bg-gray-100">
+        <div className="mt-6 h-[62mm] w-full overflow-hidden rounded-lg bg-gray-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={photo} alt="" className="h-full w-full object-cover" />
         </div>
       )}
 
-      {/* The money blocks take whatever height is left and centre in
-          it, so the sheet reads the same with the photo on or off. */}
-      <div className="flex flex-1 flex-col justify-center gap-6 py-6">
-      {/* Price — the one figure readable from outside the glass. */}
-      <div className="rounded-xl bg-[#e11b22] px-7 py-6 text-white">
-        <span className="block text-sm font-bold uppercase tracking-[0.2em] text-white/80">
-          {t.admin.windowCards.price}
-        </span>
-        <span className="mt-1 block text-[66px] font-extrabold leading-none tabular-nums">
-          {formatNumber(f.price)}₮
-        </span>
-      </div>
-
-      <div className="flex items-baseline justify-between rounded-xl bg-gray-100 px-7 py-5">
-        <span className="text-base font-bold uppercase tracking-[0.14em] text-gray-500">
-          {t.admin.windowCards.down(WINDOW_DOWN_PERCENT)}
-        </span>
-        <span className="text-[44px] font-extrabold leading-none tabular-nums">
-          {formatNumber(f.downAmount)}₮
-        </span>
-      </div>
-
-      <div>
-        <span className="block text-base font-bold uppercase tracking-[0.14em] text-gray-500">
-          {t.admin.windowCards.monthly}
-        </span>
-        <div className="mt-2 grid grid-cols-2 gap-4">
-          {f.terms.map((term) => (
-            <div
-              key={term.months}
-              className="rounded-xl border-2 border-gray-900 px-6 py-7 text-center"
-            >
-              <span className="block text-lg font-bold uppercase tracking-[0.14em] text-gray-500">
-                {term.months} {t.admin.windowCards.months}
-              </span>
-              <span className="mt-1 block text-[52px] font-extrabold leading-none tabular-nums">
-                {formatNumber(term.monthly)}₮
-              </span>
-            </div>
-          ))}
+      {/* Three numbers, sharing whatever height is left so the page reads
+          the same with the photo on or off. */}
+      <div className="flex flex-1 flex-col justify-between gap-6 py-7">
+        <div className="rounded-xl bg-[#e11b22] px-8 py-7 text-white">
+          <span className="block text-base font-bold uppercase tracking-[0.2em] text-white/80">
+            {t.admin.windowCards.price}
+          </span>
+          <span className="mt-1 block text-[76px] font-extrabold leading-none tabular-nums">
+            {formatNumber(f.price)}₮
+          </span>
         </div>
-        <p className="mt-3 text-center text-base font-medium text-gray-500">
-          {t.admin.windowCards.equalNote(f.rate)}
-        </p>
-      </div>
+
+        <div className="rounded-xl bg-gray-100 px-8 py-6">
+          <span className="block text-base font-bold uppercase tracking-[0.2em] text-gray-500">
+            {t.admin.windowCards.down}
+          </span>
+          <span className="mt-1 block text-[62px] font-extrabold leading-none tabular-nums">
+            {formatNumber(f.downAmount)}₮
+          </span>
+        </div>
+
+        <div className="rounded-xl border-[3px] border-gray-900 px-8 py-6">
+          <span className="block text-base font-bold uppercase tracking-[0.2em] text-gray-500">
+            {t.admin.windowCards.monthly} · {monthly.months}{' '}
+            {t.admin.windowCards.months}
+          </span>
+          <span className="mt-1 block text-[62px] font-extrabold leading-none tabular-nums">
+            {formatNumber(monthly.monthly)}₮
+          </span>
+          <span className="mt-2 block text-base font-medium text-gray-500">
+            {t.admin.windowCards.equalNote}
+          </span>
+        </div>
       </div>
 
-      {/* mt-auto pins the contact strip to the foot of the page whatever
-          sits above it — photo on or off, long model name or short. */}
-      <footer className="mt-auto border-t-4 border-[#e11b22] pt-4">
-        <div className="flex items-baseline justify-between gap-4">
-          {phone && (
-            <span className="text-[30px] font-extrabold leading-none tabular-nums">
-              {phone}
-            </span>
-          )}
-          {website && (
-            <span className="text-lg font-bold tracking-wide text-gray-700">{website}</span>
-          )}
-        </div>
-        <p className="mt-2 text-sm text-gray-600">
-          {settings?.contact?.address?.trim() || POSTER_ADDRESS}
-        </p>
-        <p className="mt-1 text-[11px] text-gray-400">{t.admin.windowCards.rounded}</p>
+      <footer className="mt-auto border-t-2 border-gray-200 pt-3">
+        <p className="text-[11px] text-gray-400">{t.admin.windowCards.rounded}</p>
       </footer>
     </article>
   );
