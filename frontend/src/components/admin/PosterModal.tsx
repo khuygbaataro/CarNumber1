@@ -80,6 +80,8 @@ export default function PosterModal({
   const [term, setTerm] = useState<number | null>(null);
   const [downPercent, setDownPercent] = useState<number | null>(null);
   const [format, setFormat] = useState<PosterFormat>('feed');
+  const [template, setTemplate] = useState<'leasing' | 'offer'>('leasing');
+  const [banner, setBanner] = useState(t.admin.poster.bannerDefault);
   const [error, setError] = useState('');
 
   const layout = POSTER_LAYOUTS[format];
@@ -182,19 +184,45 @@ export default function PosterModal({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !fontReady) return;
+    const year = formatYearShort(vehicle.year, vehicle.month);
+    const mileage = vehicle.mileage ? formatMileage(vehicle.mileage) : '';
+    const price = formatPrice(figures.price);
+
+    // The leasing poster leads with the schedule and keeps the car's age
+    // and mileage as pills beside the title. The offer poster has no
+    // schedule to show, so those two become figures in their own right —
+    // which is all a passer-by needs before deciding to come and look.
+    const offer = template === 'offer';
     drawPoster(canvas, {
+      variant: offer ? 'offer' : 'standard',
       title: `${vehicle.brand} ${vehicle.model}`,
-      yearLabel: formatYearShort(vehicle.year, vehicle.month),
-      mileageLabel: vehicle.mileage ? formatMileage(vehicle.mileage) : '',
-      priceLabel: formatPrice(figures.price),
-      downLabel: formatPrice(figures.downAmount),
-      monthlyLabel: formatPrice(figures.monthly),
-      termLabel: `${figures.term} ${t.common.months}`,
-      termNote: t.admin.poster.termNote(figures.term, figures.rate),
+      chips: offer
+        ? []
+        : [
+            { label: t.admin.poster.yearChip, value: year },
+            { label: t.admin.poster.mileageChip, value: mileage },
+          ],
+      tiles: offer
+        ? [
+            { label: t.admin.poster.priceLabel, value: price, accent: true },
+            { label: t.admin.poster.yearLabel, value: year },
+            { label: t.admin.poster.mileageLabel, value: mileage },
+          ].filter((tile) => tile.value)
+        : [
+            { label: t.admin.poster.priceLabel, value: price, accent: true },
+            { label: t.admin.poster.downLabel, value: formatPrice(figures.downAmount) },
+            {
+              label: t.admin.poster.monthlyLabel,
+              value: formatPrice(figures.monthly),
+              note: `${figures.term} ${t.common.months}`,
+            },
+          ],
+      note: offer ? '' : t.admin.poster.termNote(figures.term, figures.rate),
+      banner: offer ? banner.trim() : '',
       phone: phone.trim(),
       website: website.trim().toUpperCase(),
       address: address.trim(),
-      badge: t.admin.poster.badge,
+      badge: offer ? t.admin.poster.badgeOffer : t.admin.poster.badge,
       companyName: branding.companyName,
       photo,
       logo,
@@ -202,6 +230,8 @@ export default function PosterModal({
     }, format);
   }, [
     format,
+    template,
+    banner,
     fontReady,
     photo,
     logo,
@@ -354,7 +384,65 @@ export default function PosterModal({
               </div>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* What the poster is selling: a payment schedule, or an offer. */}
+            <div>
+              <span className="label">{t.admin.poster.template}</span>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  {
+                    key: 'leasing' as const,
+                    label: t.admin.poster.templateLeasing,
+                    hint: t.admin.poster.templateLeasingHint,
+                  },
+                  {
+                    key: 'offer' as const,
+                    label: t.admin.poster.templateOffer,
+                    hint: t.admin.poster.templateOfferHint,
+                  },
+                ].map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setTemplate(option.key)}
+                    className={`rounded-xl border px-3 py-2 text-left transition ${
+                      template === option.key
+                        ? 'border-brand bg-brand/5 ring-2 ring-brand'
+                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold text-gray-900">
+                      {option.label}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-snug text-gray-500">
+                      {option.hint}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {template === 'offer' && (
+              <div>
+                <label className="label" htmlFor="poster-banner">
+                  {t.admin.poster.bannerLabel}
+                </label>
+                <input
+                  id="poster-banner"
+                  type="text"
+                  className="input"
+                  value={banner}
+                  placeholder={t.admin.poster.bannerDefault}
+                  onChange={(e) => setBanner(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-gray-400">{t.admin.poster.bannerHint}</p>
+              </div>
+            )}
+
+            <div
+              className={`grid gap-4 sm:grid-cols-2 ${
+                template === 'offer' ? 'hidden' : ''
+              }`}
+            >
               <div>
                 <label className="label" htmlFor="poster-term">
                   {t.admin.poster.term}
@@ -436,7 +524,7 @@ export default function PosterModal({
             </div>
 
             {/* Where the single monthly figure on the poster comes from. */}
-            <div className="rounded-xl bg-brand-50 px-4 py-3 text-xs leading-relaxed text-brand-800">
+            <div className={`rounded-xl bg-brand-50 px-4 py-3 text-xs leading-relaxed text-brand-800 ${template === 'offer' ? 'hidden' : ''}`}>
               <p>
                 {t.admin.poster.calcNote(
                   figures.rate,

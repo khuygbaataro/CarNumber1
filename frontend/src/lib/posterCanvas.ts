@@ -34,6 +34,9 @@ export interface PosterLayout {
   tileH: number;
   /** Baseline of the one-line footnote under the tiles. */
   noteBase: number;
+  /** Offer layout only: the full-width price band above the tiles. */
+  bandY?: number;
+  bandH?: number;
   barY: number;
   barH: number;
 }
@@ -86,6 +89,44 @@ export const POSTER_LAYOUTS: Record<PosterFormat, PosterLayout> = {
   },
 };
 
+export type PosterVariant = 'standard' | 'offer';
+
+// The no-down-payment poster. It carries three numbers instead of five, so
+// the photo gives up height and the price takes a band of its own, at a
+// size meant to be read at arm's length while a reel scrolls past. The band
+// sits ABOVE the tiles on purpose: below them it would butt against the red
+// contact bar, and two red blocks touching read as one.
+export const POSTER_OFFER_LAYOUTS: Record<PosterFormat, PosterLayout> = {
+  feed: {
+    ...POSTER_LAYOUTS.feed,
+    photoRatio: 0.6,
+    photoH: Math.round(CW * 0.6), // 581
+    rowBase: 833,
+    bandY: 867,
+    bandH: 170,
+    tilesY: 1059,
+    tileH: 118,
+  },
+  reel: {
+    ...POSTER_LAYOUTS.reel,
+    photoRatio: 0.76,
+    photoH: Math.round(CW * 0.76), // 736
+    rowBase: 1182,
+    bandY: 1222,
+    bandH: 250,
+    tilesY: 1496,
+    tileH: 150,
+  },
+};
+
+export function posterLayout(
+  format: PosterFormat,
+  variant: PosterVariant = 'standard'
+): PosterLayout {
+  const table = variant === 'offer' ? POSTER_OFFER_LAYOUTS : POSTER_LAYOUTS;
+  return table[format] ?? table.feed;
+}
+
 /** Export multiplier — 2 gives a 2160 × 2700 (or × 3840) PNG. */
 export const POSTER_SCALE = 2;
 
@@ -98,15 +139,32 @@ const TILE_LINE = '#2c2c2c';
 const WHITE = '#ffffff';
 const MUTED = '#8f8f8f';
 
+export interface PosterChip {
+  label: string;
+  value: string;
+}
+
+export interface PosterTile {
+  label: string;
+  value: string;
+  /** The one tile in brand red. Usually the price. */
+  accent?: boolean;
+  /** Small right-aligned qualifier on the label row, e.g. "48 САР". */
+  note?: string;
+}
+
 export interface PosterContent {
   title: string; // "TOYOTA AQUA"
-  yearLabel: string; // "2015"
-  mileageLabel: string; // "98,000 км"
-  priceLabel: string;
-  downLabel: string;
-  monthlyLabel: string;
-  termLabel: string; // "48 сар" — qualifies the monthly figure
-  termNote: string; // spelled-out footnote under the tiles
+  /** Pills beside the title. Empty when the figures carry it instead. */
+  chips: PosterChip[];
+  /** The row of figures. Three reads best; two or four still fit. */
+  tiles: PosterTile[];
+  /** Small print under the tiles. Offer posters leave it empty. */
+  note: string;
+  /** The line inside the offer poster's price band — "УРЬДЧИЛГААГҮЙ…". */
+  banner: string;
+  /** 'offer' lifts the price out of the tiles and into its own band. */
+  variant?: PosterVariant;
   phone: string;
   website: string;
   address: string;
@@ -182,6 +240,37 @@ function fitSize(
   }
   ctx.font = font(weight, size, stack);
   return size;
+}
+
+// Oswald carries no ₮, so it comes from whichever fallback face has one —
+// and that sign has no left side bearing. Flush against a digit it reads
+// as a collision rather than a currency mark, which at poster sizes looks
+// like a bug. These two hold it a hair clear.
+const AMOUNT_GAP = 0.05;
+const splitAmount = (text: string) => text.match(/^(.+?)\s*(₮)$/);
+
+/** Draws an amount at the current font. Returns the width drawn. */
+function fillAmount(ctx: Ctx, text: string, x: number, y: number, size: number): number {
+  const split = splitAmount(text);
+  if (!split) {
+    ctx.fillText(text, x, y);
+    return ctx.measureText(text).width;
+  }
+  const numW = ctx.measureText(split[1]).width;
+  ctx.fillText(split[1], x, y);
+  ctx.fillText(split[2], x + numW + size * AMOUNT_GAP, y);
+  return numW + size * AMOUNT_GAP + ctx.measureText(split[2]).width;
+}
+
+/** What fillAmount will occupy, for centring it. */
+function amountWidth(ctx: Ctx, text: string, size: number): number {
+  const split = splitAmount(text);
+  if (!split) return ctx.measureText(text).width;
+  return (
+    ctx.measureText(split[1]).width +
+    size * AMOUNT_GAP +
+    ctx.measureText(split[2]).width
+  );
 }
 
 /** Trims with an ellipsis when even the smallest size overflows. */
@@ -335,10 +424,7 @@ function drawTitleRow(ctx: Ctx, c: PosterContent, L: PosterLayout) {
   const chipWrapped = 46;
   const gap = 14;
 
-  const chips = [
-    { label: t.admin.poster.yearChip, value: c.yearLabel },
-    { label: t.admin.poster.mileageChip, value: c.mileageLabel },
-  ].filter((chip) => chip.value);
+  const chips = c.chips.filter((chip) => chip.value);
 
   // Measured at full size first: the title is laid out against the width
   // that leaves, and shrinking the chips afterwards only ever gives it more.
@@ -460,14 +546,6 @@ function layoutTitle(
   };
 }
 
-interface Tile {
-  label: string;
-  value: string;
-  accent: boolean;
-  /** Small right-aligned qualifier on the label row, e.g. "48 САР". */
-  note: string;
-}
-
 const LABEL_TRACK = 0.17; // tracking as a share of the label size
 const NOTE_RATIO = 0.85; // note size as a share of the label size
 
@@ -475,20 +553,11 @@ function drawTiles(ctx: Ctx, c: PosterContent, L: PosterLayout) {
   const fs = (n: number) => Math.round(n * L.k);
   const sp = (n: number) => n * L.k;
 
-  const tiles: Tile[] = [
-    { label: t.admin.poster.priceLabel, value: c.priceLabel, accent: true, note: '' },
-    { label: t.admin.poster.downLabel, value: c.downLabel, accent: false, note: '' },
-    {
-      label: t.admin.poster.monthlyLabel,
-      value: c.monthlyLabel,
-      accent: false,
-      // The monthly figure means nothing without the term it was worked
-      // out over, so the poster says so instead of leaving it implied.
-      note: c.termLabel,
-    },
-  ];
+  // The offer poster draws its price in the band instead.
+  const tiles = c.variant === 'offer' ? c.tiles.filter((tile) => !tile.accent) : c.tiles;
+  if (!tiles.length) return;
   const gap = sp(16);
-  const w = (L.CW - gap * 2) / 3;
+  const w = (L.CW - gap * (tiles.length - 1)) / tiles.length;
   const pad = sp(22);
   const inner = w - pad * 2;
   // Inner baselines follow the tile height, so both formats sit the same.
@@ -540,16 +609,16 @@ function drawTiles(ctx: Ctx, c: PosterContent, L: PosterLayout) {
       tracking
     );
 
-    fitSize(ctx, tile.value, 700, c.fontStack, inner, fs(50), fs(24));
+    const valueSize = fitSize(ctx, tile.value, 700, c.fontStack, inner - fs(4), fs(50), fs(24));
     ctx.fillStyle = WHITE;
-    ctx.fillText(tile.value, x + pad, valueBase);
+    fillAmount(ctx, tile.value, x + pad, valueBase, valueSize);
   });
 }
 
 /** Label plus its note, at `size`, as the label row would draw them. */
 function tileLabelWidth(
   ctx: Ctx,
-  tile: Tile,
+  tile: PosterTile,
   size: number,
   stack: string,
   noteGap: number
@@ -565,16 +634,63 @@ function tileLabelWidth(
 }
 
 /**
- * "Сарын төлбөрийг 48 сарын лизингээр бодсон дундаж дүн." — the small
- * print between the tiles and the contact bar. The tile already carries
- * the term, but a number this prominent deserves saying in full.
+ * The offer poster's price, in a red band of its own with the announcement
+ * that belongs beside it.
+ *
+ * It is here rather than in the tile row because a third of the width caps
+ * how big the number can be, and the number is the whole point: someone
+ * scrolling a reel should read the price before they decide to stop.
  */
-function drawTermNote(ctx: Ctx, c: PosterContent, L: PosterLayout) {
-  if (!c.termNote) return;
+function drawPriceBand(ctx: Ctx, c: PosterContent, L: PosterLayout) {
+  if (c.variant !== 'offer' || L.bandY === undefined || L.bandH === undefined) return;
+  const price = c.tiles.find((tile) => tile.accent);
+  if (!price?.value) return;
+
   const fs = (n: number) => Math.round(n * L.k);
-  fitSize(ctx, c.termNote, 500, c.fontStack, L.CW, fs(23), fs(16));
+  const room = L.CW - fs(56);
+  roundRectPath(ctx, L.M, L.bandY, L.CW, L.bandH, fs(18));
+  ctx.fillStyle = RED;
+  ctx.fill();
+
+  const centre = (text: string, spacing: number) =>
+    L.W / 2 - measureTracked(ctx, text, spacing) / 2;
+
+  // Without the announcement the price sits centred; with it, both move up
+  // to share the band rather than the price drifting below its middle.
+  const banner = c.banner.trim().toUpperCase();
+  if (banner) {
+    const track = fs(3);
+    fitSize(ctx, banner, 600, c.fontStack, room, fs(30), fs(15), track);
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    fillTracked(ctx, banner, centre(banner, track), L.bandY + L.bandH * 0.31, track);
+  }
+
+  const size = fitSize(
+    ctx,
+    price.value,
+    700,
+    c.fontStack,
+    room - fs(8),
+    Math.round(L.bandH * 0.52),
+    fs(40)
+  );
+  ctx.fillStyle = WHITE;
+  fillAmount(
+    ctx,
+    price.value,
+    L.W / 2 - amountWidth(ctx, price.value, size) / 2,
+    L.bandY + L.bandH * (banner ? 0.83 : 0.69),
+    size
+  );
+}
+
+/** The one-line footnote under a leasing poster's tiles. */
+function drawNote(ctx: Ctx, c: PosterContent, L: PosterLayout) {
+  const fs = (n: number) => Math.round(n * L.k);
+  if (!c.note) return;
+  fitSize(ctx, c.note, 500, c.fontStack, L.CW, fs(23), fs(16));
   ctx.fillStyle = '#7d7d7d';
-  ctx.fillText(ellipsize(ctx, c.termNote, L.CW, 0), L.M, L.noteBase);
+  ctx.fillText(ellipsize(ctx, c.note, L.CW, 0), L.M, L.noteBase);
 }
 
 /**
@@ -643,7 +759,7 @@ export function drawPoster(
   format: PosterFormat = 'feed',
   scale: number = POSTER_SCALE
 ) {
-  const L = POSTER_LAYOUTS[format] ?? POSTER_LAYOUTS.feed;
+  const L = posterLayout(format, content.variant ?? 'standard');
   canvas.width = Math.round(L.W * scale);
   canvas.height = Math.round(L.H * scale);
   const ctx = canvas.getContext('2d');
@@ -659,8 +775,9 @@ export function drawPoster(
   drawHeader(ctx, content, L);
   drawPhoto(ctx, content, L);
   drawTitleRow(ctx, content, L);
+  drawPriceBand(ctx, content, L);
   drawTiles(ctx, content, L);
-  drawTermNote(ctx, content, L);
+  drawNote(ctx, content, L);
   drawFooter(ctx, content, L);
   ctx.restore();
 }
