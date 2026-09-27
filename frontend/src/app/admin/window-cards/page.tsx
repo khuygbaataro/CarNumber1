@@ -87,7 +87,15 @@ export default function WindowCardsPage() {
             {t.admin.windowCards.count(cards.length)}
           </p>
         </div>
-        <p className="mt-2 text-xs text-gray-400">{t.admin.windowCards.printHint}</p>
+        {/* The browser's own Save-as-PDF is what writes the file, and two of
+            its settings decide whether the result is usable — so they are
+            spelled out here rather than left to be discovered. */}
+        <ol className="mt-3 space-y-1 rounded-xl bg-brand-50 px-4 py-3 text-xs leading-relaxed text-brand-800">
+          <li className="font-semibold">{t.admin.windowCards.pdfSteps}</li>
+          <li>1. {t.admin.windowCards.pdfStep1}</li>
+          <li>2. {t.admin.windowCards.pdfStep2}</li>
+          <li>3. {t.admin.windowCards.pdfStep3}</li>
+        </ol>
         {error && <p className="mt-4 text-sm text-accent">{error}</p>}
       </div>
 
@@ -134,7 +142,8 @@ function Card({
   const photo = vehicle.images?.[0];
 
   return (
-    <article className="mx-auto flex h-[273mm] w-[186mm] break-after-page flex-col bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 print:shadow-none print:ring-0">
+    <article style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
+      className="mx-auto flex h-[273mm] w-[186mm] break-after-page flex-col bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 print:shadow-none print:ring-0">
       <header className="flex items-center justify-between border-b-4 border-gray-900 pb-3">
         <span className="text-2xl font-extrabold tracking-tight">
           {companyName || 'VICTORY CAR'}
@@ -211,9 +220,6 @@ function Card({
           </span>
           <span className="mt-1 block text-[62px] font-extrabold leading-none tabular-nums">
             {formatNumber(monthly.monthly)}₮
-          </span>
-          <span className="mt-2 block text-base font-medium text-gray-500">
-            {t.admin.windowCards.equalNote}
           </span>
         </div>
       </div>
