@@ -1,3 +1,8 @@
 
 # TypeScript build info
 *.tsbuildinfo
+
+# Vercel CLI writes both of these on `vercel link`.
+# NOT `.env*`, which the CLI proposes: .env.production is tracked on purpose.
+.vercel
+.env.local

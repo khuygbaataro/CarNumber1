@@ -81,6 +81,54 @@ them later via the admin panel. Safe to re-run — it skips data that exists.
 
 ---
 
+## Deploying the live site (victorycar.mn)
+
+The sections above describe the first-time setup. This is how the site that
+is actually running gets updated today.
+
+Both halves live on Vercel, not Render:
+
+| Project | What | Deploy from | Its Root Directory | URL |
+| --- | --- | --- | --- | --- |
+| `car-number1` | Next.js site + admin | repo root | `frontend` | www.victorycar.mn |
+| `car-number1-api` | Express API | `backend/` | `.` | car-number1-api.vercel.app |
+
+**Pushing to GitHub does not deploy.** The GitHub → Vercel webhook stopped
+firing; a push updates the repository and nothing else. "Redeploy" in the
+Vercel dashboard rebuilds the *same commit* it already has, so it will not
+pick up new code either. Deploy from a terminal:
+
+```bash
+cd /path/to/CarNumber1        # the repo ROOT, for the site
+npx vercel --prod --yes
+```
+
+```bash
+cd /path/to/CarNumber1/backend   # for the API
+npx vercel --prod --yes
+```
+
+**The directory matters.** Vercel applies the project's own Root Directory
+on top of wherever you run the CLI. `car-number1` already has `frontend`
+set, so running it inside `frontend/` makes Vercel look for
+`frontend/frontend`, find no app there, and publish an empty site that 404s
+on every route. The link that decides this is the `.vercel` folder: there
+should be one at the repo root (`car-number1`) and one in `backend/`
+(`car-number1-api`), and none in `frontend/`. If `vercel link` writes one
+into `frontend/`, delete it.
+
+`vercel link` also appends `.env*` to the local `.gitignore`. Narrow it back
+to `.env.local` — `frontend/.env.production` is tracked on purpose.
+
+Afterwards, check a route that is not the home page — the empty-deploy
+failure still serves HTML, just a 404 page:
+
+```bash
+curl -o /dev/null -w '%{http_code}\n' https://www.victorycar.mn/admin/vehicles
+```
+
+---
+
 ## Local development (for reference)
 
 ```bash
