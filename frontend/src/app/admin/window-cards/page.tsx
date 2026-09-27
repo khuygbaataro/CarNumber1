@@ -3,12 +3,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { adminApi } from '@/lib/adminApi';
 import { Vehicle } from '@/types';
-import { formatNumber, formatMileage, formatYearShort } from '@/lib/format';
+import {
+  formatNumber,
+  formatMileage,
+  formatTimeAgo,
+  formatYearShort,
+} from '@/lib/format';
 import { splitStockCode } from '@/lib/vehicle';
 import { windowCardFigures } from '@/lib/windowCard';
 import { t } from '@/lib/labels';
 
 type Shape = 'full' | 'tent';
+
+/** What "recently added" ticks, in days. */
+const RECENT_DAYS = 7;
 
 export default function WindowCardsPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -17,6 +25,9 @@ export default function WindowCardsPage() {
   const [shape, setShape] = useState<Shape>('full');
   const [withPhoto, setWithPhoto] = useState(false);
   const [query, setQuery] = useState('');
+  // Ticked cars survive the search being cleared — that is what lets a
+  // couple of new arrivals be gathered one at a time before printing.
+  const [picked, setPicked] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     adminApi
@@ -26,16 +37,39 @@ export default function WindowCardsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const cards = useMemo(() => {
+  const available = useMemo(
+    () => vehicles.filter((v) => v.status === 'available'),
+    [vehicles]
+  );
+
+  // The search narrows the pick list only. What prints is the ticked set.
+  const listed = useMemo(() => {
     const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-    return vehicles
-      .filter((v) => v.status === 'available')
-      .filter((v) => {
-        if (!terms.length) return true;
-        const hay = `${v.brand} ${v.model} ${Math.trunc(v.year) || ''}`.toLowerCase();
-        return terms.every((term) => hay.includes(term));
-      });
-  }, [vehicles, query]);
+    if (!terms.length) return available;
+    return available.filter((v) => {
+      const hay = `${v.brand} ${v.model} ${Math.trunc(v.year) || ''}`.toLowerCase();
+      return terms.every((term) => hay.includes(term));
+    });
+  }, [available, query]);
+
+  // Nothing ticked means "print the lot" — the old behaviour, kept so the
+  // common case still needs no clicks.
+  const cards = picked.size ? available.filter((v) => picked.has(v._id)) : available;
+
+  const toggle = (id: string) =>
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const recentIds = useMemo(() => {
+    const cutoff = Date.now() - RECENT_DAYS * 24 * 60 * 60 * 1000;
+    return available
+      .filter((v) => new Date(v.createdAt).getTime() >= cutoff)
+      .map((v) => v._id);
+  }, [available]);
 
   return (
     <div>
@@ -87,32 +121,93 @@ export default function WindowCardsPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-end gap-6">
-            <div className="min-w-[260px] flex-1">
-              <label className="label" htmlFor="wc-search">
-                {t.admin.windowCards.search}
-              </label>
+          {shape === 'full' && (
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <input
-                id="wc-search"
-                type="search"
-                className="input"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                type="checkbox"
+                checked={withPhoto}
+                onChange={(e) => setWithPhoto(e.target.checked)}
+                className="h-4 w-4 cursor-pointer accent-brand"
               />
+              {t.admin.windowCards.withPhoto}
+            </label>
+          )}
+
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <span className="label mb-0">{t.admin.windowCards.selectTitle}</span>
+              <span className="text-sm font-bold text-brand">
+                {picked.size
+                  ? t.admin.windowCards.willPrintSome(cards.length)
+                  : t.admin.windowCards.willPrintAll(cards.length)}
+              </span>
             </div>
-            {shape === 'full' && (
-              <label className="flex items-center gap-2 pb-2.5 text-sm font-medium text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={withPhoto}
-                  onChange={(e) => setWithPhoto(e.target.checked)}
-                  className="h-4 w-4 cursor-pointer accent-brand"
-                />
-                {t.admin.windowCards.withPhoto}
-              </label>
-            )}
-            <p className="pb-2.5 text-sm font-semibold text-gray-700">
-              {t.admin.windowCards.count(cards.length)}
+
+            <input
+              type="search"
+              className="input mt-2"
+              placeholder={t.admin.windowCards.search}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              {recentIds.length > 0 && (
+                <QuickButton onClick={() => setPicked(new Set(recentIds))}>
+                  {t.admin.windowCards.selectRecent(RECENT_DAYS)} ({recentIds.length})
+                </QuickButton>
+              )}
+              <QuickButton
+                onClick={() => setPicked(new Set(listed.map((v) => v._id)))}
+              >
+                {t.admin.windowCards.selectAll}
+              </QuickButton>
+              {picked.size > 0 && (
+                <QuickButton onClick={() => setPicked(new Set())}>
+                  {t.admin.windowCards.clearSelection} ({picked.size})
+                </QuickButton>
+              )}
+            </div>
+
+            <div className="mt-3 max-h-[300px] overflow-y-auto rounded-lg ring-1 ring-gray-200">
+              {listed.length === 0 ? (
+                <p className="p-4 text-center text-sm text-gray-500">
+                  {t.admin.windowCards.noMatches}
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {listed.map((v) => {
+                    const { code, name } = splitStockCode(v.model);
+                    return (
+                      <li key={v._id}>
+                        <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={picked.has(v._id)}
+                            onChange={() => toggle(v._id)}
+                            className="h-4 w-4 cursor-pointer accent-brand"
+                          />
+                          <span className="w-14 shrink-0 font-bold tabular-nums">
+                            {code || '—'}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-gray-900">
+                            {v.brand} {name || v.model}
+                          </span>
+                          <span className="shrink-0 tabular-nums text-gray-600">
+                            {formatNumber(v.price)}₮
+                          </span>
+                          <span className="hidden w-28 shrink-0 text-right text-xs text-gray-400 sm:block">
+                            {formatTimeAgo(v.createdAt)}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+            <p className="mt-2 text-xs text-gray-400">
+              {t.admin.windowCards.selectHint}
             </p>
           </div>
         </div>
@@ -141,6 +236,24 @@ export default function WindowCardsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function QuickButton({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-200"
+    >
+      {children}
+    </button>
   );
 }
 
