@@ -163,11 +163,36 @@ export const t = {
       dashboard: 'Хяналтын самбар',
       vehicles: 'Машинууд',
       checklist: 'Тооллого',
+      windowCards: 'Цонхны хуудас',
       leads: 'Хүсэлтүүд',
       settings: 'Тохиргоо',
       help: 'Заавар',
       viewSite: 'Сайт харах',
       logout: 'Гарах',
+    },
+    // One A4 sheet per car, printed and taped inside its own window.
+    windowCards: {
+      title: 'Цонхны хуудас',
+      subtitle:
+        'Машин бүрт нэг A4. Хэвлээд машиныхаа цонхон дээр наана. Үнэ, урьдчилгаа, 48 ба 60 сарын төлбөрийг харуулна.',
+      print: 'Хэвлэх / PDF болгож хадгалах',
+      printHint:
+        'Хэвлэх цонхны "Зорилго" хэсгээс "PDF болгож хадгалах" сонгоно. Машин бүр тусдаа хуудас болно.',
+      withPhoto: 'Зурагтай хэвлэх',
+      withPhotoHint: 'Хэрэггүй бол унтраа — бэх их зарцуулна.',
+      search: 'Тодорхой машин хайх (хоосон бол бүгд)',
+      loadError: 'Мэдээлэл татахад алдаа гарлаа.',
+      empty: 'Зарагдаж буй машин алга байна.',
+      count: (n: number) => `${n} хуудас`,
+      badge: 'Лизингээр',
+      price: 'Үнэ',
+      down: (percent: number) => `Урьдчилгаа (${percent}%)`,
+      monthly: 'Сарын төлбөр',
+      months: 'сар',
+      equalNote: (rate: number) =>
+        `Сар бүр ижил дүнгээр төлнө · сарын хүү ${rate}%`,
+      rounded: 'Дүнг бүхэлчилсэн ойролцоо тооцоо.',
+      noCode: 'Дугааргүй',
     },
     // Printable sheet for walking the lot and reconciling it with the site.
     checklist: {
