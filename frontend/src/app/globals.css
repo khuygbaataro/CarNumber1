@@ -40,6 +40,18 @@ input[type='number'] {
   margin: 12mm;
 }
 
+/* The window sheets take the whole page. With no @page margin the browser
+   has nowhere to draw its own URL/date header and page-number footer, so
+   they disappear without anyone having to find the checkbox; the sheet
+   supplies its own margin instead. */
+@page window-card {
+  size: A4 portrait;
+  margin: 0;
+}
+.window-card {
+  page: window-card;
+}
+
 @media print {
   html,
   body {

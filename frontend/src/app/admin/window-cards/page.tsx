@@ -10,20 +10,15 @@ import { t } from '@/lib/labels';
 
 export default function WindowCardsPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [withPhoto, setWithPhoto] = useState(false);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
-    Promise.all([
-      adminApi.listVehicles().then((data) => setVehicles(data.items)),
-      adminApi
-        .getSettings()
-        .then((s) => setCompanyName(s.companyName || ''))
-        .catch(() => {}),
-    ])
+    adminApi
+      .listVehicles()
+      .then((data) => setVehicles(data.items))
       .catch(() => setError(t.admin.windowCards.loadError))
       .finally(() => setLoading(false));
   }, []);
@@ -87,14 +82,11 @@ export default function WindowCardsPage() {
             {t.admin.windowCards.count(cards.length)}
           </p>
         </div>
-        {/* The browser's own Save-as-PDF is what writes the file, and two of
-            its settings decide whether the result is usable — so they are
-            spelled out here rather than left to be discovered. */}
+
         <ol className="mt-3 space-y-1 rounded-xl bg-brand-50 px-4 py-3 text-xs leading-relaxed text-brand-800">
           <li className="font-semibold">{t.admin.windowCards.pdfSteps}</li>
           <li>1. {t.admin.windowCards.pdfStep1}</li>
           <li>2. {t.admin.windowCards.pdfStep2}</li>
-          <li>3. {t.admin.windowCards.pdfStep3}</li>
         </ol>
         {error && <p className="mt-4 text-sm text-accent">{error}</p>}
       </div>
@@ -106,12 +98,7 @@ export default function WindowCardsPage() {
       ) : (
         <div className="mt-6 space-y-6 print:mt-0 print:space-y-0">
           {cards.map((v) => (
-            <Card
-              key={v._id}
-              vehicle={v}
-              companyName={companyName}
-              withPhoto={withPhoto}
-            />
+            <Card key={v._id} vehicle={v} withPhoto={withPhoto} />
           ))}
         </div>
       )}
@@ -122,111 +109,83 @@ export default function WindowCardsPage() {
 /**
  * One A4 page per car.
  *
- * Everything on it is something a person standing at the car wants: which
- * car it is, how old, how far it has run, and the three numbers. No phone,
- * no web address, no directions — they are already in the showroom, and a
- * contact strip would only steal room from figures read through glass.
+ * Printed in black and white, so there is no colour to lean on: the
+ * hierarchy comes from type size and from rules between the sections. A
+ * solid dark panel would only drink toner across thirty sheets.
+ *
+ * No masthead and no small print — the reader is already standing at the
+ * car. What is left is grouped towards the middle of the page inside a
+ * margin, rather than stretched corner to corner.
  */
-function Card({
-  vehicle,
-  companyName,
-  withPhoto,
-}: {
-  vehicle: Vehicle;
-  companyName: string;
-  withPhoto: boolean;
-}) {
+function Card({ vehicle, withPhoto }: { vehicle: Vehicle; withPhoto: boolean }) {
   const { code, name } = splitStockCode(vehicle.model);
   const f = windowCardFigures(vehicle.price);
   const monthly = f.terms[0];
   const photo = vehicle.images?.[0];
 
-  return (
-    <article style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
-      className="mx-auto flex h-[273mm] w-[186mm] break-after-page flex-col bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 print:shadow-none print:ring-0">
-      <header className="flex items-center justify-between border-b-4 border-gray-900 pb-3">
-        <span className="text-2xl font-extrabold tracking-tight">
-          {companyName || 'VICTORY CAR'}
-        </span>
-        <span className="rounded bg-[#e11b22] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.18em] text-white">
-          {t.admin.windowCards.badge}
-        </span>
-      </header>
+  const rows = [
+    { label: t.admin.windowCards.price, value: f.price, lead: true },
+    { label: t.admin.windowCards.down, value: f.downAmount, lead: false },
+    {
+      label: `${t.admin.windowCards.monthly} · ${monthly.months} ${t.admin.windowCards.months}`,
+      value: monthly.monthly,
+      lead: false,
+    },
+  ];
 
-      <div className="mt-7 flex items-start justify-between gap-6">
+  return (
+    <article className="window-card mx-auto flex h-[297mm] w-[210mm] break-after-page flex-col justify-center bg-white px-[18mm] py-[20mm] text-black shadow-sm ring-1 ring-gray-200 print:shadow-none print:ring-0">
+      <div className="flex items-start justify-between gap-8 border-b-4 border-black pb-5">
         <div className="min-w-0">
-          <h2 className="text-[50px] font-extrabold uppercase leading-[1.03] tracking-tight">
+          <h2 className="text-[46px] font-extrabold uppercase leading-[1.05] tracking-tight">
             {vehicle.brand} {name || vehicle.model}
           </h2>
-          <dl className="mt-4 space-y-1.5 text-[22px] font-medium text-gray-600">
+          <dl className="mt-3 space-y-1 text-[21px] font-medium">
             <div className="flex gap-3">
-              <dt className="text-gray-400">{t.admin.windowCards.year}</dt>
-              <dd className="font-bold text-gray-900">
-                {formatYearShort(vehicle.year, vehicle.month)}
-              </dd>
+              <dt className="text-gray-500">{t.admin.windowCards.year}</dt>
+              <dd className="font-bold">{formatYearShort(vehicle.year, vehicle.month)}</dd>
             </div>
             {vehicle.mileage > 0 && (
               <div className="flex gap-3">
-                <dt className="text-gray-400">{t.admin.windowCards.mileage}</dt>
-                <dd className="font-bold text-gray-900">
-                  {formatMileage(vehicle.mileage)}
-                </dd>
+                <dt className="text-gray-500">{t.admin.windowCards.mileage}</dt>
+                <dd className="font-bold">{formatMileage(vehicle.mileage)}</dd>
               </div>
             )}
           </dl>
         </div>
         <div className="shrink-0 text-right">
-          <span className="block text-[13px] font-bold uppercase tracking-[0.18em] text-gray-400">
+          <span className="block text-[13px] font-bold uppercase tracking-[0.18em] text-gray-500">
             {t.admin.checklist.colCode}
           </span>
-          <span className="block text-[58px] font-extrabold leading-none tabular-nums">
+          <span className="block text-[56px] font-extrabold leading-none tabular-nums">
             {code || '—'}
           </span>
         </div>
       </div>
 
       {withPhoto && photo && (
-        <div className="mt-6 h-[62mm] w-full overflow-hidden rounded-lg bg-gray-100">
+        <div className="mt-7 h-[58mm] w-full overflow-hidden bg-gray-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={photo} alt="" className="h-full w-full object-cover" />
         </div>
       )}
 
-      {/* Three numbers, sharing whatever height is left so the page reads
-          the same with the photo on or off. */}
-      <div className="flex flex-1 flex-col justify-between gap-6 py-7">
-        <div className="rounded-xl bg-[#e11b22] px-8 py-7 text-white">
-          <span className="block text-base font-bold uppercase tracking-[0.2em] text-white/80">
-            {t.admin.windowCards.price}
-          </span>
-          <span className="mt-1 block text-[76px] font-extrabold leading-none tabular-nums">
-            {formatNumber(f.price)}₮
-          </span>
-        </div>
-
-        <div className="rounded-xl bg-gray-100 px-8 py-6">
-          <span className="block text-base font-bold uppercase tracking-[0.2em] text-gray-500">
-            {t.admin.windowCards.down}
-          </span>
-          <span className="mt-1 block text-[62px] font-extrabold leading-none tabular-nums">
-            {formatNumber(f.downAmount)}₮
-          </span>
-        </div>
-
-        <div className="rounded-xl border-[3px] border-gray-900 px-8 py-6">
-          <span className="block text-base font-bold uppercase tracking-[0.2em] text-gray-500">
-            {t.admin.windowCards.monthly} · {monthly.months}{' '}
-            {t.admin.windowCards.months}
-          </span>
-          <span className="mt-1 block text-[62px] font-extrabold leading-none tabular-nums">
-            {formatNumber(monthly.monthly)}₮
-          </span>
-        </div>
+      <div className="mt-9 divide-y-2 divide-black border-b-2 border-black">
+        {rows.map((row) => (
+          <div key={row.label} className="py-6">
+            <span className="block text-[17px] font-bold uppercase tracking-[0.2em] text-gray-600">
+              {row.label}
+            </span>
+            <span
+              className={`mt-1 block font-extrabold leading-none tabular-nums ${
+                row.lead ? 'text-[74px]' : 'text-[58px]'
+              }`}
+            >
+              {formatNumber(row.value)}₮
+            </span>
+          </div>
+        ))}
       </div>
-
-      <footer className="mt-auto border-t-2 border-gray-200 pt-3">
-        <p className="text-[11px] text-gray-400">{t.admin.windowCards.rounded}</p>
-      </footer>
     </article>
   );
 }
