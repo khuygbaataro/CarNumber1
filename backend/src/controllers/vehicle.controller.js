@@ -38,11 +38,30 @@ const getVehicles = async (req, res, next) => {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
     if (search) {
-      filter.$or = [
-        { brand: { $regex: search, $options: 'i' } },
-        { model: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
+      const terms = String(search).trim().split(/\s+/).filter(Boolean);
+      // Words all have to match; numbers only one of them does. "Prius 40
+      // 41" means a Prius that is a 40 OR a 41 — no car is both, so
+      // matching the whole phrase as one regex found nothing at all.
+      const words = terms.filter((t) => !/^\d+$/.test(t));
+      const numbers = terms.filter((t) => /^\d+$/.test(t));
+      // Escaped: the term is user input and goes straight into a regex.
+      const escape = (term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const anyField = (term) => {
+        // A number has to be the whole number, not a run of digits inside
+        // a longer one: searching "41" must not drag in "#4163". Written
+        // with \D rather than a lookbehind so it holds in Mongo's regex.
+        const source = /^\d+$/.test(term)
+          ? `(^|\\D)${escape(term)}(\\D|$)`
+          : escape(term);
+        const rx = new RegExp(source, 'i');
+        return [{ brand: rx }, { model: rx }, { description: rx }];
+      };
+
+      const clauses = words.map((term) => ({ $or: anyField(term) }));
+      if (numbers.length) {
+        clauses.push({ $or: numbers.flatMap(anyField) });
+      }
+      if (clauses.length) filter.$and = clauses;
     }
 
     const pageNum = Math.max(1, Number(page) || 1);
