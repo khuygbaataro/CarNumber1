@@ -1,6 +1,35 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { Vehicle, BotSession } from './models';
+import { Vehicle, BotSession, Settings } from './models';
 import { postToFeed } from './messenger';
+import { primaryPhone } from '@/lib/contact';
+
+/**
+ * Address, hours and phone come from Тохиргоо, never from a literal in
+ * here. They were hard-coded once and the showroom moved; the stale copy
+ * kept going out on every Facebook post while the website showed the new
+ * one. One editable place is the only way that does not happen twice.
+ *
+ * The fallbacks are what to say if settings cannot be read at all — not a
+ * second copy to maintain.
+ */
+async function loadContact(): Promise<{
+  address: string;
+  hours: string;
+  phone: string;
+}> {
+  try {
+    // The model is Model<any>, and .lean() widens to a union with an
+    // array — the rest of this file handles these documents as any too.
+    const s: any = await Settings.findOne().lean();
+    return {
+      address: s?.contact?.address?.trim() || '',
+      hours: s?.workingHours?.trim() || '',
+      phone: primaryPhone(s?.contact?.phone) || '',
+    };
+  } catch {
+    return { address: '', hours: '', phone: '' };
+  }
+}
 
 // Known specs for the commonly-sold models, so the bot doesn't ask about
 // things it can infer (steering, engine, fuel, transmission).
@@ -26,7 +55,11 @@ function knownSpecs(
 
 // Facebook page-feed marketing post, matching the page's established format.
 // opts.sold prefixes the ✅ЗАРАГДСАН✅ banner for sold announcements.
-function buildPostTemplate(v: any, opts: { sold?: boolean } = {}): string {
+async function buildPostTemplate(
+  v: any,
+  opts: { sold?: boolean } = {}
+): Promise<string> {
+  const contact = await loadContact();
   const model = String(v.model || '');
   const last4 = (model.match(/#(\d{3,4})/) || [])[1] || '';
   const title = `${v.brand} ${model.replace(/\s*#\d+\s*$/, '')}`.trim();
@@ -68,13 +101,13 @@ function buildPostTemplate(v: any, opts: { sold?: boolean } = {}): string {
     `💰 Үнэ: ${price}`,
     `🏦 Зээл: Урьдчилгаа 20–30% ➡️ Банк бус шийдэл шуурхай`,
     `👉 Victory Car – Чанарыг бид эрхэмлэнэ!`,
-    `📍 Хаяг:`,
-    `1-р хороолол, 32-р гүүрний хойно, Эрчим худалдааны төвөөс дээшээ 200 метр`,
+    contact.address ? `📍 Хаяг:` : null,
+    contact.address || null,
     `👉 Victory Car Auto Showroom`,
-    `⏰ Цагийн хуваарь:`,
-    `Өглөө 09:00 – Орой 19:00 🕘➡️🕖`,
+    contact.hours ? `⏰ Цагийн хуваарь:` : null,
+    contact.hours || null,
     `🚙 Танд хамгийн хямд үнэ ✨, өргөн сонголт 🚗, шуурхай үйлчилгээ ⚡`,
-    `📲80004020`,
+    contact.phone ? `📲${contact.phone}` : null,
   ].filter((l) => l !== null);
   return lines.join('\n');
 }
@@ -229,7 +262,7 @@ async function runTool(
       process.env.MESSENGER_AUTOPOST !== 'false' && process.env.MESSENGER_AUTOPOST !== '0';
     let fbNote = '';
     if (autopost) {
-      const r = await postToFeed(buildPostTemplate(doc), images);
+      const r = await postToFeed(await buildPostTemplate(doc), images);
       fbNote = r.ok ? ' Facebook-т нийтэллээ.' : ' (FB-т нийтлэхэд алдаа — эрх шалга.)';
     }
 
@@ -297,7 +330,7 @@ async function runTool(
       process.env.MESSENGER_AUTOPOST !== 'false' && process.env.MESSENGER_AUTOPOST !== '0';
     let fbNote = '';
     if (autopost) {
-      const r = await postToFeed(buildPostTemplate(v, { sold: true }), v.images || []);
+      const r = await postToFeed(await buildPostTemplate(v, { sold: true }), v.images || []);
       fbNote = r.ok ? ' Facebook-т ЗАРАГДСАН пост орлоо.' : ' (FB пост алдаа — эрх шалга.)';
     }
     return {

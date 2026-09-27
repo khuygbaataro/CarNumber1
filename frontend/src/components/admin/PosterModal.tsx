@@ -8,7 +8,7 @@ import { DEFAULT_LOAN_CONFIG } from '@/lib/loan';
 import { formatMileage, formatPrice, formatYearShort } from '@/lib/format';
 import { primaryPhone } from '@/lib/contact';
 import {
-  POSTER_ADDRESS,
+  POSTER_ADDRESS_FALLBACK,
   posterBranding,
   posterFigures,
   posterFileName,
@@ -71,7 +71,9 @@ export default function PosterModal({
   const [logo, setLogo] = useState<HTMLImageElement | null>(null);
   const [fontReady, setFontReady] = useState(false);
   const [phone, setPhone] = useState(contactOverrides.phone ?? '');
-  const [address, setAddress] = useState(contactOverrides.address ?? POSTER_ADDRESS);
+  const [address, setAddress] = useState(
+    contactOverrides.address ?? POSTER_ADDRESS_FALLBACK
+  );
   const [website, setWebsite] = useState(
     () => contactOverrides.website ?? posterWebsite()
   );
@@ -109,12 +111,14 @@ export default function PosterModal({
     ensurePosterFont().then(() => setFontReady(true));
   }, []);
 
-  // Phone comes from settings once they arrive, unless the admin already
-  // retyped it for an earlier poster in this sitting. (The address does
-  // not — the poster has its own line, see POSTER_ADDRESS.)
+  // Phone and address come from Тохиргоо once it arrives, unless the admin
+  // already retyped them for an earlier poster in this sitting. One place
+  // to edit, so a move cannot leave a stale line printing forever.
   useEffect(() => {
-    if (!settings || contactOverrides.phone !== undefined) return;
-    setPhone(primaryPhone(posterBranding(settings).phone));
+    if (!settings) return;
+    const branding = posterBranding(settings);
+    if (contactOverrides.phone === undefined) setPhone(primaryPhone(branding.phone));
+    if (contactOverrides.address === undefined) setAddress(branding.address);
   }, [settings]);
 
   const editContact =
