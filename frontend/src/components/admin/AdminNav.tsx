@@ -14,6 +14,7 @@ export default function AdminNav() {
     { href: '/admin/vehicles', label: t.admin.nav.vehicles },
     { href: '/admin/checklist', label: t.admin.nav.checklist },
     { href: '/admin/window-cards', label: t.admin.nav.windowCards },
+    { href: '/admin/group-marketing', label: t.admin.nav.groupMarketing },
     { href: '/admin/leads', label: t.admin.nav.leads },
     { href: '/admin/settings', label: t.admin.nav.settings },
     { href: '/admin/help', label: t.admin.nav.help },

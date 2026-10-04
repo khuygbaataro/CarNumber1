@@ -164,6 +164,7 @@ export const t = {
       vehicles: 'Машинууд',
       checklist: 'Тооллого',
       windowCards: 'Цонхны хуудас',
+      groupMarketing: 'Групп маркетинг',
       leads: 'Хүсэлтүүд',
       settings: 'Тохиргоо',
       help: 'Заавар',
@@ -373,6 +374,40 @@ export const t = {
       saving: 'Хадгалж байна...',
       cancel: 'Болих',
       requiredError: 'Брэнд, модель, он, үнэ, гүйлтийг бөглөнө үү.',
+    },
+    // Ready-made posts for Facebook groups: the car's photos, clean, plus
+    // the text that goes with them.
+    groupMarketing: {
+      title: 'Групп маркетинг',
+      subtitle:
+        'Групп дээр тавих зар. Машинаа сонгоод зургийг нь татаад, бэлэн текстийг хуулж авна.',
+      phone: 'Зар дээр гарах утас',
+      phoneHint: 'Энэ хөтөч дээр хадгалагдана. Сайтын үндсэн дугаараас тусдаа.',
+      withPrice: 'Үнийг зар дээр бичих',
+      branded: 'Усан тэмдэг, хүрээтэй зураг татах',
+      brandedHint: 'Сайт дээр харагддаг хувилбар — лого, утасны чип, улаан хүрээтэй.',
+      plainHint: 'Лого, хүрээ, усан тэмдэггүй эх зураг татагдана.',
+      selectTitle: 'Машин сонгох',
+      search: 'Арлын 4 орон эсвэл загвараар хайх',
+      selectRecent: (days: number) => `Сүүлийн ${days} хоногт нэмэгдсэн`,
+      clearSelection: 'Сонголтыг цэвэрлэх',
+      noMatches: 'Тохирох машин олдсонгүй',
+      selectHint:
+        'Хайгаад чагтална. Хайлтаа цэвэрлэсэн ч чагтлагдсан машин хэвээр үлдэнэ.',
+      chosenCount: (n: number) => `${n} машин сонгогдсон`,
+      empty: 'Дээрээс машинаа сонгоход зураг болон бэлэн текст нь энд гарч ирнэ.',
+      loadError: 'Машины жагсаалтыг уншиж чадсангүй.',
+      photos: (n: number) => `Зураг (${n})`,
+      downloadAll: 'Бүх зургийг татах',
+      downloading: 'Татаж байна...',
+      downloadFailed: (n: number) =>
+        `${n} зураг татагдсангүй. Зураг дээр нь дарж гараар хадгална уу.`,
+      openImage: 'Шинэ цонхонд нээх',
+      description: 'Зарын текст',
+      copy: 'Хуулах',
+      copied: 'Хуулагдлаа ✓',
+      copyFailed: 'Хуулж чадсангүй. Текстээ сонгоод Ctrl+C дарна уу.',
+      reset: 'Буцаах',
     },
     upload: {
       selectImages: '+ Зураг нэмэх',
