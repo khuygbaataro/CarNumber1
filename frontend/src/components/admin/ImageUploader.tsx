@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { adminApi } from '@/lib/adminApi';
+import { tooLargeMessage, uploadErrorMessage } from '@/lib/uploadLimit';
 import { t } from '@/lib/labels';
 
 export default function ImageUploader({
@@ -20,13 +21,20 @@ export default function ImageUploader({
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const list = Array.from(files);
+    const tooLarge = tooLargeMessage(list);
+    if (tooLarge) {
+      setError(tooLarge);
+      if (inputRef.current) inputRef.current.value = '';
+      return;
+    }
     setError('');
     setUploading(true);
     try {
-      const { urls } = await adminApi.uploadImages(Array.from(files), watermark);
+      const { urls } = await adminApi.uploadImages(list, watermark);
       onChange([...value, ...urls]);
-    } catch {
-      setError(t.admin.upload.error);
+    } catch (e) {
+      setError(uploadErrorMessage(e));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';

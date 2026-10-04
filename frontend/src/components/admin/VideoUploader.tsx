@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { adminApi } from '@/lib/adminApi';
+import { tooLargeMessage, uploadErrorMessage } from '@/lib/uploadLimit';
 import { t } from '@/lib/labels';
 
 export default function VideoUploader({
@@ -17,13 +18,19 @@ export default function VideoUploader({
 
   const handleFile = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const tooLarge = tooLargeMessage([files[0]]);
+    if (tooLarge) {
+      setError(tooLarge);
+      if (inputRef.current) inputRef.current.value = '';
+      return;
+    }
     setError('');
     setUploading(true);
     try {
       const { url } = await adminApi.uploadVideo(files[0]);
       onChange(url);
-    } catch {
-      setError(t.admin.upload.error);
+    } catch (e) {
+      setError(uploadErrorMessage(e));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
