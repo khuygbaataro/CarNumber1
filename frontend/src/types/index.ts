@@ -81,6 +81,7 @@ export interface WatermarkConfig {
   color: string;
   /** 'marks' uses the three brand overlays below instead of logo+chip+frame. */
   style: WatermarkStyle;
+  frameMark: string;
   logoMark: string;
   phoneMark: string;
   websiteMark: string;

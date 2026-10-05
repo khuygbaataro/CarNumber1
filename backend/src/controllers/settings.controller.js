@@ -109,7 +109,7 @@ const updateSettings = async (req, res, next) => {
         }
         // The three brand overlays. Empty is meaningful — it is how a mark is
         // removed — so these are set whenever present, not only when truthy.
-        for (const key of ['logoMark', 'phoneMark', 'websiteMark']) {
+        for (const key of ['frameMark', 'logoMark', 'phoneMark', 'websiteMark']) {
           if (wm[key] !== undefined) {
             $set[`images.watermark.${key}`] = String(wm[key]).slice(0, 500);
           }

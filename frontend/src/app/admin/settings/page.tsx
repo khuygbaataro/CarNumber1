@@ -407,9 +407,10 @@ export default function AdminSettingsPage() {
             {form.images.watermark.style === 'marks' && (
               <div className="rounded-lg bg-gray-50 p-4">
                 <span className="label">{t.admin.settings.marksTitle}</span>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {(
                     [
+                      ['frameMark', t.admin.settings.frameMark],
                       ['websiteMark', t.admin.settings.websiteMark],
                       ['logoMark', t.admin.settings.logoMark],
                       ['phoneMark', t.admin.settings.phoneMark],

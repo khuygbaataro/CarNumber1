@@ -46,6 +46,7 @@ const settingsSchema = new mongoose.Schema(
         // centre, logo bottom left, phone pill bottom right, no frame. Left
         // on 'classic' every existing photo and upload behaves as before.
         style: { type: String, default: 'classic' }, // classic | marks
+        frameMark: { type: String, default: '' }, // Cloudinary URL
         logoMark: { type: String, default: '' }, // Cloudinary URL
         phoneMark: { type: String, default: '' }, // Cloudinary URL
         websiteMark: { type: String, default: '' }, // Cloudinary URL

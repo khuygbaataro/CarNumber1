@@ -47,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
       opacity: 40,
       color: '#FFFFFF',
       style: 'classic',
+      frameMark: '',
       logoMark: '',
       phoneMark: '',
       websiteMark: '',

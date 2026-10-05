@@ -76,14 +76,30 @@ const rel = (n: number) => Math.round(n * 10000) / 10000;
 /**
  * Pushes the brand marks on. False when none is configured, so the caller
  * falls back to the classic watermark rather than publishing bare photos.
+ *
+ * The frame comes last in the handoff but first on the photo: it is drawn
+ * under the pills and the logo. It is one stretched piece of artwork rather
+ * than four drawn edges because Cloudinary rounds a relative layer offset to
+ * two decimals, and the 8u inset the design asks for is 0.0078 of the width
+ * — which collapses to zero.
  */
 function pushBrandMarks(transformation: any[], wm: any): boolean {
+  const frameId = overlayIdFromUrl(wm.frameMark);
   const marks = BRAND_MARKS.map((mark) => ({
     ...mark,
     id: overlayIdFromUrl(wm[mark.key]),
   })).filter((mark) => mark.id);
-  if (!marks.length) return false;
+  if (!frameId && !marks.length) return false;
 
+  if (frameId) {
+    transformation.push(
+      { overlay: frameId },
+      // Strings, not numbers. The SDK serialises 1.0 as `w_1`, which
+      // Cloudinary reads as one pixel, and the frame silently disappears.
+      { width: '1.0', height: '1.0', crop: 'scale', flags: 'relative' },
+      { flags: 'layer_apply', gravity: 'center' }
+    );
+  }
   for (const mark of marks) {
     transformation.push(
       { overlay: mark.id },
