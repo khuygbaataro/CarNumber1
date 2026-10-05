@@ -461,6 +461,18 @@ export const t = {
       watermarkPosition: 'Логоны байрлал',
       watermarkFont: 'Үсгийн фонт',
       watermarkColor: 'Хүрээ ба текстийн өнгө',
+      watermarkStyle: 'Тамганы загвар',
+      watermarkStyleClassic: 'Хуучин',
+      watermarkStyleClassicHint: 'Лого нэг буланд, утасны хаяг нөгөөд, улаан хүрээтэй.',
+      watermarkStyleMarks: 'Шинэ брэнд',
+      watermarkStyleMarksHint:
+        'Вэб хаяг дээд дунд, лого зүүн доод, утас баруун доод. Хүрээгүй.',
+      marksTitle: 'Брэндийн тамганууд',
+      marksHint:
+        'Гурвууланг нь оруулна. Дэвсгэргүй PNG байх ёстой. Хоосон орхивол тэр тамга гарахгүй, гурвуулаа хоосон бол хуучин загвараар дарагдана.',
+      websiteMark: 'Вэб хаягийн тамга (дээд дунд)',
+      logoMark: 'Логоны тамга (зүүн доод)',
+      phoneMark: 'Утасны тамга (баруун доод)',
       posBottomRight: 'Баруун доод',
       posBottomLeft: 'Зүүн доод',
       posTopRight: 'Баруун дээд',

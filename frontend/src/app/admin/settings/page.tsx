@@ -8,6 +8,7 @@ import { DEFAULT_SETTINGS } from '@/lib/api';
 import { t } from '@/lib/labels';
 import { INTEREST_BANDS } from '@/lib/loan';
 import ImageUploader from '@/components/admin/ImageUploader';
+import { tooLargeMessage, uploadErrorMessage } from '@/lib/uploadLimit';
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState<Settings>(DEFAULT_SETTINGS);
@@ -358,6 +359,85 @@ export default function AdminSettingsPage() {
         {form.images.watermark.enabled && (
           <div className="mt-4 space-y-4">
             <div>
+              <span className="label">{t.admin.settings.watermarkStyle}</span>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    {
+                      key: 'classic' as const,
+                      label: t.admin.settings.watermarkStyleClassic,
+                      hint: t.admin.settings.watermarkStyleClassicHint,
+                    },
+                    {
+                      key: 'marks' as const,
+                      label: t.admin.settings.watermarkStyleMarks,
+                      hint: t.admin.settings.watermarkStyleMarksHint,
+                    },
+                  ]
+                ).map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        images: {
+                          ...form.images,
+                          watermark: { ...form.images.watermark, style: option.key },
+                        },
+                      })
+                    }
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                      form.images.watermark.style === option.key
+                        ? 'bg-brand text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-gray-400">
+                {form.images.watermark.style === 'marks'
+                  ? t.admin.settings.watermarkStyleMarksHint
+                  : t.admin.settings.watermarkStyleClassicHint}
+              </p>
+            </div>
+
+            {form.images.watermark.style === 'marks' && (
+              <div className="rounded-lg bg-gray-50 p-4">
+                <span className="label">{t.admin.settings.marksTitle}</span>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  {(
+                    [
+                      ['websiteMark', t.admin.settings.websiteMark],
+                      ['logoMark', t.admin.settings.logoMark],
+                      ['phoneMark', t.admin.settings.phoneMark],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <SingleImage
+                      key={key}
+                      label={label}
+                      value={form.images.watermark[key]}
+                      onChange={(url) =>
+                        setForm({
+                          ...form,
+                          images: {
+                            ...form.images,
+                            watermark: { ...form.images.watermark, [key]: url },
+                          },
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-gray-400">{t.admin.settings.marksHint}</p>
+              </div>
+            )}
+
+            {form.images.watermark.style !== 'marks' && (
+              <>
+            <div>
               <label className="label">{t.admin.settings.watermarkText}</label>
               <input
                 className="input"
@@ -449,6 +529,8 @@ export default function AdminSettingsPage() {
                 />
               </div>
             </div>
+              </>
+            )}
           </div>
         )}
       </Card>
@@ -487,13 +569,19 @@ function SingleImage({
 
   const handleFile = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const tooLarge = tooLargeMessage([files[0]]);
+    if (tooLarge) {
+      setError(tooLarge);
+      if (inputRef.current) inputRef.current.value = '';
+      return;
+    }
     setError('');
     setUploading(true);
     try {
       const { urls } = await adminApi.uploadImages([files[0]]);
       onChange(urls[0]);
-    } catch {
-      setError(t.admin.upload.error);
+    } catch (e) {
+      setError(uploadErrorMessage(e));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';

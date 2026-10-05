@@ -56,6 +56,70 @@ const hexColor = (value, fallback) => {
 };
 
 /**
+ * The brand watermark set, from the design handoff.
+ *
+ * Positions and sizes are given against a 1024 × 771 (4:3) design base, with
+ * a scale unit u = min(W, H·1024/771) / 1024 — so a mark is sized off the
+ * width of the largest 4:3 box that fits in the photo, and never balloons on
+ * a wide crop. Cloudinary reproduces that rule with a relative width AND a
+ * relative height under c_fit: whichever side is tighter wins.
+ *
+ * FIT_HEADROOM is measured, not derived. Cloudinary fits an overlay into a
+ * slightly taller box than the aspect ratio alone predicts, so at exactly the
+ * design height it shrinks a 4:3 photo's marks by ~6%. Rendering a known
+ * overlay over white at 1024×771, 1024×576 and 768×1024 and measuring the
+ * result put the correction at 1.06: with it, all three land within 3% of the
+ * spec; without it, 4:3 comes out 6% small; with width alone and no height at
+ * all, a 16:9 photo comes out 33% large.
+ */
+const DESIGN_W = 1024;
+const DESIGN_H = 771;
+const FIT_HEADROOM = 1.06;
+const BRAND_MARKS = [
+  { key: 'websiteMark', w: 272.8, h: 47, gravity: 'north', x: 0, y: 22 },
+  { key: 'logoMark', w: 124, h: 98, gravity: 'south_west', x: 30, y: 28 },
+  { key: 'phoneMark', w: 258, h: 50, gravity: 'south_east', x: 44, y: 40 },
+];
+
+// Cloudinary takes relative values as decimals; four places is finer than a
+// pixel on any photo this pipeline produces.
+const rel = (n) => Math.round(n * 10000) / 10000;
+
+/**
+ * Pushes the brand marks onto `transformation`. Returns false when no mark
+ * is configured, so the caller can fall back to the classic watermark rather
+ * than publish photos with nothing on them.
+ */
+const pushBrandMarks = (transformation, wm) => {
+  const marks = BRAND_MARKS.map((mark) => ({
+    ...mark,
+    id: overlayIdFromUrl(wm[mark.key]),
+  })).filter((mark) => mark.id);
+  if (!marks.length) return false;
+
+  for (const mark of marks) {
+    transformation.push(
+      { overlay: mark.id },
+      {
+        width: rel(mark.w / DESIGN_W),
+        height: rel((mark.h * FIT_HEADROOM) / DESIGN_H),
+        crop: 'fit',
+        flags: 'relative',
+      },
+      {
+        flags: 'layer_apply',
+        gravity: mark.gravity,
+        // x against the width, y against the height — exact at 4:3, and
+        // within about a percent of the width elsewhere.
+        ...(mark.x ? { x: rel(mark.x / DESIGN_W) } : {}),
+        y: rel(mark.y / DESIGN_H),
+      }
+    );
+  }
+  return true;
+};
+
+/**
  * Build the Cloudinary transformation applied to uploaded images.
  *
  * For vehicle photos the watermark is the company logo in one corner, a
@@ -79,6 +143,11 @@ const buildImageTransformation = (settings, watermark) => {
 
   const wm = cfg.watermark || {};
   if (!watermark || wm.enabled === false) return transformation;
+
+  // The brand marks replace the whole classic composition — no chip, no
+  // frame. If none is configured yet the classic one still runs, so turning
+  // the style on before uploading the artwork cannot leave photos bare.
+  if (wm.style === 'marks' && pushBrandMarks(transformation, wm)) return transformation;
 
   const brand = hexColor(wm.color, 'b3121b');
   const gravity = POSITION_GRAVITY[wm.position] || 'south_west';

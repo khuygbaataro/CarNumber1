@@ -104,6 +104,16 @@ const updateSettings = async (req, res, next) => {
           if (Number.isFinite(op)) $set['images.watermark.opacity'] = Math.min(100, Math.max(0, op));
         }
         if (wm.color !== undefined) $set['images.watermark.color'] = String(wm.color).slice(0, 20);
+        if (wm.style !== undefined && ['classic', 'marks'].includes(wm.style)) {
+          $set['images.watermark.style'] = wm.style;
+        }
+        // The three brand overlays. Empty is meaningful — it is how a mark is
+        // removed — so these are set whenever present, not only when truthy.
+        for (const key of ['logoMark', 'phoneMark', 'websiteMark']) {
+          if (wm[key] !== undefined) {
+            $set[`images.watermark.${key}`] = String(wm[key]).slice(0, 500);
+          }
+        }
       }
     }
 
