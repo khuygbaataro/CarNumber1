@@ -46,7 +46,6 @@ export const DEFAULT_SETTINGS: Settings = {
       fontSize: 48,
       opacity: 40,
       color: '#FFFFFF',
-      style: 'classic',
       frameMark: '',
       logoMark: '',
       phoneMark: '',

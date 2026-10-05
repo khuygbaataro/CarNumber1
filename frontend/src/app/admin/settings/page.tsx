@@ -10,6 +10,22 @@ import { INTEREST_BANDS } from '@/lib/loan';
 import ImageUploader from '@/components/admin/ImageUploader';
 import { tooLargeMessage, uploadErrorMessage } from '@/lib/uploadLimit';
 
+/**
+ * The design handoff's artwork, committed under public/brand so nobody has
+ * to go looking for the files again. The button uploads them through the
+ * ordinary image endpoint as the signed-in admin and drops the resulting
+ * Cloudinary urls into the four fields — the admin never picks a file.
+ *
+ * Labels are thunks because `t` is read at module load and these need to
+ * stay next to the paths they describe.
+ */
+const BRAND_ARTWORK = [
+  ['frameMark', '/brand/frame.png', () => t.admin.settings.frameMark],
+  ['websiteMark', '/brand/website-pill.png', () => t.admin.settings.websiteMark],
+  ['logoMark', '/brand/logo.png', () => t.admin.settings.logoMark],
+  ['phoneMark', '/brand/phone-pill.png', () => t.admin.settings.phoneMark],
+] as const;
+
 export default function AdminSettingsPage() {
   const [form, setForm] = useState<Settings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -17,6 +33,39 @@ export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [termText, setTermText] = useState('12, 24, 36');
+  const [brandFilling, setBrandFilling] = useState(false);
+  const [brandNote, setBrandNote] = useState('');
+  const [brandError, setBrandError] = useState('');
+
+  // Fetches the bundled artwork and uploads all four in one request, so the
+  // four fields fill from a single click. The form is left dirty on purpose:
+  // saving stays the admin's decision, like every other field here.
+  const fillBrandMarks = async () => {
+    setBrandFilling(true);
+    setBrandNote('');
+    setBrandError('');
+    try {
+      const files = await Promise.all(
+        BRAND_ARTWORK.map(async ([, path]) => {
+          const res = await fetch(path);
+          if (!res.ok) throw new Error(`${path} — ${res.status}`);
+          const blob = await res.blob();
+          return new File([blob], path.split('/').pop() as string, { type: 'image/png' });
+        })
+      );
+      const { urls } = await adminApi.uploadImages(files);
+      const watermark = { ...form.images.watermark };
+      BRAND_ARTWORK.forEach(([key], index) => {
+        if (urls[index]) watermark[key] = urls[index];
+      });
+      setForm({ ...form, images: { ...form.images, watermark } });
+      setBrandNote(t.admin.settings.marksFilled);
+    } catch (e) {
+      setBrandError(uploadErrorMessage(e));
+    } finally {
+      setBrandFilling(false);
+    }
+  };
 
   useEffect(() => {
     adminApi
@@ -357,181 +406,44 @@ export default function AdminSettingsPage() {
         </div>
 
         {form.images.watermark.enabled && (
-          <div className="mt-4 space-y-4">
-            <div>
-              <span className="label">{t.admin.settings.watermarkStyle}</span>
-              <div className="flex flex-wrap gap-2">
-                {(
-                  [
-                    {
-                      key: 'classic' as const,
-                      label: t.admin.settings.watermarkStyleClassic,
-                      hint: t.admin.settings.watermarkStyleClassicHint,
-                    },
-                    {
-                      key: 'marks' as const,
-                      label: t.admin.settings.watermarkStyleMarks,
-                      hint: t.admin.settings.watermarkStyleMarksHint,
-                    },
-                  ]
-                ).map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() =>
-                      setForm({
-                        ...form,
-                        images: {
-                          ...form.images,
-                          watermark: { ...form.images.watermark, style: option.key },
-                        },
-                      })
-                    }
-                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                      form.images.watermark.style === option.key
-                        ? 'bg-brand text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-1 text-xs text-gray-400">
-                {form.images.watermark.style === 'marks'
-                  ? t.admin.settings.watermarkStyleMarksHint
-                  : t.admin.settings.watermarkStyleClassicHint}
-              </p>
+          <div className="mt-4 rounded-lg bg-gray-50 p-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <span className="label mb-0">{t.admin.settings.marksTitle}</span>
+              <button
+                type="button"
+                onClick={fillBrandMarks}
+                disabled={brandFilling}
+                className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+              >
+                {brandFilling ? t.admin.settings.marksFilling : t.admin.settings.marksFill}
+              </button>
             </div>
+            <p className="mb-3 mt-1 text-xs text-gray-400">{t.admin.settings.marksFillHint}</p>
 
-            {form.images.watermark.style === 'marks' && (
-              <div className="rounded-lg bg-gray-50 p-4">
-                <span className="label">{t.admin.settings.marksTitle}</span>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {(
-                    [
-                      ['frameMark', t.admin.settings.frameMark],
-                      ['websiteMark', t.admin.settings.websiteMark],
-                      ['logoMark', t.admin.settings.logoMark],
-                      ['phoneMark', t.admin.settings.phoneMark],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <SingleImage
-                      key={key}
-                      label={label}
-                      value={form.images.watermark[key]}
-                      onChange={(url) =>
-                        setForm({
-                          ...form,
-                          images: {
-                            ...form.images,
-                            watermark: { ...form.images.watermark, [key]: url },
-                          },
-                        })
-                      }
-                    />
-                  ))}
-                </div>
-                <p className="mt-2 text-xs text-gray-400">{t.admin.settings.marksHint}</p>
-              </div>
-            )}
-
-            {form.images.watermark.style !== 'marks' && (
-              <>
-            <div>
-              <label className="label">{t.admin.settings.watermarkText}</label>
-              <input
-                className="input"
-                placeholder={form.companyName}
-                value={form.images.watermark.text}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    images: {
-                      ...form.images,
-                      watermark: { ...form.images.watermark, text: e.target.value },
-                    },
-                  })
-                }
-              />
-              <p className="mt-1 text-xs text-gray-400">{t.admin.settings.watermarkTextHint}</p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div>
-                <label className="label">{t.admin.settings.watermarkPosition}</label>
-                <select
-                  className="input"
-                  value={form.images.watermark.position}
-                  onChange={(e) =>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {BRAND_ARTWORK.map(([key, , label]) => (
+                <SingleImage
+                  key={key}
+                  label={label()}
+                  value={form.images.watermark[key]}
+                  onChange={(url) =>
                     setForm({
                       ...form,
                       images: {
                         ...form.images,
-                        watermark: {
-                          ...form.images.watermark,
-                          position: e.target.value as Settings['images']['watermark']['position'],
-                        },
-                      },
-                    })
-                  }
-                >
-                  <option value="bottom-right">{t.admin.settings.posBottomRight}</option>
-                  <option value="bottom-left">{t.admin.settings.posBottomLeft}</option>
-                  <option value="top-right">{t.admin.settings.posTopRight}</option>
-                  <option value="top-left">{t.admin.settings.posTopLeft}</option>
-                  <option value="center">{t.admin.settings.posCenter}</option>
-                </select>
-              </div>
-              <div>
-                <label className="label">{t.admin.settings.watermarkFont}</label>
-                <select
-                  className="input"
-                  style={{ fontFamily: form.images.watermark.fontFamily }}
-                  value={form.images.watermark.fontFamily}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      images: {
-                        ...form.images,
-                        watermark: {
-                          ...form.images.watermark,
-                          fontFamily: e.target.value as Settings['images']['watermark']['fontFamily'],
-                        },
-                      },
-                    })
-                  }
-                >
-                  <option value="Arial" style={{ fontFamily: 'Arial' }}>Arial</option>
-                  <option value="Verdana" style={{ fontFamily: 'Verdana' }}>Verdana</option>
-                  <option value="Impact" style={{ fontFamily: 'Impact' }}>Impact</option>
-                  <option value="Georgia" style={{ fontFamily: 'Georgia' }}>Georgia</option>
-                  <option value="Montserrat" style={{ fontFamily: 'Montserrat' }}>Montserrat</option>
-                </select>
-              </div>
-              {/* Font size and opacity used to live here. The watermark is now
-                  sized as a share of each photo's width and drawn as a solid
-                  chip, so neither had any effect — showing them only made the
-                  watermark look impossible to control. */}
-              <div>
-                <label className="label">{t.admin.settings.watermarkColor}</label>
-                <input
-                  type="color"
-                  className="input h-[42px] p-1"
-                  value={form.images.watermark.color}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      images: {
-                        ...form.images,
-                        watermark: { ...form.images.watermark, color: e.target.value },
+                        watermark: { ...form.images.watermark, [key]: url },
                       },
                     })
                   }
                 />
-              </div>
+              ))}
             </div>
-              </>
+
+            {brandNote && (
+              <p className="mt-2 text-xs font-medium text-green-600">{brandNote}</p>
             )}
+            {brandError && <p className="mt-2 text-xs text-accent">{brandError}</p>}
+            <p className="mt-2 text-xs text-gray-400">{t.admin.settings.marksHint}</p>
           </div>
         )}
       </Card>

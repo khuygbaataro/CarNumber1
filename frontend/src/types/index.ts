@@ -69,8 +69,6 @@ export type WatermarkPosition =
 
 export type WatermarkFont = 'Arial' | 'Verdana' | 'Impact' | 'Georgia' | 'Montserrat';
 
-export type WatermarkStyle = 'classic' | 'marks';
-
 export interface WatermarkConfig {
   enabled: boolean;
   text: string; // empty → falls back to companyName
@@ -79,8 +77,7 @@ export interface WatermarkConfig {
   fontSize: number;
   opacity: number; // 0–100
   color: string;
-  /** 'marks' uses the three brand overlays below instead of logo+chip+frame. */
-  style: WatermarkStyle;
+  /** The brand overlays. Set, they replace everything above. */
   frameMark: string;
   logoMark: string;
   phoneMark: string;

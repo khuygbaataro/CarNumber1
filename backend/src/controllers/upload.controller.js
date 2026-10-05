@@ -160,10 +160,10 @@ const buildImageTransformation = (settings, watermark) => {
   const wm = cfg.watermark || {};
   if (!watermark || wm.enabled === false) return transformation;
 
-  // The brand marks replace the whole classic composition — no chip, no
-  // frame. If none is configured yet the classic one still runs, so turning
-  // the style on before uploading the artwork cannot leave photos bare.
-  if (wm.style === 'marks' && pushBrandMarks(transformation, wm)) return transformation;
+  // The brand marks are the watermark. The classic composition below is
+  // kept only as a floor: with no artwork configured it still puts the
+  // company on a photo, rather than publishing it bare.
+  if (pushBrandMarks(transformation, wm)) return transformation;
 
   const brand = hexColor(wm.color, 'b3121b');
   const gravity = POSITION_GRAVITY[wm.position] || 'south_west';

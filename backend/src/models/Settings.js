@@ -42,10 +42,9 @@ const settingsSchema = new mongoose.Schema(
         fontSize: { type: Number, default: 48 },
         opacity: { type: Number, default: 40 }, // 0–100
         color: { type: String, default: '#FFFFFF' },
-        // 'marks' switches to the brand overlay set below — website pill top
-        // centre, logo bottom left, phone pill bottom right, no frame. Left
-        // on 'classic' every existing photo and upload behaves as before.
-        style: { type: String, default: 'classic' }, // classic | marks
+        // The brand overlay set: gold frame, website pill top centre, logo
+        // bottom left, phone pill bottom right. Configured artwork is what
+        // switches it on; the fields above are the fallback when there is none.
         frameMark: { type: String, default: '' }, // Cloudinary URL
         logoMark: { type: String, default: '' }, // Cloudinary URL
         phoneMark: { type: String, default: '' }, // Cloudinary URL
