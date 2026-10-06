@@ -77,7 +77,7 @@ const DESIGN_H = 771;
 const FIT_HEADROOM = 1.06;
 const BRAND_MARKS = [
   { key: 'websiteMark', w: 272.8, h: 47, gravity: 'north', x: 0, y: 22 },
-  { key: 'logoMark', w: 150, h: 118.5, gravity: 'south_west', x: 30, y: 28 },
+  { key: 'logoMark', w: 180, h: 142.3, gravity: 'south_west', x: 30, y: 28 },
   { key: 'phoneMark', w: 258, h: 50, gravity: 'south_east', x: 44, y: 40 },
 ];
 
