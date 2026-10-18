@@ -109,9 +109,9 @@ export default function ImageGallery({
               {/* The strip is 80-96px wide, but asking for exactly that leaves the
                   watermark a smudge on a 2x screen: the pills and logo are a
                   fraction of the photo, and at 96px there is nothing left of
-                  them to resolve. Asking for 2x costs a few KB and keeps the
-                  marks reading as marks. */}
-              <Image src={src} alt="" fill sizes="192px" className="object-cover" />
+                  them to resolve. 256 is the next width Next.js actually
+                  serves, and it keeps the marks reading as marks. */}
+              <Image src={src} alt="" fill sizes="256px" className="object-cover" />
             </button>
           ))}
         </div>
