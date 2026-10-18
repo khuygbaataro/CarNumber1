@@ -1,5 +1,6 @@
 const ApiError = require('../utils/ApiError');
 const Vehicle = require('../models/Vehicle');
+const { stampBareImages } = require('./rewatermark.controller');
 
 // Whitelist of sort options the client may request.
 const SORT_MAP = {
@@ -179,6 +180,9 @@ const getVehicle = async (req, res, next) => {
 // POST /api/vehicles  (protected)
 const createVehicle = async (req, res, next) => {
   try {
+    if (req.body && req.body.images) {
+      req.body.images = await stampBareImages(req.body.images);
+    }
     const vehicle = await Vehicle.create(req.body);
     res.status(201).json({ success: true, data: vehicle });
   } catch (error) {
@@ -189,6 +193,9 @@ const createVehicle = async (req, res, next) => {
 // PUT /api/vehicles/:id  (protected)
 const updateVehicle = async (req, res, next) => {
   try {
+    if (req.body && req.body.images) {
+      req.body.images = await stampBareImages(req.body.images);
+    }
     const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,

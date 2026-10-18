@@ -38,6 +38,43 @@ const partsOf = (url) => {
   };
 };
 
+/** True when a delivery url carries no transformation at all. */
+const isBare = (url) => {
+  const cut = String(url || '').indexOf('/upload/');
+  if (cut === -1) return false;
+  // The version is the first segment, so nothing sits between it and
+  // /upload/ — the url is the raw original.
+  return /^v\d+\//.test(url.slice(cut + '/upload/'.length));
+};
+
+/** The same photo with `transformation` applied. Null when it cannot be read. */
+const stamp = (url, transformation) => {
+  const parts = partsOf(url);
+  if (!parts) return null;
+  return cloudinary.url(parts.publicId, {
+    transformation,
+    version: parts.version,
+    ...(parts.format ? { format: parts.format } : {}),
+    secure: true,
+  });
+};
+
+/**
+ * Stamps any photo that arrived with no watermark at all.
+ *
+ * Every upload path is supposed to hand back a watermarked url, but a car
+ * saved before that was true — or by some future path that forgets — would
+ * sit in the catalogue bare, and nothing would say so. Photos that already
+ * carry a watermark are left alone: bringing those up to date is a
+ * deliberate act, and it has its own button.
+ */
+const stampBareImages = async (images) => {
+  if (!Array.isArray(images) || !images.some(isBare)) return images;
+  const settings = await Settings.getSingleton();
+  const transformation = buildImageTransformation(settings, true);
+  return images.map((url) => (isBare(url) ? stamp(url, transformation) || url : url));
+};
+
 // POST /api/vehicles/rewatermark  (protected)
 const rewatermarkVehicles = async (req, res, next) => {
   try {
@@ -58,12 +95,7 @@ const rewatermarkVehicles = async (req, res, next) => {
           return url;
         }
         images++;
-        return cloudinary.url(parts.publicId, {
-          transformation,
-          version: parts.version,
-          ...(parts.format ? { format: parts.format } : {}),
-          secure: true,
-        });
+        return stamp(url, transformation) || url;
       });
 
       if (rebuilt.some((url, i) => url !== current[i])) {
@@ -82,4 +114,4 @@ const rewatermarkVehicles = async (req, res, next) => {
   }
 };
 
-module.exports = { rewatermarkVehicles, partsOf };
+module.exports = { rewatermarkVehicles, partsOf, isBare, stampBareImages };
