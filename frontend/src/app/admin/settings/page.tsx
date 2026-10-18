@@ -34,8 +34,27 @@ export default function AdminSettingsPage() {
   const [error, setError] = useState('');
   const [termText, setTermText] = useState('12, 24, 36');
   const [brandFilling, setBrandFilling] = useState(false);
+  const [restamping, setRestamping] = useState(false);
   const [brandNote, setBrandNote] = useState('');
   const [brandError, setBrandError] = useState('');
+
+  // Brings photos uploaded under an older watermark up to the current one.
+  // The watermark lives in the delivery url, not the file, so this rewrites
+  // urls — no photo is re-uploaded and the run can be repeated safely.
+  const restampPhotos = async () => {
+    if (!window.confirm(t.admin.settings.rewatermarkConfirm)) return;
+    setRestamping(true);
+    setBrandNote('');
+    setBrandError('');
+    try {
+      const r = await adminApi.rewatermarkVehicles();
+      setBrandNote(t.admin.settings.rewatermarkDone(r.updated, r.images));
+    } catch (e) {
+      setBrandError(uploadErrorMessage(e));
+    } finally {
+      setRestamping(false);
+    }
+  };
 
   // Fetches the bundled artwork and uploads all four in one request, so the
   // four fields fill from a single click. The form is left dirty on purpose:
@@ -444,6 +463,22 @@ export default function AdminSettingsPage() {
             )}
             {brandError && <p className="mt-2 text-xs text-accent">{brandError}</p>}
             <p className="mt-2 text-xs text-gray-400">{t.admin.settings.marksHint}</p>
+
+            <div className="mt-4 border-t border-gray-200 pt-3">
+              <button
+                type="button"
+                onClick={restampPhotos}
+                disabled={restamping}
+                className="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-gray-900 disabled:opacity-60"
+              >
+                {restamping
+                  ? t.admin.settings.rewatermarking
+                  : t.admin.settings.rewatermark}
+              </button>
+              <p className="mt-1 text-xs text-gray-400">
+                {t.admin.settings.rewatermarkHint}
+              </p>
+            </div>
           </div>
         )}
       </Card>

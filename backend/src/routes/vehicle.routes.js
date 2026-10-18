@@ -10,6 +10,7 @@ const {
   updateStatus,
   deleteVehicle,
 } = require('../controllers/vehicle.controller');
+const { rewatermarkVehicles } = require('../controllers/rewatermark.controller');
 const { protect } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -23,6 +24,8 @@ router.get('/:id', getVehicle);
 
 // Admin
 router.post('/', protect, createVehicle);
+// Brings every existing photo up to the current watermark. Safe to re-run.
+router.post('/rewatermark', protect, rewatermarkVehicles);
 router.put('/:id', protect, updateVehicle);
 router.patch('/:id/status', protect, updateStatus);
 router.delete('/:id', protect, deleteVehicle);

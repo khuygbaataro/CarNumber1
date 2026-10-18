@@ -91,6 +91,13 @@ export const adminApi = {
     request<Lead>(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   deleteLead: (id: string) => request<unknown>(`/leads/${id}`, { method: 'DELETE' }),
 
+  /** Re-stamps every existing photo with the current watermark. Re-runnable. */
+  rewatermarkVehicles: () =>
+    request<{ vehicles: number; updated: number; images: number; skipped: number }>(
+      '/vehicles/rewatermark',
+      { method: 'POST' }
+    ),
+
   // watermark=true bakes the configured text watermark in (vehicle photos only).
   uploadImages: (files: File[], watermark = false) => {
     const fd = new FormData();
