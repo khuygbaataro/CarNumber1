@@ -106,7 +106,12 @@ export default function ImageGallery({
                   : 'opacity-70 ring-transparent hover:opacity-100 hover:ring-gray-300'
               }`}
             >
-              <Image src={src} alt="" fill sizes="96px" className="object-cover" />
+              {/* The strip is 80-96px wide, but asking for exactly that leaves the
+                  watermark a smudge on a 2x screen: the pills and logo are a
+                  fraction of the photo, and at 96px there is nothing left of
+                  them to resolve. Asking for 2x costs a few KB and keeps the
+                  marks reading as marks. */}
+              <Image src={src} alt="" fill sizes="192px" className="object-cover" />
             </button>
           ))}
         </div>
