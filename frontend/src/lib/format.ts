@@ -39,6 +39,23 @@ export const formatYearShort = (year?: number, month?: number | null): string =>
   return mo >= 1 && mo <= 12 ? `${yr}/${String(mo).padStart(2, '0')}` : String(yr);
 };
 
+/**
+ * When a car was added, for a list that is read days and weeks later.
+ *
+ * "13 минутын өмнө" answers a question nobody asks about a car sold in July;
+ * a date does. Inside a day the relative form is still the friendlier one —
+ * that is the window where "2 цагийн өмнө" is what the eye wants.
+ */
+export const formatAdded = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const then = new Date(dateStr);
+  const ms = then.getTime();
+  if (!Number.isFinite(ms)) return '';
+  if (Date.now() - ms < 24 * 60 * 60 * 1000) return formatTimeAgo(dateStr);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${then.getFullYear()}.${pad(then.getMonth() + 1)}.${pad(then.getDate())}`;
+};
+
 // How long ago something was added, in Mongolian. Within 24h it reads in
 // hours/minutes; once a full day passes it flips to "N өдрийн өмнө".
 export const formatTimeAgo = (dateStr?: string): string => {

@@ -4,7 +4,7 @@ import { LoanConfig, Vehicle } from '@/types';
 import {
   formatPriceShort,
   formatMileage,
-  formatTimeAgo,
+  formatAdded,
   formatYear,
 } from '@/lib/format';
 import {
@@ -132,7 +132,7 @@ export default function VehicleCard({
 
         {(vehicle.updatedAt || vehicle.createdAt) && (
           <p className="mt-3 text-[11px] text-gray-400">
-            {formatTimeAgo(vehicle.updatedAt || vehicle.createdAt)}
+            {formatAdded(vehicle.createdAt)}
           </p>
         )}
       </div>

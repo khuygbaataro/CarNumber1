@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { adminApi } from '@/lib/adminApi';
 import { Vehicle, VehicleStatus } from '@/types';
-import { formatPrice, formatTimeAgo } from '@/lib/format';
+import { formatAdded, formatPrice } from '@/lib/format';
 import { brandKey, groupByBrand, groupByCategory } from '@/lib/vehicle';
 import { t } from '@/lib/labels';
 import PosterModal from '@/components/admin/PosterModal';
@@ -478,7 +478,7 @@ export default function AdminVehiclesPage() {
                       </button>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                      {formatTimeAgo(v.updatedAt || v.createdAt)}
+                      {formatAdded(v.createdAt)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
