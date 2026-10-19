@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { getSettingsSafe } from '@/lib/api';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' });
 
@@ -33,7 +34,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="mn" className={inter.variable}>
-      <body className="min-h-screen bg-gray-50 text-gray-900">{children}</body>
+      <body className="min-h-screen bg-gray-50 text-gray-900">
+        {children}
+        {/* Vercel Web Analytics. The dashboard counts nothing until this
+            script is on the page — which is why it read zero while the site
+            was plainly being visited. */}
+        <Analytics />
+      </body>
     </html>
   );
 }
