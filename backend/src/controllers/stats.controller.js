@@ -40,7 +40,7 @@ const getTraffic = async (req, res, next) => {
     // an hour with no visitors has no row, and a chart with holes in it reads
     // as broken data rather than a quiet hour.
     const unit = bucket === 'hour' ? 'hour' : 'day';
-    const [series, totals, topVehicles] = await Promise.all([
+    const [series, totals, carViews, topVehicles] = await Promise.all([
       PageView.aggregate([
         { $match: { at: { $gte: since } } },
         {
@@ -55,19 +55,23 @@ const getTraffic = async (req, res, next) => {
       ]),
       PageView.aggregate([
         { $match: { at: { $gte: since } } },
-        {
-          $group: {
-            _id: null,
-            views: { $sum: 1 },
-            visitors: { $addToSet: '$visitor' },
-            carViews: { $sum: { $cond: [{ $ifNull: ['$vehicle', false] }, 1, 0] } },
-          },
-        },
-        { $project: { _id: 0, views: 1, carViews: 1, visitors: { $size: '$visitors' } } },
+        { $group: { _id: null, views: { $sum: 1 }, visitors: { $addToSet: '$visitor' } } },
+        { $project: { _id: 0, views: 1, visitors: { $size: '$visitors' } } },
       ]),
+      // Each person counts once per car. Opening the same Prius five times is
+      // one person interested in one car, and counting it five times turns a
+      // refresh into demand that is not there.
       PageView.aggregate([
         { $match: { at: { $gte: since }, vehicle: { $ne: null } } },
-        { $group: { _id: '$vehicle', views: { $sum: 1 } } },
+        { $group: { _id: { car: '$vehicle', visitor: '$visitor' } } },
+        { $count: 'n' },
+      ]),
+      // Same rule for the leaderboard, where it matters most: one person
+      // reloading a car all afternoon would otherwise put it top.
+      PageView.aggregate([
+        { $match: { at: { $gte: since }, vehicle: { $ne: null } } },
+        { $group: { _id: { car: '$vehicle', visitor: '$visitor' } } },
+        { $group: { _id: '$_id.car', views: { $sum: 1 } } },
         { $sort: { views: -1 } },
         { $limit: 6 },
       ]),
@@ -94,7 +98,7 @@ const getTraffic = async (req, res, next) => {
       data: {
         window: key,
         bucket: unit,
-        totals: totals[0] || { views: 0, visitors: 0, carViews: 0 },
+        totals: { ...(totals[0] || { views: 0, visitors: 0 }), carViews: carViews[0]?.n || 0 },
         points,
         topVehicles: topVehicles
           .map((row) => {
