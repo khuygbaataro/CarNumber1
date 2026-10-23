@@ -8,6 +8,7 @@ const vehicleRoutes = require('./routes/vehicle.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const leadRoutes = require('./routes/lead.routes');
+const statsRoutes = require('./routes/stats.routes');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/leads', leadRoutes);
+app.use('/api/stats', statsRoutes);
 
 // --- Errors ---
 app.use(notFound);

@@ -24,6 +24,25 @@ export interface Vehicle {
   updatedAt: string;
 }
 
+export type TrafficWindow = 'day' | 'week' | 'month';
+
+export interface TrafficPoint {
+  at: string;
+  views: number;
+  visitors: number;
+}
+
+export interface TrafficStats {
+  window: TrafficWindow;
+  /** Whether a point is an hour or a day. */
+  bucket: 'hour' | 'day';
+  totals: { views: number; visitors: number; carViews: number };
+  points: TrafficPoint[];
+  topVehicles: (Pick<Vehicle, '_id' | 'brand' | 'model' | 'images' | 'price'> & {
+    views: number;
+  })[];
+}
+
 export interface Pagination {
   total: number;
   page: number;

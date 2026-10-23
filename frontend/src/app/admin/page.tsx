@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/adminApi';
+import TrafficPanel from '@/components/admin/TrafficPanel';
 import { Vehicle } from '@/types';
 import { t } from '@/lib/labels';
 
@@ -52,6 +53,10 @@ export default function AdminDashboard() {
             </p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-6">
+        <TrafficPanel />
       </div>
 
       <div className="mt-6">

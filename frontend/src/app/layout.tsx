@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { getSettingsSafe } from '@/lib/api';
 import { Analytics } from '@vercel/analytics/next';
+import TrackView from '@/components/public/TrackView';
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' });
 
@@ -40,6 +41,7 @@ export default function RootLayout({
             script is on the page — which is why it read zero while the site
             was plainly being visited. */}
         <Analytics />
+        <TrackView />
       </body>
     </html>
   );

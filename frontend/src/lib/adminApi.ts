@@ -4,6 +4,8 @@ import {
   Lead,
   Settings,
   Vehicle,
+  TrafficStats,
+  TrafficWindow,
   VehicleFormData,
   VehicleListResponse,
 } from '@/types';
@@ -90,6 +92,10 @@ export const adminApi = {
   setLeadStatus: (id: string, status: 'new' | 'contacted') =>
     request<Lead>(`/leads/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   deleteLead: (id: string) => request<unknown>(`/leads/${id}`, { method: 'DELETE' }),
+
+  /** Public-site traffic for the dashboard. */
+  getTraffic: (window: TrafficWindow) =>
+    request<TrafficStats>(`/stats/traffic?window=${window}`),
 
   /** Re-stamps every existing photo with the current watermark. Re-runnable. */
   rewatermarkVehicles: () =>
