@@ -37,7 +37,7 @@ export default function TrafficPanel() {
   const points = data?.points ?? [];
   // One shared ceiling, so a quiet hour reads as quiet rather than being
   // stretched to the same height as a busy one.
-  const peak = Math.max(1, ...points.map((p) => p.views));
+  const peak = Math.max(1, ...points.map((p) => p.visitors));
 
   const tick = (at: string) => {
     const d = new Date(at);
@@ -68,10 +68,9 @@ export default function TrafficPanel() {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3">
         {[
           { label: t.admin.dashboard.visitors, value: data?.totals.visitors },
-          { label: t.admin.dashboard.views, value: data?.totals.views },
           { label: t.admin.dashboard.carViews, value: data?.totals.carViews },
         ].map((s) => (
           <div key={s.label} className="rounded-lg bg-gray-50 px-3 py-3">
@@ -89,20 +88,20 @@ export default function TrafficPanel() {
         <>
           <div className="mt-5 flex h-36 items-end gap-[3px]">
             {points.map((p, i) => {
-              const h = Math.round((p.views / peak) * 100);
+              const h = Math.round((p.visitors / peak) * 100);
               return (
                 <div
                   key={p.at}
                   className="group relative flex-1"
-                  title={`${tick(p.at)} · ${p.views} ${t.admin.dashboard.views.toLowerCase()}`}
+                  title={`${tick(p.at)} · ${p.visitors} ${t.admin.dashboard.visitors.toLowerCase()}`}
                 >
                   <div
                     className={`w-full rounded-t transition-all ${
-                      p.views ? 'bg-brand' : 'bg-gray-200'
+                      p.visitors ? 'bg-brand' : 'bg-gray-200'
                     }`}
                     // Empty buckets still get a sliver, so the axis reads as a
                     // continuous run of time rather than a gap in the data.
-                    style={{ height: `${Math.max(h, p.views ? 6 : 2)}%` }}
+                    style={{ height: `${Math.max(h, p.visitors ? 6 : 2)}%` }}
                   />
                   {i % Math.ceil(points.length / 6) === 0 && (
                     <span className="absolute left-0 top-full mt-1 whitespace-nowrap text-[10px] text-gray-400">
@@ -115,7 +114,7 @@ export default function TrafficPanel() {
           </div>
           <div className="h-5" />
 
-          {!loading && data?.totals.views === 0 && (
+          {!loading && data?.totals.visitors === 0 && (
             <p className="mt-2 rounded-lg bg-gray-50 px-3 py-3 text-center text-sm text-gray-500">
               {t.admin.dashboard.noTraffic}
             </p>
@@ -152,7 +151,6 @@ export default function TrafficPanel() {
         </>
       )}
 
-      <p className="mt-4 text-xs text-gray-400">{t.admin.dashboard.trafficHint}</p>
     </section>
   );
 }
