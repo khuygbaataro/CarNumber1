@@ -58,20 +58,17 @@ const getTraffic = async (req, res, next) => {
         { $group: { _id: null, views: { $sum: 1 }, visitors: { $addToSet: '$visitor' } } },
         { $project: { _id: 0, views: 1, visitors: { $size: '$visitors' } } },
       ]),
-      // Each person counts once per car. Opening the same Prius five times is
-      // one person interested in one car, and counting it five times turns a
-      // refresh into demand that is not there.
+      // Every opening counts, repeats included: this is how often a car was
+      // looked at, not how many people looked at it. The same person coming
+      // back to a car twice is two looks, which is the reading asked for —
+      // and it keeps the per-car numbers below adding up to this total.
       PageView.aggregate([
         { $match: { at: { $gte: since }, vehicle: { $ne: null } } },
-        { $group: { _id: { car: '$vehicle', visitor: '$visitor' } } },
         { $count: 'n' },
       ]),
-      // Same rule for the leaderboard, where it matters most: one person
-      // reloading a car all afternoon would otherwise put it top.
       PageView.aggregate([
         { $match: { at: { $gte: since }, vehicle: { $ne: null } } },
-        { $group: { _id: { car: '$vehicle', visitor: '$visitor' } } },
-        { $group: { _id: '$_id.car', views: { $sum: 1 } } },
+        { $group: { _id: '$vehicle', views: { $sum: 1 } } },
         { $sort: { views: -1 } },
         { $limit: 6 },
       ]),
