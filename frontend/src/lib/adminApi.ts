@@ -34,7 +34,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
-    if (res.status === 401) clearToken();
+    // An expired token used to be cleared and nothing more, so the panel
+    // stayed open: the public endpoints kept answering and only the
+    // protected ones failed, which reads as a broken page rather than a
+    // finished session. Sign-in itself is exempt — a wrong password is a
+    // 401 too, and bouncing the login page to itself helps nobody.
+    if (res.status === 401 && path !== '/auth/login') {
+      clearToken();
+      if (typeof window !== 'undefined') window.location.replace('/admin/login');
+    }
     throw new ApiError(res.status, json.message || `Алдаа (${res.status})`);
   }
   return json.data as T;
