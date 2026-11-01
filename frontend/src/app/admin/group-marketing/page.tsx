@@ -148,7 +148,7 @@ export default function GroupMarketingPage() {
         <div className="border-t border-gray-200 pt-4">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <span className="label mb-0">{t.admin.groupMarketing.selectTitle}</span>
-            <span className="text-sm font-bold text-brand">
+            <span className="text-sm font-bold text-brand-800">
               {t.admin.groupMarketing.chosenCount(chosen.length)}
             </span>
           </div>

@@ -48,7 +48,7 @@ export default function AdminDashboard() {
         {stats.map((s) => (
           <div key={s.label} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
             <p className="text-sm text-gray-500">{s.label}</p>
-            <p className="mt-1 text-3xl font-bold text-brand">
+            <p className="mt-1 text-3xl font-bold text-brand-800">
               {loading ? '—' : s.value}
             </p>
           </div>

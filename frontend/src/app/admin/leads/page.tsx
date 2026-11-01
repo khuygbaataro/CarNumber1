@@ -99,7 +99,7 @@ export default function AdminLeadsPage() {
                   >
                     <td className="px-4 py-3 font-medium text-gray-900">{lead.name}</td>
                     <td className="px-4 py-3">
-                      <a href={`tel:${lead.phone}`} className="text-brand hover:underline">
+                      <a href={`tel:${lead.phone}`} className="text-brand-800 hover:underline">
                         {lead.phone}
                       </a>
                     </td>

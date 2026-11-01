@@ -86,7 +86,7 @@ export default async function VehicleDetailPage({ params }: Props) {
     <div className="container-page py-6 sm:py-8">
       <Link
         href="/vehicles"
-        className="group inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-brand hover:text-brand hover:shadow-md"
+        className="group inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-brand hover:text-brand-800 hover:shadow-md"
       >
         <svg
           width="16"
@@ -170,7 +170,7 @@ export default async function VehicleDetailPage({ params }: Props) {
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-brand/60">
                   {t.common.downPayment} {effectiveDown}%
                 </span>
-                <span className="text-lg font-bold text-brand">
+                <span className="text-lg font-bold text-brand-800">
                   {formatPriceShort(downAmount)}
                 </span>
               </div>
@@ -179,7 +179,7 @@ export default async function VehicleDetailPage({ params }: Props) {
                   <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-brand/60">
                     {t.common.monthlyShort} · {term} {t.common.months}
                   </span>
-                  <span className="text-base font-bold text-brand">
+                  <span className="text-base font-bold text-brand-800">
                     {formatPriceShort(schedule.monthly)}
                   </span>
                 </div>

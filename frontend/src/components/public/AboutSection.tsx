@@ -17,7 +17,7 @@ export default function AboutSection({ settings }: { settings: Settings }) {
           </>
         )}
         {settings.workingHours && (
-          <p className="mt-7 inline-flex items-center gap-2 rounded-full bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand">
+          <p className="mt-7 inline-flex items-center gap-2 rounded-full bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-800">
             <span aria-hidden>🕒</span>
             {t.home.workingHours}: {settings.workingHours}
           </p>

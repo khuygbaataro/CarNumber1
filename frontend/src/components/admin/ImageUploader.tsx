@@ -128,7 +128,7 @@ export default function ImageUploader({
               className="pointer-events-none object-cover"
             />
             {i === 0 && (
-              <span className="absolute bottom-0 left-0 right-0 bg-brand/80 py-0.5 text-center text-[10px] text-white">
+              <span className="absolute bottom-0 left-0 right-0 bg-brand/80 py-0.5 text-center text-[10px] text-gray-950">
                 Нүүр
               </span>
             )}
@@ -147,7 +147,7 @@ export default function ImageUploader({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex h-24 w-24 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-xs text-gray-500 hover:border-brand hover:text-brand disabled:opacity-60"
+          className="flex h-24 w-24 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-xs text-gray-500 hover:border-brand hover:text-brand-800 disabled:opacity-60"
         >
           {uploading ? t.admin.upload.uploading : t.admin.upload.selectImages}
         </button>

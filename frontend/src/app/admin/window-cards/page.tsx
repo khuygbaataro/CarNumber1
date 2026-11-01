@@ -111,7 +111,7 @@ export default function WindowCardsPage() {
                   onClick={() => setShape(option.key)}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                     shape === option.key
-                      ? 'bg-brand text-white'
+                      ? 'bg-brand text-gray-950'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -136,7 +136,7 @@ export default function WindowCardsPage() {
           <div className="border-t border-gray-200 pt-4">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <span className="label mb-0">{t.admin.windowCards.selectTitle}</span>
-              <span className="text-sm font-bold text-brand">
+              <span className="text-sm font-bold text-brand-800">
                 {picked.size
                   ? t.admin.windowCards.willPrintSome(cards.length)
                   : t.admin.windowCards.willPrintAll(cards.length)}

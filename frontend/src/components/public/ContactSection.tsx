@@ -154,14 +154,14 @@ export default async function ContactSection({ settings }: { settings: Settings 
               rel="noopener noreferrer"
               className="group rounded-2xl bg-gray-50 p-5 text-center ring-1 ring-gray-200 transition hover:bg-white hover:shadow-card hover:ring-brand"
             >
-              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand">
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
                 <PinIcon />
               </span>
               <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
                 {t.contact.address}
               </p>
               <p className="mt-1 font-bold text-gray-900">{contact.address}</p>
-              <p className="mt-1 text-xs font-medium text-brand">{t.contact.viewMap}</p>
+              <p className="mt-1 text-xs font-medium text-brand-800">{t.contact.viewMap}</p>
             </a>
           )}
         </div>
@@ -196,7 +196,7 @@ export default async function ContactSection({ settings }: { settings: Settings 
             href={mapHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-semibold text-brand hover:underline"
+            className="text-sm font-semibold text-brand-800 hover:underline"
           >
             {t.contact.viewMap}
           </a>

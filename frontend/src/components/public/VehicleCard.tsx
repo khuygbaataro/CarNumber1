@@ -116,7 +116,7 @@ export default function VehicleCard({
             <span className="text-[10px] font-semibold uppercase tracking-wide text-brand/60">
               {t.common.downPayment} {effectiveDown}%
             </span>
-            <span className="text-sm font-bold text-brand">
+            <span className="text-sm font-bold text-brand-800">
               {formatPriceShort(downAmount)}
             </span>
           </div>
@@ -124,7 +124,7 @@ export default function VehicleCard({
             <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-brand/60">
               {t.common.monthlyShort} · {term} {t.common.months}
             </span>
-            <span className="text-[13px] font-bold text-brand">
+            <span className="text-[13px] font-bold text-brand-800">
               {formatPriceShort(schedule.monthly)}
             </span>
           </div>

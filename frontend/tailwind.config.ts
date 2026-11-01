@@ -5,24 +5,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Full scale around the original brand blue. `DEFAULT`/`light`/`dark`
-        // are kept so every existing bg-brand / text-brand / hover:bg-brand-dark
-        // class keeps working exactly as before.
+        // The logo's gold. DEFAULT is the gold itself, for filled surfaces;
+        // it is far too light to read as text on white (about 2:1), so text
+        // uses 700/800, which are the same hue carried down to where it can
+        // be read. Anything sitting ON a brand fill takes near-black rather
+        // than white, the way the gold pill on the car photos does.
         brand: {
-          50: '#eff5ff',
-          100: '#dbe8fe',
-          200: '#bfd7fe',
-          300: '#93bbfd',
-          400: '#6096fa',
-          500: '#3b74f6',
-          600: '#2557eb',
-          700: '#1d43d8',
-          800: '#0b3d91',
-          900: '#0d2f6e',
-          950: '#081d45',
-          DEFAULT: '#0b3d91',
-          light: '#1e56c4',
-          dark: '#072a66',
+          50: '#fff8ec',
+          100: '#fff0d3',
+          200: '#ffdda6',
+          300: '#ffc46e',
+          400: '#fda534',
+          500: '#f7a21b',
+          600: '#dd8109',
+          700: '#b75d0a',
+          800: '#944910',
+          900: '#7a3d11',
+          950: '#461e05',
+          DEFAULT: '#f7a21b',
+          light: '#ffb845',
+          dark: '#dd8109',
         },
         accent: {
           50: '#fff1f3',

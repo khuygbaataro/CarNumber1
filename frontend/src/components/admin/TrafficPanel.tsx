@@ -58,7 +58,7 @@ export default function TrafficPanel() {
               onClick={() => setRange(w.key)}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
                 range === w.key
-                  ? 'bg-white text-brand shadow-sm'
+                  ? 'bg-white text-brand-800 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -75,7 +75,7 @@ export default function TrafficPanel() {
         ].map((s) => (
           <div key={s.label} className="rounded-lg bg-gray-50 px-3 py-3">
             <p className="text-xs text-gray-500">{s.label}</p>
-            <p className="mt-0.5 text-2xl font-bold text-brand">
+            <p className="mt-0.5 text-2xl font-bold text-brand-800">
               {loading || s.value === undefined ? '—' : formatNumber(s.value)}
             </p>
           </div>
@@ -138,7 +138,7 @@ export default function TrafficPanel() {
                         <span className="min-w-0 flex-1 truncate text-gray-900">
                           {v.brand} {name || v.model}
                         </span>
-                        <span className="shrink-0 font-semibold tabular-nums text-brand">
+                        <span className="shrink-0 font-semibold tabular-nums text-brand-800">
                           {formatNumber(v.views)}
                         </span>
                       </Link>

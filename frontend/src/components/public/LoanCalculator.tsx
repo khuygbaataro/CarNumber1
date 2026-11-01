@@ -110,7 +110,7 @@ export default function LoanCalculator({
               onClick={() => setTerm(m)}
               className={`min-h-[52px] min-w-[88px] flex-1 rounded-xl border text-center text-lg font-bold transition active:scale-[0.98] ${
                 m === term
-                  ? 'border-brand bg-brand text-white shadow-md'
+                  ? 'border-brand bg-brand text-gray-950 shadow-md'
                   : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:bg-brand-50'
               }`}
             >
@@ -134,7 +134,7 @@ export default function LoanCalculator({
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand/70">
             {t.loan.monthlyPayment} · {term} {t.loan.months}
           </p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight text-brand sm:text-4xl">
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-brand-800 sm:text-4xl">
             {formatPrice(schedule.monthly)}
           </p>
           <p className="mt-2 text-xs font-medium text-brand/70">{t.loan.equalNote}</p>

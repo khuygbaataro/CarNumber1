@@ -43,7 +43,7 @@ export default function Navbar({ settings }: { settings: Settings }) {
               priority
             />
           ) : (
-            <span className="text-lg font-bold tracking-tight text-brand">
+            <span className="text-lg font-bold tracking-tight text-brand-800">
               {settings.companyName}
             </span>
           )}
@@ -54,7 +54,7 @@ export default function Navbar({ settings }: { settings: Settings }) {
           {links.map((link) => {
             const cls = `rounded-lg px-3 py-2 text-sm font-medium transition ${
               isActive(link.href)
-                ? 'bg-brand-50 text-brand'
+                ? 'bg-brand-50 text-brand-800'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`;
             // Hash линк (/#contact) — native <a> найдвартай гүйнэ.
@@ -123,7 +123,7 @@ export default function Navbar({ settings }: { settings: Settings }) {
             {links.map((link) => {
               const cls = `rounded-lg px-3 py-3.5 text-sm font-semibold transition ${
                 isActive(link.href)
-                  ? 'bg-brand-50 text-brand'
+                  ? 'bg-brand-50 text-brand-800'
                   : 'text-gray-700 hover:bg-gray-50'
               }`;
               return link.href.includes('#') ? (

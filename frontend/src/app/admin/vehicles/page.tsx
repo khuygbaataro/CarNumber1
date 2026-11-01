@@ -267,7 +267,7 @@ export default function AdminVehiclesPage() {
             onClick={() => changeFilter(tab.key)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
               filter === tab.key
-                ? 'bg-brand text-white'
+                ? 'bg-brand text-gray-950'
                 : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -329,8 +329,8 @@ export default function AdminVehiclesPage() {
                   onClick={() => changeCategory(chip.key)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${
                     isActive
-                      ? 'border-brand bg-brand text-white shadow-sm'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand'
+                      ? 'border-brand bg-brand text-gray-950 shadow-sm'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand-800'
                   }`}
                 >
                   {chip.label}
@@ -378,7 +378,7 @@ export default function AdminVehiclesPage() {
               <button
                 type="button"
                 onClick={() => changeFilter('all')}
-                className="mt-3 text-sm font-semibold text-brand hover:underline"
+                className="mt-3 text-sm font-semibold text-brand-800 hover:underline"
               >
                 {t.admin.vehicles.searchInAll(counts.all)}
               </button>
@@ -485,7 +485,7 @@ export default function AdminVehiclesPage() {
                         <button
                           type="button"
                           onClick={() => setPoster(v)}
-                          className="rounded-md border border-brand/30 px-3 py-1 text-xs font-medium text-brand hover:bg-brand/5"
+                          className="rounded-md border border-brand/30 px-3 py-1 text-xs font-medium text-brand-800 hover:bg-brand/5"
                         >
                           {t.admin.vehicles.poster}
                         </button>

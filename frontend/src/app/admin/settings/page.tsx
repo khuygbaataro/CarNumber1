@@ -432,7 +432,7 @@ export default function AdminSettingsPage() {
                 type="button"
                 onClick={fillBrandMarks}
                 disabled={brandFilling}
-                className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+                className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-gray-950 transition hover:bg-brand-700 disabled:opacity-60"
               >
                 {brandFilling ? t.admin.settings.marksFilling : t.admin.settings.marksFill}
               </button>

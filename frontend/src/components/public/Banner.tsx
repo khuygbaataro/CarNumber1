@@ -56,7 +56,7 @@ export default function Banner({
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/vehicles"
-              className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-white px-7 text-base font-bold text-brand shadow-lg transition hover:bg-gray-100 active:scale-[0.98]"
+              className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-white px-7 text-base font-bold text-brand-800 shadow-lg transition hover:bg-gray-100 active:scale-[0.98]"
             >
               {t.cta.browse}
               <span aria-hidden>→</span>

@@ -58,7 +58,7 @@ export default function AdminNav() {
   return (
     <header className="border-b border-gray-200 bg-white print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-        <span className="text-lg font-bold text-brand">Админ</span>
+        <span className="text-lg font-bold text-brand-800">Админ</span>
 
         <nav className="flex flex-1 flex-wrap gap-1">
           {links.map((link) => (
@@ -67,7 +67,7 @@ export default function AdminNav() {
               href={link.href}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
                 isActive(link.href)
-                  ? 'bg-brand text-white'
+                  ? 'bg-brand text-gray-950'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -82,7 +82,7 @@ export default function AdminNav() {
               aria-expanded={open}
               aria-haspopup="menu"
               className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                inTools ? 'bg-brand text-white' : 'text-gray-600 hover:bg-gray-100'
+                inTools ? 'bg-brand text-gray-950' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               {t.admin.nav.tools}
@@ -103,7 +103,7 @@ export default function AdminNav() {
                     role="menuitem"
                     className={`block px-4 py-2 text-sm transition ${
                       isActive(link.href)
-                        ? 'bg-brand-50 font-semibold text-brand'
+                        ? 'bg-brand-50 font-semibold text-brand-800'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -118,7 +118,7 @@ export default function AdminNav() {
         <Link
           href="/"
           target="_blank"
-          className="text-sm font-medium text-gray-500 hover:text-brand"
+          className="text-sm font-medium text-gray-500 hover:text-brand-800"
         >
           {t.admin.nav.viewSite} ↗
         </Link>

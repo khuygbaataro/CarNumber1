@@ -29,8 +29,8 @@ export default function CategoryBrowser({ categories }: { categories: CategoryIn
   const chip = (isActive: boolean) =>
     `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${
       isActive
-        ? 'border-brand bg-brand text-white shadow-sm'
-        : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand'
+        ? 'border-brand bg-brand text-gray-950 shadow-sm'
+        : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand-800'
     }`;
 
   return (
@@ -64,7 +64,7 @@ export default function CategoryBrowser({ categories }: { categories: CategoryIn
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-brand hover:underline"
+          className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-brand-800 hover:underline"
         >
           {showAll ? 'Хураах' : 'Бүгдийг харах'}
           <svg

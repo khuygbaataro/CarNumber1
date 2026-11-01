@@ -29,7 +29,7 @@ export default function TestimonialsSection({
                 {item.text}
               </blockquote>
               <figcaption className="mt-5 flex items-center gap-3 border-t border-gray-100 pt-4">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold uppercase text-brand">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold uppercase text-brand-800">
                   {item.name?.trim().charAt(0) || '•'}
                 </span>
                 <span className="truncate text-sm font-semibold text-gray-900">

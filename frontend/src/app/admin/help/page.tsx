@@ -103,7 +103,7 @@ export default function AdminHelpPage() {
         ))}
 
         <div className="rounded-xl bg-blue-50 p-5 ring-1 ring-brand/20">
-          <h2 className="font-semibold text-brand">Анхаарах зүйлс</h2>
+          <h2 className="font-semibold text-brand-800">Анхаарах зүйлс</h2>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-gray-700">
             {notes.map((note, i) => (
               <li key={i}>{note}</li>

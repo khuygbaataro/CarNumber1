@@ -55,7 +55,7 @@ export default function VideoUploader({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-brand hover:text-brand disabled:opacity-60"
+          className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-brand hover:text-brand-800 disabled:opacity-60"
         >
           {uploading ? t.admin.upload.uploading : t.admin.upload.selectVideo}
         </button>

@@ -70,7 +70,7 @@ input[type='number'] {
   /* --- Buttons. Min height 44px everywhere so every tap target is
      comfortable on a phone. --- */
   .btn-primary {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-60 disabled:active:scale-100;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-gray-950 shadow-sm transition hover:bg-brand-dark active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-60 disabled:active:scale-100;
   }
 
   .btn-outline {
@@ -127,12 +127,12 @@ input[type='number'] {
   }
 
   .chip-active {
-    @apply border-brand bg-brand text-white hover:border-brand;
+    @apply border-brand bg-brand text-gray-950 hover:border-brand;
   }
 
   /* --- Section headings --- */
   .eyebrow {
-    @apply text-xs font-bold uppercase tracking-[0.14em] text-brand;
+    @apply text-xs font-bold uppercase tracking-[0.14em] text-brand-800;
   }
 
   .section-title {
