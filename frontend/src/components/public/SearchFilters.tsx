@@ -24,17 +24,47 @@ export default function SearchFilters() {
   };
 
   return (
-    <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
-      {SORT_KEYS.map((key) => (
-        <button
-          key={key}
-          type="button"
-          onClick={() => applySort(key)}
-          className={`chip shrink-0 ${sort === key ? 'chip-active' : ''}`}
+    <>
+      {/*
+        A phone gets one control. Four chips put a second row of choices
+        above the cars, and sorting is something you reach for once, not
+        something to keep on screen. The native select is deliberate: it
+        opens as the platform's own picker, which beats anything hand-built
+        at that size.
+      */}
+      <div className="relative sm:hidden">
+        <select
+          aria-label={t.vehicles.sortLabel}
+          value={sort}
+          onChange={(e) => applySort(e.target.value)}
+          className="min-h-[48px] w-full appearance-none rounded-xl border border-line bg-surface pl-4 pr-10 text-sm font-semibold text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25"
         >
-          {t.vehicles.sortOptions[key]}
-        </button>
-      ))}
-    </div>
+          {SORT_KEYS.map((key) => (
+            <option key={key} value={key}>
+              {t.vehicles.sortLabel}: {t.vehicles.sortOptions[key]}
+            </option>
+          ))}
+        </select>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted"
+        >
+          ▾
+        </span>
+      </div>
+
+      <div className="no-scrollbar hidden items-center gap-2 overflow-x-auto pb-1 sm:flex">
+        {SORT_KEYS.map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => applySort(key)}
+            className={`chip shrink-0 ${sort === key ? 'chip-active' : ''}`}
+          >
+            {t.vehicles.sortOptions[key]}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }

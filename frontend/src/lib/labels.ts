@@ -69,6 +69,7 @@ export const t = {
       reset: 'Цэвэрлэх',
       open: 'Шүүлт',
     },
+    sortLabel: 'Эрэмбэ',
     sortOptions: {
       newest: 'Шинэ эхэндээ',
       oldest: 'Хуучин эхэндээ',

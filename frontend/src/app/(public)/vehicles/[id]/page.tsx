@@ -202,7 +202,10 @@ export default async function VehicleDetailPage({ params }: Props) {
             <ContactActions settings={settings} />
           )}
 
-          <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-0 rounded-2xl bg-white px-5 py-2 ring-1 ring-gray-200">
+          {/* Cards rather than rows of a table: on a phone these four are
+              the specification, and a card each gives the value room to be
+              read at a glance instead of scanned down a column. */}
+          <dl className="mt-7 grid grid-cols-2 gap-3">
             <Spec label={t.detail.year} value={formatYear(vehicle.year, vehicle.month)} />
             <Spec label={t.detail.mileage} value={formatMileage(vehicle.mileage)} />
             <Spec label={t.detail.engine} value={vehicle.engine} />
@@ -295,9 +298,9 @@ function ContactActions({ settings }: { settings: Settings }) {
 function Spec({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
-    <div className="border-b border-gray-100 py-3 last:border-0">
-      <dt className="text-xs text-gray-500">{label}</dt>
-      <dd className="mt-0.5 text-sm font-semibold text-gray-900">{value}</dd>
+    <div className="rounded-xl border border-line bg-surface px-4 py-3">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="mt-0.5 text-[15px] font-bold text-ink">{value}</dd>
     </div>
   );
 }

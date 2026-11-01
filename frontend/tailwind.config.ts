@@ -5,27 +5,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // The logo's gold. DEFAULT is the gold itself, for filled surfaces;
-        // it is far too light to read as text on white (about 2:1), so text
-        // uses 700/800, which are the same hue carried down to where it can
-        // be read. Anything sitting ON a brand fill takes near-black rather
-        // than white, the way the gold pill on the car photos does.
+        // Every one of these reads a variable from globals.css — see the
+        // note there. The numbered steps are kept because the code already
+        // speaks in them, and each is pointed at the token that fits.
         brand: {
-          50: '#fff8ec',
-          100: '#fff0d3',
-          200: '#ffdda6',
-          300: '#ffc46e',
-          400: '#fda534',
-          500: '#f7a21b',
-          600: '#dd8109',
-          700: '#b75d0a',
-          800: '#944910',
-          900: '#7a3d11',
-          950: '#461e05',
-          DEFAULT: '#f7a21b',
-          light: '#ffb845',
-          dark: '#dd8109',
+          50: 'rgb(var(--brand-tint) / <alpha-value>)',
+          100: 'rgb(var(--brand-soft) / <alpha-value>)',
+          200: 'rgb(var(--brand-soft) / <alpha-value>)',
+          300: 'rgb(var(--brand) / <alpha-value>)',
+          400: 'rgb(var(--brand) / <alpha-value>)',
+          500: 'rgb(var(--brand) / <alpha-value>)',
+          600: 'rgb(var(--brand-hover) / <alpha-value>)',
+          700: 'rgb(var(--brand-ink) / <alpha-value>)',
+          800: 'rgb(var(--brand-text) / <alpha-value>)',
+          900: 'rgb(var(--brand-ink) / <alpha-value>)',
+          950: 'rgb(var(--brand-ink) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
+          light: 'rgb(var(--brand-soft) / <alpha-value>)',
+          dark: 'rgb(var(--brand-hover) / <alpha-value>)',
+          hover: 'rgb(var(--brand-hover) / <alpha-value>)',
+          soft: 'rgb(var(--brand-soft) / <alpha-value>)',
+          tint: 'rgb(var(--brand-tint) / <alpha-value>)',
+          ink: 'rgb(var(--brand-ink) / <alpha-value>)',
+          text: 'rgb(var(--brand-text) / <alpha-value>)',
         },
+        ink: 'rgb(var(--ink) / <alpha-value>)',
+        muted: 'rgb(var(--muted) / <alpha-value>)',
+        line: 'rgb(var(--line) / <alpha-value>)',
+        page: 'rgb(var(--page) / <alpha-value>)',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
         accent: {
           50: '#fff1f3',
           100: '#ffe0e5',

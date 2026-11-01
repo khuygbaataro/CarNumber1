@@ -26,27 +26,25 @@ export default function Navbar({ settings }: { settings: Settings }) {
   const messenger = messengerHref(settings.social?.facebook);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur-md">
-      <nav className="container-page flex h-16 items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-line bg-surface">
+      <nav className="container-page flex h-[72px] items-center justify-between gap-4 md:h-20">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2"
           onClick={() => setOpen(false)}
         >
-          {settings.logo ? (
-            <Image
-              src={settings.logo}
-              alt={settings.companyName}
-              width={160}
-              height={40}
-              className="h-9 w-auto object-contain"
-              priority
-            />
-          ) : (
-            <span className="text-lg font-bold tracking-tight text-brand-800">
-              {settings.companyName}
-            </span>
-          )}
+          {/* The wordmark ships with the site rather than coming from
+              settings: the header is white, and the logo uploaded for the
+              posters is drawn for black. Favicon and link previews still use
+              the settings one, which is the round badge. */}
+          <Image
+            src="/logo-horizontal.png"
+            alt="Victory Car"
+            width={680}
+            height={467}
+            className="h-10 w-auto object-contain sm:h-11 md:h-12"
+            priority
+          />
         </Link>
 
         {/* Desktop links */}
@@ -78,7 +76,7 @@ export default function Navbar({ settings }: { settings: Settings }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={t.cta.messengerLong}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[#0084FF] transition hover:bg-blue-50"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink transition hover:bg-brand-tint"
             >
               <ChatIcon />
             </a>
@@ -91,14 +89,24 @@ export default function Navbar({ settings }: { settings: Settings }) {
           )}
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          type="button"
-          aria-label="Menu"
-          aria-expanded={open}
-          className="-mr-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 transition hover:bg-gray-100 md:hidden"
-          onClick={() => setOpen((v) => !v)}
-        >
+        {/* Mobile: call, then the menu */}
+        <div className="flex shrink-0 items-center gap-2 md:hidden">
+          {tel && (
+            <a
+              href={tel}
+              aria-label={t.cta.call}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-brand text-ink shadow-sm transition hover:bg-brand-hover active:scale-[0.98]"
+            >
+              <PhoneIcon />
+            </a>
+          )}
+          <button
+            type="button"
+            aria-label="Menu"
+            aria-expanded={open}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink transition hover:bg-brand-tint"
+            onClick={() => setOpen((v) => !v)}
+          >
           <svg
             width="24"
             height="24"
@@ -112,8 +120,9 @@ export default function Navbar({ settings }: { settings: Settings }) {
             ) : (
               <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
             )}
-          </svg>
-        </button>
+            </svg>
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}

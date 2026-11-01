@@ -53,9 +53,9 @@ export default function VehicleCard({
   return (
     <Link
       href={`/vehicles/${vehicle._id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-gray-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:ring-brand/30"
+      className="group flex flex-col overflow-hidden rounded-[18px] bg-surface shadow-card ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:ring-brand/40"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-100">
         {cover ? (
           <Image
             src={cover}
@@ -86,7 +86,7 @@ export default function VehicleCard({
 
         {/* Photo count doubles as a quality signal — more angles, more trust. */}
         {photoCount > 1 && (
-          <span className="badge-muted absolute bottom-3 right-3 normal-case">
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-ink/80 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
             <CameraIcon /> {photoCount}
           </span>
         )}
@@ -94,44 +94,38 @@ export default function VehicleCard({
 
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="truncate text-[15px] font-bold leading-snug text-gray-900">
+          <h3 className="truncate text-[15px] font-bold leading-snug text-ink">
             {vehicle.brand} {vehicle.model}
           </h3>
-          <span className="shrink-0 rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-semibold text-gray-600">
-            {formatYear(vehicle.year, vehicle.month)}
-          </span>
+          <span className="pill-year shrink-0">{formatYear(vehicle.year, vehicle.month)}</span>
         </div>
 
-        <p className="mt-1 truncate text-xs text-gray-500">{specLine}</p>
+        <p className="mt-1 truncate text-xs text-muted">{specLine}</p>
 
-        <p className="mt-3 text-xl font-extrabold tracking-tight text-gray-900">
+        <p className="mt-3 text-[26px] font-extrabold leading-none tracking-tight text-ink">
           {formatPriceShort(vehicle.price)}
         </p>
 
-        {/* Leasing strip — in this market the down payment and the monthly
-            figure are what decide whether someone calls at all. Rows rather
-            than side-by-side tiles, so the falling payment range fits. */}
-        <div className="mt-2.5 divide-y divide-brand-100 rounded-xl bg-brand-50 px-3">
-          <div className="flex items-baseline justify-between gap-2 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-brand/60">
+        {/* In this market the down payment and the monthly figure are what
+            decide whether anyone calls, so they sit together under the price
+            rather than being left for the detail page to explain. */}
+        <div className="mt-3 grid grid-cols-2 overflow-hidden rounded-xl border border-brand-soft bg-brand-tint">
+          <div className="px-3 py-2">
+            <p className="figure-label">
               {t.common.downPayment} {effectiveDown}%
-            </span>
-            <span className="text-sm font-bold text-brand-800">
-              {formatPriceShort(downAmount)}
-            </span>
+            </p>
+            <p className="figure-value">{formatPriceShort(downAmount)}</p>
           </div>
-          <div className="flex items-baseline justify-between gap-2 py-2">
-            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-brand/60">
+          <div className="border-l border-brand-soft px-3 py-2">
+            <p className="figure-label">
               {t.common.monthlyShort} · {term} {t.common.months}
-            </span>
-            <span className="text-[13px] font-bold text-brand-800">
-              {formatPriceShort(schedule.monthly)}
-            </span>
+            </p>
+            <p className="figure-value">{formatPriceShort(schedule.monthly)}</p>
           </div>
         </div>
 
         {(vehicle.updatedAt || vehicle.createdAt) && (
-          <p className="mt-3 text-[11px] text-gray-400">
+          <p className="mt-3 text-[11px] text-muted/70">
             {formatAdded(vehicle.createdAt)}
           </p>
         )}

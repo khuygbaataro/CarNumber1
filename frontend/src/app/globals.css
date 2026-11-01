@@ -2,8 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * The brand palette, and the only place it is written down. Tailwind's
+ * `brand`, `ink`, `muted`, `line` and `surface` colours all read these, so
+ * changing a value here changes every button, chip and label that uses it.
+ *
+ * Channels rather than hex, because Tailwind needs `rgb(... / <alpha-value>)`
+ * for `bg-brand/80` and friends to keep working.
+ *
+ * The gold is for filling shapes. It is far too light to read as text on
+ * white — about 2:1 — so text on white uses --brand-text, text on the soft
+ * and tint fills uses --brand-ink, and anything sitting ON the gold takes
+ * --ink. White on this gold is legible to nobody.
+ */
 :root {
   color-scheme: light;
+
+  --brand: 245 161 28; /* #F5A11C — buttons, active chips, badges */
+  --brand-hover: 224 130 14; /* #E0820E */
+  --brand-text: 168 90 6; /* #A85A06 — gold wording on white */
+  --brand-soft: 255 235 199; /* #FFEBC7 — year pills */
+  --brand-tint: 255 247 232; /* #FFF7E8 — deposit / monthly boxes */
+  --brand-ink: 122 66 4; /* #7A4204 — wording on soft and tint */
+
+  --ink: 22 22 26; /* #16161A — body copy, the second button */
+  --muted: 85 85 94; /* #55555E */
+  --line: 236 230 218; /* #ECE6DA */
+  --page: 255 252 247; /* #FFFCF7 */
+  --surface: 255 255 255; /* #FFFFFF — cards, header */
+
   /* Height of the sticky mobile action bar — pages add this as bottom
      padding so the bar never covers the last bit of content. */
   --action-bar-h: 4.5rem;
@@ -17,7 +44,7 @@ html {
 }
 
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+  @apply bg-page text-ink antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -70,34 +97,36 @@ input[type='number'] {
   /* --- Buttons. Min height 44px everywhere so every tap target is
      comfortable on a phone. --- */
   .btn-primary {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-gray-950 shadow-sm transition hover:bg-brand-dark active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-60 disabled:active:scale-100;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-brand-hover active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-60 disabled:active:scale-100;
   }
 
   .btn-outline {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:bg-gray-50 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-brand-tint active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2;
   }
 
   .btn-ghost {
     @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 active:scale-[0.98];
   }
 
-  /* Call = green (phone), Messenger = its own blue. Recognisable at a glance. */
+  /* The pair at the bottom of every phone screen. Gold leads, because
+     calling is what the site is for; the second sits in ink so the two read
+     as one set rather than two borrowed logos. */
   .btn-call {
-    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98];
+    @apply inline-flex min-h-[50px] items-center justify-center gap-2 rounded-[14px] bg-brand px-5 py-3 text-sm font-bold text-ink shadow-sm transition hover:bg-brand-hover active:scale-[0.98];
   }
 
   .btn-messenger {
-    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-[#0084FF] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#0072db] active:scale-[0.98];
+    @apply inline-flex min-h-[50px] items-center justify-center gap-2 rounded-[14px] bg-ink px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-ink/90 active:scale-[0.98];
   }
 
   /* --- Surfaces --- */
   .card {
-    @apply rounded-2xl bg-white shadow-card ring-1 ring-gray-200;
+    @apply rounded-2xl bg-surface shadow-card ring-1 ring-line;
   }
 
   /* --- Forms --- */
   .input {
-    @apply w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
+    @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder-gray-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
   }
 
   .label {
@@ -110,7 +139,7 @@ input[type='number'] {
   }
 
   .badge-new {
-    @apply inline-flex items-center gap-1 rounded-full bg-fresh px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm;
+    @apply inline-flex items-center gap-1 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-ink shadow-sm;
   }
 
   .badge-sold {
@@ -123,11 +152,35 @@ input[type='number'] {
 
   /* Pill used for sort options and quick filters. */
   .chip {
-    @apply inline-flex min-h-[40px] shrink-0 items-center rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:border-gray-400 active:scale-[0.98];
+    @apply inline-flex min-h-[40px] shrink-0 items-center rounded-full border border-line bg-surface px-4 text-sm font-medium text-ink transition hover:border-brand active:scale-[0.98];
   }
 
   .chip-active {
-    @apply border-brand bg-brand text-gray-950 hover:border-brand;
+    @apply border-ink bg-ink text-white hover:border-ink;
+  }
+
+  /* The count beside a brand name. Gold on white needs the darker step. */
+  .chip-count {
+    @apply ml-1.5 text-xs font-bold text-brand-text;
+  }
+  .chip-active .chip-count {
+    @apply text-white/70;
+  }
+
+  /* Year pill on a card. */
+  .pill-year {
+    @apply inline-flex items-center rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink;
+  }
+
+  /* The deposit / monthly pair under a price. */
+  .figure-box {
+    @apply rounded-xl border border-brand-soft bg-brand-tint px-3 py-2;
+  }
+  .figure-label {
+    @apply text-[11px] font-semibold uppercase tracking-wide text-brand-ink;
+  }
+  .figure-value {
+    @apply mt-0.5 text-sm font-bold text-ink;
   }
 
   /* --- Section headings --- */

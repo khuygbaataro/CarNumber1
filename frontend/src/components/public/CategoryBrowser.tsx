@@ -27,14 +27,16 @@ export default function CategoryBrowser({ categories }: { categories: CategoryIn
   };
 
   const chip = (isActive: boolean) =>
-    `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${
+    `inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition ${
       isActive
-        ? 'border-brand bg-brand text-gray-950 shadow-sm'
-        : 'border-gray-200 bg-white text-gray-700 hover:border-brand hover:text-brand-800'
+        ? 'border-ink bg-ink text-white shadow-sm'
+        : 'border-line bg-surface text-ink hover:border-brand'
     }`;
 
+  // One line that scrolls sideways. Wrapping put four rows of brands above
+  // the first car on a phone, which is the thing the page is for.
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
       <button type="button" onClick={() => go('')} className={chip(active === '')}>
         Бүгд
       </button>
@@ -50,9 +52,7 @@ export default function CategoryBrowser({ categories }: { categories: CategoryIn
           >
             {c.label}
             <span
-              className={`rounded-full px-1.5 text-xs font-bold ${
-                isActive ? 'bg-white/25' : 'bg-gray-100 text-gray-500'
-              }`}
+              className={`text-xs font-bold ${isActive ? 'text-white/70' : 'text-brand-text'}`}
             >
               {c.count}
             </span>
