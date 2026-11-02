@@ -37,10 +37,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Banner settings={settings} vehicleCount={totalAvailable} />
-      <TrustStrip settings={settings} vehicleCount={totalAvailable} />
-
-      <section className="container-page py-12 sm:py-16">
+      <section className="container-page pb-12 pt-8 sm:pb-16 sm:pt-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">{t.home.catalog}</p>
@@ -90,6 +87,9 @@ export default async function HomePage() {
           </p>
         )}
       </section>
+
+      <Banner settings={settings} vehicleCount={totalAvailable} />
+      <TrustStrip settings={settings} vehicleCount={totalAvailable} />
 
       <AboutSection settings={settings} />
       <TestimonialsSection testimonials={settings.testimonials} />
