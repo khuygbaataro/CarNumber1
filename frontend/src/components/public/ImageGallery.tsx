@@ -111,7 +111,19 @@ export default function ImageGallery({
                   fraction of the photo, and at 96px there is nothing left of
                   them to resolve. 256 is the next width Next.js actually
                   serves, and it keeps the marks reading as marks. */}
-              <Image src={src} alt="" fill sizes="256px" className="object-cover" />
+              {/* Eager, not lazy. The strip sits just under a tall photo, so
+                  the browser leaves it until last and the row reads as a line
+                  of empty boxes for the first second — which looks like the
+                  thumbnails are missing rather than coming. Twelve 256px
+                  images are a few KB each; there is nothing to save here. */}
+              <Image
+                src={src}
+                alt=""
+                fill
+                sizes="256px"
+                loading="eager"
+                className="object-cover"
+              />
             </button>
           ))}
         </div>
