@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { fillRatioUrl } from '@/lib/imageUrl';
 import { t } from '@/lib/labels';
 
 /**
@@ -60,8 +61,11 @@ export default function ImageGallery({
               key={src + i}
               className="snap-start-always relative h-full basis-full flex-[0_0_100%]"
             >
+              {/* Cropped by Cloudinary, not by the box: the track is 4:3 and a
+                  portrait phone photo would otherwise lose its watermark off
+                  the top and bottom. */}
               <Image
-                src={src}
+                src={fillRatioUrl(src, '4:3', 1200)}
                 alt={`${alt} — ${t.detail.photos} ${i + 1}`}
                 fill
                 priority={i === 0}
