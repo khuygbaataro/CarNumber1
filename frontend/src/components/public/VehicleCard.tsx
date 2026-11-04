@@ -14,7 +14,6 @@ import {
   pickDisplayTerm,
 } from '@/lib/loan';
 import { isNewArrival } from '@/lib/vehicle';
-import { fillRatioUrl } from '@/lib/imageUrl';
 import { t } from '@/lib/labels';
 
 export default function VehicleCard({
@@ -28,7 +27,6 @@ export default function VehicleCard({
   loan?: LoanConfig;
 }) {
   const cover = vehicle.images?.[0];
-  const coverSrc = cover ? fillRatioUrl(cover, '4:3', 800) : '';
   const photoCount = vehicle.images?.length ?? 0;
   const sold = vehicle.status === 'sold';
 
@@ -64,7 +62,7 @@ export default function VehicleCard({
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
         {cover ? (
           <Image
-            src={coverSrc}
+            src={cover}
             alt={`${vehicle.brand} ${vehicle.model}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

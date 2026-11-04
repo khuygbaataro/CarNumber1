@@ -25,24 +25,3 @@ export function originalImageUrl(url: string): string {
   if (versionAt <= 0) return url; // already clean, or no version to anchor on
   return `${base}/upload/${parts.slice(versionAt).join('/')}`;
 }
-
-/**
- * The same photo cropped to a shape, by Cloudinary rather than by CSS.
- *
- * A watermark sits at the edges of the photo it was drawn on. Fitting that
- * photo into a differently shaped box with object-cover cuts those edges
- * off — a portrait phone photo in a 4:3 card loses 22% from the top and the
- * bottom, which is the website pill and the logo exactly.
- *
- * Putting the crop at the FRONT of the delivery url fixes it: Cloudinary
- * crops first, and the marks, which are placed relative to whatever they are
- * drawn on, land on the edges of the cropped image instead. g_auto keeps the
- * car in frame rather than cropping from the centre and cutting off a roof.
- */
-export function fillRatioUrl(url: string, ratio = '4:3', width = 800): string {
-  const cut = url.indexOf('/upload/');
-  if (cut === -1) return url;
-  const head = url.slice(0, cut);
-  const rest = url.slice(cut + '/upload/'.length);
-  return `${head}/upload/ar_${ratio},c_fill,g_auto,w_${width}/${rest}`;
-}
