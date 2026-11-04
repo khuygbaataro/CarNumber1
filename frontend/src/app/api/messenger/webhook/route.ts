@@ -117,35 +117,60 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
       // 1) Store attached photos, then tell the model about them so it can
       // decide the reply (e.g. jump straight to the confirm summary when
       // everything else is already collected).
+      //
+      // Facebook delivers each photo as its own webhook call, and Vercel runs
+      // those in parallel. Reading the draft, appending, and saving the whole
+      // document back — which is what this did — is a lost update waiting to
+      // happen: two calls both read five photos, each saves six, and one
+      // photo is gone and the order is whoever finished last. Worse, saving
+      // the whole document also wrote back a stale processedMids, so a
+      // message id another call had just recorded was erased and Facebook's
+      // redelivery of it sailed through the duplicate check — which is how
+      // the same photo arrived twice and, being last, became the cover.
+      //
+      // So photos are appended with one atomic push, in the order they were
+      // uploaded, and nothing else on the document is touched.
       if (ev.imageUrls.length > 0) {
-        let ok = 0;
+        const stored: string[] = [];
         let lastErr = '';
         for (const url of ev.imageUrls) {
           try {
-            const stored = await uploadImageFromUrl(url);
-            session.images = [...(session.images || []), stored];
-            ok++;
+            stored.push(await uploadImageFromUrl(url));
           } catch (e) {
             lastErr = e instanceof Error ? e.message : String(e);
             console.error('image upload failed:', lastErr);
           }
         }
-        session.markModified('images');
-        await session.save();
-        if (ok === 0) {
+
+        if (stored.length === 0) {
           await sendText(ev.senderId, `Зураг хадгалахад алдаа: ${lastErr.slice(0, 300)}`);
         } else {
-          const total = (session.images || []).length;
-          text = `[${ok} зураг ирлээ, нийт ${total}]${text ? ' ' + text : ''}`;
+          const after = await BotSession.findOneAndUpdate(
+            { senderId: ev.senderId },
+            { $push: { images: { $each: stored } } },
+            { new: true, projection: { images: 1 } }
+          ).lean<{ images?: string[] }>();
+          // The count comes from what the database now holds, not from this
+          // call's own copy, so it stays right while photos are still landing.
+          const total = after?.images?.length ?? stored.length;
+          session.images = after?.images ?? stored;
+          text = `[${stored.length} зураг ирлээ, нийт ${total}]${text ? ' ' + text : ''}`;
         }
       }
 
       // 2) Run the model turn (user text and/or the photo notification).
       if (text) {
+        const before = (session.images || []).length;
         const reply = await handleUserText(session, text);
-        session.markModified('messages');
-        session.markModified('images');
-        await session.save();
+        const now = (session.images || []).length;
+
+        // Only ever write back what this turn owns. The draft conversation is
+        // this call's to save; the photo list is not, unless the turn
+        // deliberately emptied it — which is what publishing a car does.
+        const update: Record<string, unknown> = { messages: session.messages };
+        if (now === 0 && before > 0) update.images = [];
+        await BotSession.updateOne({ senderId: ev.senderId }, { $set: update });
+
         await sendText(ev.senderId, reply);
       }
     } catch (e) {

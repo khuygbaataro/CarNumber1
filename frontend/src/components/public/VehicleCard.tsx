@@ -55,7 +55,11 @@ export default function VehicleCard({
       href={`/vehicles/${vehicle._id}`}
       className="group flex flex-col overflow-hidden rounded-[18px] bg-surface shadow-card ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:ring-brand/40"
     >
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-100">
+      {/* 4:3, which is what the photos are. A wider box crops the top and
+          bottom under object-cover, and that is exactly where the website
+          pill, the logo and the phone sit — the card quietly lost all three
+          while the full photo still carried them. */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
         {cover ? (
           <Image
             src={cover}
