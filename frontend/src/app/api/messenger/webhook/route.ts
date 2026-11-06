@@ -105,6 +105,7 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
       if (ev.text && ev.text.trim().toLowerCase() === 'reset') {
         session.messages = [];
         session.images = [];
+        session.imageAt = [];
         session.markModified('messages');
         session.markModified('images');
         await session.save();
@@ -128,8 +129,10 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
       // redelivery of it sailed through the duplicate check — which is how
       // the same photo arrived twice and, being last, became the cover.
       //
-      // So photos are appended with one atomic push, in the order they were
-      // uploaded, and nothing else on the document is touched.
+      // So photos are appended with one atomic push, and nothing else on the
+      // document is touched. Each carries Facebook's timestamp for the
+      // message it came in, because the order they finish uploading is the
+      // order of their file sizes, not the order they were sent.
       if (ev.imageUrls.length > 0) {
         const stored: string[] = [];
         let lastErr = '';
@@ -145,9 +148,13 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
         if (stored.length === 0) {
           await sendText(ev.senderId, `Зураг хадгалахад алдаа: ${lastErr.slice(0, 300)}`);
         } else {
+          // Within one message the attachments keep their own order, so the
+          // index is a tiebreak under the message's timestamp.
+          const base = (ev.at ?? Date.now()) * 1000;
+          const keys = stored.map((_, i) => base + i);
           const after = await BotSession.findOneAndUpdate(
             { senderId: ev.senderId },
-            { $push: { images: { $each: stored } } },
+            { $push: { images: { $each: stored }, imageAt: { $each: keys } } },
             { new: true, projection: { images: 1 } }
           ).lean<{ images?: string[] }>();
           // The count comes from what the database now holds, not from this
@@ -168,7 +175,10 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
         // this call's to save; the photo list is not, unless the turn
         // deliberately emptied it — which is what publishing a car does.
         const update: Record<string, unknown> = { messages: session.messages };
-        if (now === 0 && before > 0) update.images = [];
+        if (now === 0 && before > 0) {
+          update.images = [];
+          update.imageAt = [];
+        }
         await BotSession.updateOne({ senderId: ev.senderId }, { $set: update });
 
         await sendText(ev.senderId, reply);

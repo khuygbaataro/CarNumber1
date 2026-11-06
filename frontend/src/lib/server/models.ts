@@ -43,6 +43,9 @@ const botSessionSchema = new Schema(
       default: [],
     },
     images: { type: [String], default: [] }, // Cloudinary URLs collected this draft
+    // Sort keys for images, pushed in the same update so the two stay in
+    // step. What they order is explained on MessagingEvent.at.
+    imageAt: { type: [Number], default: [] },
     processedMids: { type: [String], default: [] }, // recent FB message ids (dedupe)
   },
   { timestamps: true, versionKey: false }

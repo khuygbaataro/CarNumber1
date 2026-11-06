@@ -101,6 +101,15 @@ export async function postToFeed(
 export interface MessagingEvent {
   senderId: string;
   mid?: string; // FB message id — used to skip webhook redeliveries
+  /**
+   * When Facebook received the message, in ms.
+   *
+   * Each photo arrives as its own webhook call and those run in parallel, so
+   * the order they finish uploading is the order of their file sizes, not the
+   * order they were sent. This is the only thing that says what that order
+   * was.
+   */
+  at?: number;
   text?: string;
   imageUrls: string[];
 }
@@ -120,7 +129,13 @@ export function parseEvents(body: any): MessagingEvent[] {
       for (const att of attachments) {
         if (att?.type === 'image' && att?.payload?.url) imageUrls.push(att.payload.url);
       }
-      out.push({ senderId, mid: m.message.mid, text: m.message.text, imageUrls });
+      out.push({
+        senderId,
+        mid: m.message.mid,
+        at: Number(m.timestamp) || Date.now(),
+        text: m.message.text,
+        imageUrls,
+      });
     }
   }
   return out;

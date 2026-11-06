@@ -235,7 +235,10 @@ async function runTool(
       modelName = `${modelName} #${last4}`;
     }
 
-    const images = session.images || [];
+    // Read the photos back rather than trusting this request's copy: the
+    // last of them may have landed while the model was still answering, and
+    // the order is the one they were sent in, not the one they uploaded in.
+    const images = await orderedPhotos(session.senderId, session.images || []);
     const doc = await Vehicle.create({
       brand,
       model: modelName,
@@ -403,6 +406,32 @@ export async function handleUserText(session: any, text: string): Promise<string
 }
 
 // Load or create the per-sender conversation state.
+/**
+ * A draft's photos, in the order they were sent.
+ *
+ * imageAt holds Facebook's timestamp for each photo and is pushed alongside
+ * images, so the two are index-aligned. A photo with no key — one stored
+ * before this existed — keeps its place rather than jumping to the front.
+ */
+async function orderedPhotos(senderId: string, fallback: string[]): Promise<string[]> {
+  try {
+    const fresh = await BotSession.findOne(
+      { senderId },
+      'images imageAt'
+    ).lean<{ images?: string[]; imageAt?: number[] }>();
+    const urls = fresh?.images;
+    if (!Array.isArray(urls) || urls.length === 0) return fallback;
+    const keys = fresh?.imageAt || [];
+    return urls
+      .map((url, i) => ({ url, key: typeof keys[i] === 'number' ? keys[i] : -1, i }))
+      .sort((a, b) => (a.key - b.key) || (a.i - b.i))
+      .map((x) => x.url);
+  } catch {
+    // Never let ordering be the reason a car cannot be published.
+    return fallback;
+  }
+}
+
 export async function getSession(senderId: string): Promise<any> {
   let s = await BotSession.findOne({ senderId });
   if (!s) s = await BotSession.create({ senderId, messages: [], images: [] });
