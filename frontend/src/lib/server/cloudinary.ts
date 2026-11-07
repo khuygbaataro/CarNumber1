@@ -190,13 +190,42 @@ async function buildTransformation(): Promise<any[]> {
  * incoming transformation would discard it, which is what previously made the
  * watermark impossible to change without re-uploading every car.
  */
+/**
+ * Cloudinary fetches the photo from Facebook's CDN, and that hop fails now
+ * and then — a slow edge, a dropped connection. One failure used to mean one
+ * photo quietly missing from the car, which is the kind of thing nobody
+ * notices until the ad is already up.
+ *
+ * Two attempts, and a timeout well under the function's own, so a single
+ * stuck photo cannot run the clock out and take the whole batch with it.
+ */
+const ATTEMPTS = 2;
+const UPLOAD_TIMEOUT_MS = 15_000;
+
 export async function uploadImageFromUrl(url: string): Promise<string> {
   const transformation = await buildTransformation();
-  const result: any = await cloudinary.uploader.upload(url, {
-    folder: 'dealership/images',
-    resource_type: 'image',
-    eager: [transformation],
-  });
+  let lastError: unknown;
+  let result: any;
+
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+    try {
+      result = await cloudinary.uploader.upload(url, {
+        folder: 'dealership/images',
+        resource_type: 'image',
+        eager: [transformation],
+        timeout: UPLOAD_TIMEOUT_MS,
+      });
+      break;
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `[upload] attempt ${attempt}/${ATTEMPTS} failed:`,
+        error instanceof Error ? error.message : error
+      );
+      if (attempt < ATTEMPTS) await new Promise((r) => setTimeout(r, 600));
+    }
+  }
+  if (!result) throw lastError;
 
   // Eager runs synchronously, but never hand back the un-watermarked original
   // if it is somehow missing — rebuild the same derived URL instead.

@@ -9,6 +9,7 @@ export const formatPrice = (price: number): string => `${formatNumber(price)}₮
 export const formatPriceShort = (price: number): string => {
   const v = Math.round(price || 0);
   if (v >= 1_000_000) {
+   
     const millions = Math.round((v / 1_000_000) * 100) / 100;
     return `${millions} сая ₮`;
   }

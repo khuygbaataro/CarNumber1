@@ -145,6 +145,8 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
           }
         }
 
+        const failed = ev.imageUrls.length - stored.length;
+
         if (stored.length === 0) {
           await sendText(ev.senderId, `Зураг хадгалахад алдаа: ${lastErr.slice(0, 300)}`);
         } else {
@@ -162,6 +164,16 @@ async function processEvents(events: MessagingEvent[], admins: Set<string>) {
           const total = after?.images?.length ?? stored.length;
           session.images = after?.images ?? stored;
           text = `[${stored.length} зураг ирлээ, нийт ${total}]${text ? ' ' + text : ''}`;
+
+          // Said plainly, and not through the model: a photo that did not
+          // make it is something the sender has to act on, and they will not
+          // spot it by counting thumbnails later.
+          if (failed > 0) {
+            await sendText(
+              ev.senderId,
+              `⚠️ ${failed} зураг хадгалагдсангүй. Тэр зургуудаа дахин илгээнэ үү.`
+            );
+          }
         }
       }
 
