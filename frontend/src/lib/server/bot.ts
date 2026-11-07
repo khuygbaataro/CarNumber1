@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Vehicle, BotSession, Settings } from './models';
+import { sortPhotosForDisplay } from './photoOrder';
 import { postToFeed } from './messenger';
 import { primaryPhone } from '@/lib/contact';
 
@@ -238,7 +239,11 @@ async function runTool(
     // Read the photos back rather than trusting this request's copy: the
     // last of them may have landed while the model was still answering, and
     // the order is the one they were sent in, not the one they uploaded in.
-    const images = await orderedPhotos(session.senderId, session.images || []);
+    // Two passes: back to the order they were sent in, then into the order
+    // a buyer wants to see them. The second only ever rearranges what the
+    // first produced, and falls back to it if the model cannot be reached.
+    const sent = await orderedPhotos(session.senderId, session.images || []);
+    const images = await sortPhotosForDisplay(sent);
     const doc = await Vehicle.create({
       brand,
       model: modelName,
