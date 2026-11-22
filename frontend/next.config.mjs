@@ -8,6 +8,18 @@ const nextConfig = {
       { protocol: 'https', hostname: 'placehold.co' },
     ],
   },
+  async headers() {
+    return [
+      {
+        // The customs helper's installer. The admin page's link already asks
+        // for a download; this makes the bare URL behave the same way, so a
+        // link passed to a colleague saves the file rather than doing
+        // whatever that browser happens to do with an .exe.
+        source: '/downloads/:file*',
+        headers: [{ key: 'Content-Disposition', value: 'attachment' }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

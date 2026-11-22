@@ -168,10 +168,31 @@ export const t = {
       groupMarketing: 'Групп маркетинг',
       tools: 'Хэрэгсэл',
       leads: 'Хүсэлтүүд',
+      gaaliApp: 'Гаалийн апп',
       settings: 'Тохиргоо',
       help: 'Заавар',
       viewSite: 'Сайт харах',
       logout: 'Гарах',
+    },
+    // The customs helper is a Windows program of our own making, not part
+    // of the site. It is handed out here so every desk installs the same copy.
+    downloads: {
+      title: 'Програм татах',
+      subtitle: 'Ажлын компьютер дээр нэг удаа суулгахад хангалттай.',
+      gaaliName: 'Гаалийн файл бэлтгэгч',
+      gaaliWhat:
+        'Японоос ирсэн машины гаалийн мэдүүлэгт хэрэгтэй PDF файлуудыг дарааллаар нь, зөв нэртэйгээр бэлтгэж өгнө.',
+      version: 'Хувилбар',
+      download: 'Татах',
+      installTitle: 'Хэрхэн суулгах',
+      steps: [
+        '«Татах» дарна — GaaliSetup.exe файл татагдана.',
+        'Татсан файл дээр хоёр дарж суулгана.',
+        'Суулгаж дуусмагц ажлын дэлгэц дээр «Гаалийн файл бэлтгэгч» шош гарна.',
+      ],
+      warnTitle: 'Windows анхааруулвал',
+      warnBody:
+        '«Windows protected your PC» гэж гарвал «More info» → «Run anyway» дарна. Програмыг бид өөрсдөө хийсэн, Microsoft-д бүртгүүлээгүй учраас Windows хараахан танихгүй байна. Вирус биш.',
     },
     // One A4 sheet per car, printed and taped inside its own window.
     windowCards: {

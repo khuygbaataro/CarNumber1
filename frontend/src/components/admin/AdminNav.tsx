@@ -10,7 +10,7 @@ export default function AdminNav() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // The four below are each used now and then rather than every day, and
+  // The tools below are each used now and then rather than every day, and
   // spelling them all out pushed the bar onto a second line. They sit behind
   // one item; the three that are opened constantly stay in reach.
   const links = [
@@ -25,6 +25,7 @@ export default function AdminNav() {
     { href: '/admin/window-cards', label: t.admin.nav.windowCards },
     { href: '/admin/group-marketing', label: t.admin.nav.groupMarketing },
     { href: '/admin/leads', label: t.admin.nav.leads },
+    { href: '/admin/downloads', label: t.admin.nav.gaaliApp },
   ];
 
   const isActive = (href: string) =>

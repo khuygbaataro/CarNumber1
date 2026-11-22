@@ -95,7 +95,7 @@ export default function AdminLeadsPage() {
                 {leads.map((lead) => (
                   <tr
                     key={lead._id}
-                    className={lead.status === 'new' ? 'bg-blue-50/40' : ''}
+                    className={lead.status === 'new' ? 'bg-brand-tint/60' : ''}
                   >
                     <td className="px-4 py-3 font-medium text-gray-900">{lead.name}</td>
                     <td className="px-4 py-3">
